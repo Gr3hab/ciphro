@@ -1,0 +1,1149 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="claude:viewport-fit-sides" content="cover">
+<title>NumFact</title>
+<meta name="description" content="Jeden Tag vier Zahlencodes. Hinter jedem steckt ein überraschender, wahrer Fakt.">
+<meta property="og:title" content="NumFact">
+<meta property="og:description" content="Jeden Tag vier Zahlencodes. Hinter jedem steckt ein überraschender, wahrer Fakt.">
+<meta property="og:type" content="website">
+<meta name="theme-color" content="#f2f4f7" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#111715" media="(prefers-color-scheme: dark)">
+<meta name="apple-mobile-web-app-title" content="NumFact">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%231f3fa6'/%3E%3Cpath d='M9 23V9h2.6l6.2 9.4V9H20.4v14h-2.6L11.6 13.6V23z' fill='%23fff'/%3E%3Crect x='22.5' y='17' width='3.5' height='6' fill='%23ffe14a'/%3E%3C/svg%3E">
+<link rel="apple-touch-icon" href="icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Martian+Mono:wght@500;700;800&display=swap">
+<style>
+/* Layout: eine Spalte. Kopf, Stufenwahl, Regel, dann das Rätselblatt auf Karopapier.
+   Ziffern in Königsblau wie mit Füller, gelöste Wörter mit Textmarker, Fehler mit Rotstift, Tipps mit Bleistift. */
+:root{
+  --paper:#f2f4f7;
+  --sheet:#ffffff;
+  --grid:#e0e7f0;
+  --line:#d2d9e3;
+  --text:#17202e;
+  --muted:#596377;
+  --ink:#1f3fa6;
+  --marker:#ffe14a;
+  --marker-text:#17202e;
+  --red:#c62f27;
+  --pencil:#7a808b;
+  --scrim:rgba(10,14,22,.55);
+  --display:"Martian Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --body:"Atkinson Hyperlegible", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --cell:clamp(20px, 5.6vw, 28px);
+  --r:6px;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#111715; --sheet:#19221f; --grid:#25312d; --line:#2f3b37;
+    --text:#e6ece8; --muted:#9ba7a2; --ink:#a5b9ff; --marker:#e4c943;
+    --marker-text:#14130b; --red:#ff7d70; --pencil:#8f9a95; --scrim:rgba(0,0,0,.6);
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#111715; --sheet:#19221f; --grid:#25312d; --line:#2f3b37;
+  --text:#e6ece8; --muted:#9ba7a2; --ink:#a5b9ff; --marker:#e4c943;
+  --marker-text:#14130b; --red:#ff7d70; --pencil:#8f9a95; --scrim:rgba(0,0,0,.6);
+  color-scheme:dark;
+}
+
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--text);font-family:var(--body);font-size:17px;line-height:1.5}
+button{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+.wrap{
+  max-width:680px;margin:0 auto;
+  padding-left:max(16px, env(safe-area-inset-left, 0px));
+  padding-right:max(16px, env(safe-area-inset-right, 0px));
+  padding-block:22px 56px;
+  display:flex;flex-direction:column;gap:18px;
+}
+
+/* Kopf */
+.top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.brand{min-width:0}
+.brand h1{margin:0;font-family:var(--display);font-weight:800;font-size:clamp(1.6rem, 6.4vw, 2.2rem);letter-spacing:.01em;line-height:1}
+.brand h1 .num{color:var(--ink)}
+.cipher{font-family:var(--display);font-size:.7rem;font-weight:500;color:var(--muted);letter-spacing:.06em;margin-top:7px}
+.issue{margin:10px 0 0;font-size:.95rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.top-actions{display:flex;gap:8px;flex-shrink:0}
+.icon-btn{width:42px;height:42px;display:grid;place-items:center;border:1px solid var(--line);background:var(--sheet);border-radius:var(--r);cursor:pointer;color:var(--text);padding:0}
+.icon-btn:hover{border-color:var(--ink);color:var(--ink)}
+.icon-btn svg{width:20px;height:20px}
+
+.newday{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;border:2px solid var(--ink);border-radius:var(--r);padding:10px 12px;background:var(--sheet);font-weight:700}
+
+/* Stufen */
+.modes{display:grid;grid-template-columns:repeat(4, minmax(0,1fr));gap:6px}
+@media (max-width:459px){ .modes{grid-template-columns:repeat(2, minmax(0,1fr))} }
+.mode{border:1px solid var(--line);background:var(--sheet);border-radius:var(--r);padding:8px 10px 7px;cursor:pointer;text-align:left;display:flex;flex-direction:column;gap:1px;min-width:0}
+.mode:hover{border-color:var(--ink)}
+.mode .name{font-weight:700;font-size:.95rem;line-height:1.25}
+.mode .state{font-size:.78rem;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mode[aria-pressed="true"]{border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)}
+.mode.done .name span{background:var(--marker);color:var(--marker-text);padding:0 4px;margin-left:-4px;border-radius:2px 6px 3px 5px}
+.mode.revealed .state{color:var(--pencil)}
+
+/* Regel */
+.rule{display:flex;flex-direction:column;gap:4px}
+.rule p{margin:0;max-width:62ch}
+.rule .example{font-family:var(--display);font-size:.8rem;font-weight:500;color:var(--ink)}
+.rule .note{font-size:.88rem;color:var(--muted)}
+
+/* Rätselblatt */
+.sheet{
+  background-color:var(--sheet);
+  background-image:linear-gradient(var(--grid) 1px, transparent 1px), linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size:var(--cell) var(--cell);
+  border:1px solid var(--line);border-radius:3px;
+  padding:var(--cell);
+  display:flex;flex-wrap:wrap;gap:var(--cell);align-items:flex-start;
+  cursor:text;
+}
+.nojs{background:var(--sheet);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px;display:flex;flex-direction:column;gap:6px;max-width:62ch;cursor:auto}
+.nojs p{margin:0;font-size:.95rem}
+.word{position:relative;display:flex;flex-direction:column;max-width:100%;border-radius:2px}
+.word .row{display:flex;flex-wrap:wrap;position:relative;z-index:1}
+.d{width:var(--cell);height:var(--cell);display:grid;place-items:center;font-family:var(--display);font-weight:700;font-size:calc(var(--cell) * .56);color:var(--ink);font-variant-numeric:tabular-nums;line-height:1}
+.s{width:var(--cell);height:var(--cell);display:grid;place-items:center;font-weight:700;font-size:calc(var(--cell) * .7);line-height:1;position:relative;color:var(--text)}
+.s::after{content:"";position:absolute;left:18%;right:18%;bottom:3px;height:2px;border-radius:1px;background:var(--muted);opacity:.45}
+.s.filled::after{opacity:.18}
+.s.cursor::after{background:var(--ink);opacity:1;height:3px;animation:blink 1.1s steps(2, start) infinite}
+.s.hint{color:var(--pencil)}
+.word.easy .col{display:flex;flex-direction:column;width:calc(var(--cell) * 2)}
+.word.easy .d,.word.easy .s{width:100%}
+.word.easy .d{font-size:calc(var(--cell) * .6)}
+
+.word input{position:absolute;inset:0;width:100%;height:100%;margin:0;padding:0;border:0;opacity:0;font-size:16px;background:transparent;color:transparent;caret-color:transparent;z-index:2;cursor:text}
+.word.locked input{pointer-events:none}
+.word.active{outline:2px solid var(--ink);outline-offset:4px}
+.word.wrong .s{color:var(--red)}
+.word.wrong .s::after{background:var(--red);opacity:.9}
+.word.shake .slots,.word.easy.shake .cols{animation:shake .32s ease-in-out}
+.word.solved::before{
+  content:"";position:absolute;inset:-3px -5px;z-index:0;
+  background:var(--marker);opacity:.9;
+  border-radius:3px 10px 4px 9px;transform:rotate(-.7deg);
+}
+.word.solved .d,.word.solved .s{color:var(--marker-text)}
+.word.solved .s.hint{color:var(--marker-text);opacity:.5}
+.word.solved .s::after{opacity:0}
+.word.solved.just::before{animation:swipe .42s ease-out both}
+.word.given .s{color:var(--pencil)}
+.word.given .s::after{background:transparent;border-bottom:2px dotted var(--pencil);height:0;opacity:1}
+
+@keyframes blink{to{opacity:0}}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+@keyframes swipe{from{clip-path:inset(0 100% 0 0)}to{clip-path:inset(0 0 0 0)}}
+
+/* Werkzeuge */
+.tools{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.tools .spacer{flex:1}
+.meta{font-size:.88rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:42px;padding:8px 14px;border:1px solid var(--line);border-radius:var(--r);background:var(--sheet);font-weight:700;font-size:.93rem;cursor:pointer;text-decoration:none;color:var(--text)}
+.btn:hover{border-color:var(--ink)}
+.btn svg{width:18px;height:18px;flex-shrink:0}
+.btn.primary{background:var(--ink);border-color:var(--ink);color:var(--sheet)}
+.btn.primary:hover{filter:brightness(1.08)}
+.btn:disabled{opacity:.45;cursor:not-allowed;border-color:var(--line)}
+.meta{display:inline-flex;align-items:center;gap:8px}
+.pips{display:inline-flex;gap:4px}
+.pips i{width:9px;height:9px;border-radius:50%;border:1.5px solid var(--ink)}
+.pips i.on{background:var(--ink)}
+.btn.ghost{background:transparent;border-color:transparent;color:var(--muted)}
+.btn.ghost:hover{color:var(--red);border-color:transparent}
+.btn.danger{border-color:var(--red);color:var(--red)}
+.confirm{flex-basis:100%;display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:10px 12px;border:1px solid var(--red);border-radius:var(--r);background:var(--sheet)}
+.confirm span{flex:1 1 220px;font-size:.92rem}
+
+.key{display:grid;grid-template-columns:repeat(10, minmax(0,1fr));background:var(--sheet);border:1px solid var(--line);border-radius:3px;overflow:hidden}
+.key div{display:flex;flex-direction:column;align-items:center;gap:1px;padding:5px 0;border-right:1px solid var(--grid);border-bottom:1px solid var(--grid)}
+.key div:nth-child(10n){border-right:0}
+.key div:nth-child(n+21){border-bottom:0}
+.key b{font-size:.82rem}
+.key span{font-family:var(--display);font-size:.7rem;font-weight:700;color:var(--ink);font-variant-numeric:tabular-nums}
+
+/* Auflösung */
+.result{display:flex;flex-direction:column;gap:12px;border-top:2px solid var(--text);padding-top:18px}
+.result .label{font-family:var(--display);font-size:.72rem;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);font-variant-numeric:tabular-nums}
+.result .fact{margin:0;font-size:clamp(1.35rem, 4.8vw, 1.75rem);font-weight:700;line-height:1.28;text-wrap:balance}
+.result .more{margin:0;color:var(--muted);max-width:62ch}
+.result .daydone{margin:0;font-weight:700}
+.result .actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px}
+.countdown{font-family:var(--display);font-weight:700;font-variant-numeric:tabular-nums;color:var(--ink)}
+
+.foot{font-size:.85rem;color:var(--muted);border-top:1px solid var(--line);padding-top:14px;margin-top:8px}
+.foot p{margin:0}
+
+/* Dialoge */
+dialog{border:1px solid var(--line);border-radius:10px;background:var(--sheet);color:var(--text);padding:0;width:min(460px, calc(100vw - 32px));max-height:calc(100dvh - 32px)}
+dialog::backdrop{background:var(--scrim)}
+.dlg{padding:22px;display:flex;flex-direction:column;gap:14px}
+.dlg-head{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.dlg h2{margin:0;font-family:var(--display);font-size:1.05rem;font-weight:800}
+.dlg h3{margin:0 0 4px;font-size:.8rem;font-family:var(--display);font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.dlg p{margin:0}
+.small{font-size:.88rem;color:var(--muted)}
+.demo{align-self:flex-start;display:grid;grid-template-columns:repeat(4, 44px);background-color:var(--sheet);background-image:linear-gradient(var(--grid) 1px, transparent 1px), linear-gradient(90deg, var(--grid) 1px, transparent 1px);background-size:22px 22px;border:1px solid var(--line);padding:22px}
+.demo span{height:22px;display:grid;place-items:center;font-family:var(--display);font-weight:700;font-size:.8rem;color:var(--ink)}
+.demo span.l{font-family:var(--body);font-size:1rem;color:var(--text)}
+.howto{margin:0;padding-left:1.1em;display:flex;flex-direction:column;gap:6px}
+.stats{display:grid;grid-template-columns:repeat(4, minmax(0,1fr));gap:8px;text-align:center}
+.stats .n{font-family:var(--display);font-size:1.7rem;font-weight:800;line-height:1.1;font-variant-numeric:tabular-nums}
+.stats .l{font-size:.78rem;color:var(--muted);line-height:1.25;margin-top:4px}
+.bars{display:flex;flex-direction:column;gap:7px}
+.bar{display:grid;grid-template-columns:6.2em minmax(0,1fr) 2em;align-items:center;gap:10px;font-size:.9rem}
+.bar .track{height:10px;background:var(--grid);border-radius:2px;overflow:hidden}
+.bar .fill{display:block;height:100%;background:var(--ink)}
+.bar .v{text-align:right;font-variant-numeric:tabular-nums;font-weight:700}
+textarea{width:100%;font:inherit;font-size:.95rem;padding:10px;border:1px solid var(--line);border-radius:var(--r);background:var(--paper);color:var(--text);resize:vertical}
+
+.confetti{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:60}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom, 0px));transform:translateX(-50%);z-index:50;background:var(--text);color:var(--paper);padding:10px 16px;border-radius:var(--r);font-weight:700;font-size:.92rem;max-width:calc(100vw - 32px);box-shadow:0 6px 24px var(--scrim)}
+
+@media (prefers-reduced-motion: reduce){
+  .s.cursor::after,.word.shake .slots,.word.easy.shake .cols,.word.solved.just::before{animation:none}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="newday" id="newday" hidden>
+    <span>Ein neues Rätsel ist da.</span>
+    <button class="btn primary" id="newdayBtn" type="button">Jetzt spielen</button>
+  </div>
+
+  <header class="top">
+    <div class="brand">
+      <h1><span class="num">NUM</span>FACT</h1>
+      <div class="cipher" aria-hidden="true">14·21·13·6·1·3·20</div>
+      <p class="issue" id="issue"></p>
+    </div>
+    <div class="top-actions">
+      <button class="icon-btn" id="statsBtn" type="button" aria-label="Statistik" title="Statistik">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M5 20V12M12 20V5M19 20v-9"/></svg>
+      </button>
+      <button class="icon-btn" id="helpBtn" type="button" aria-label="Anleitung" title="Anleitung">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.6 9.3a2.5 2.5 0 1 1 3.4 2.3c-.6.3-1 .8-1 1.5v.6"/><path d="M12 17h.01"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <nav class="modes" aria-label="Schwierigkeit">
+    <button class="mode" id="tab-easy" data-mode="easy" type="button" aria-pressed="false"><span class="name"><span>Easy</span></span><span class="state"></span></button>
+    <button class="mode" id="tab-hard" data-mode="hard" type="button" aria-pressed="false"><span class="name"><span>Hard</span></span><span class="state"></span></button>
+    <button class="mode" id="tab-mirror" data-mode="mirror" type="button" aria-pressed="false"><span class="name"><span>Mirror</span></span><span class="state"></span></button>
+    <button class="mode" id="tab-impossible" data-mode="impossible" type="button" aria-pressed="false"><span class="name"><span>Impossible</span></span><span class="state"></span></button>
+  </nav>
+
+  <section class="rule" id="rule"></section>
+
+  <section class="sheet" id="board" role="group" aria-label="Zahlencode">
+    <div class="nojs" id="nojs">
+      <strong>Hier fehlt das Rätsel?</strong>
+      <p>Du siehst gerade nur die Vorschau der Datei. Die zeigt die Seite an, startet aber das Spiel nicht. Das passiert am iPhone, wenn man die Datei aus WhatsApp, Mail oder der Dateien-App öffnet.</p>
+      <p>Öffne NumFact stattdessen über den Link im Browser.</p>
+    </div>
+  </section>
+
+  <div class="tools" id="tools">
+    <button class="btn" id="hintBtn" type="button">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-3.6 10.8c.6.5 1 1.2 1 2V16h5.2v-.2c0-.8.4-1.5 1-2A6 6 0 0 0 12 3z"/></svg>
+      <span id="hintLabel">Buchstabe aufdecken</span>
+    </button>
+    <button class="btn" id="keyBtn" type="button" aria-expanded="false" aria-controls="key">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8" cy="15" r="4"/><path d="M10.8 12.2 20 3M17 6l2 2M15 8l2 2"/></svg>
+      <span id="keyLabel">Schlüssel</span>
+    </button>
+    <span class="spacer"></span>
+    <span class="meta" id="toolMeta"></span>
+    <button class="btn ghost" id="revealBtn" type="button">Auflösen</button>
+    <div class="confirm" id="revealConfirm" hidden>
+      <span>Lösung anzeigen? Dann zählt dieses Rätsel heute nicht als gelöst.</span>
+      <button class="btn danger" id="revealYes" type="button">Ja, auflösen</button>
+      <button class="btn" id="revealNo" type="button">Weiter rätseln</button>
+    </div>
+  </div>
+
+  <div class="key" id="key" hidden></div>
+
+  <section class="result" id="result" hidden aria-live="polite"></section>
+
+  <footer class="foot">
+    <p>Jeden Tag um Mitternacht gibt es vier neue Codes. Dein Fortschritt bleibt in diesem Browser gespeichert, ganz ohne Anmeldung.</p>
+  </footer>
+</div>
+
+<dialog id="helpDlg" aria-labelledby="helpTitle">
+  <div class="dlg">
+    <div class="dlg-head">
+      <h2 id="helpTitle">So funktioniert NumFact</h2>
+      <button class="icon-btn" type="button" data-close aria-label="Schließen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+    </div>
+    <p>Hinter jedem Zahlencode steckt ein kurzer, wahrer Fakt. Jeden Tag gibt es vier neue Codes, von Easy bis Impossible.</p>
+    <div class="demo" aria-label="Beispiel: 8, 21, 14, 4 ergibt HUND">
+      <span>8</span><span>21</span><span>14</span><span>4</span>
+      <span class="l">H</span><span class="l">U</span><span class="l">N</span><span class="l">D</span>
+    </div>
+    <ul class="howto">
+      <li><strong>Tippe ein Wort an</strong> und schreib, was du entschlüsselt hast. Ein richtiges Wort wird sofort markiert.</li>
+      <li><strong>Leertaste</strong> springt zum nächsten Wort.</li>
+      <li><strong>Drei Tipps pro Rätsel.</strong> Ein Tipp deckt einen Buchstaben auf, bei Impossible verrät der erste die Verschiebung. Teil sie dir gut ein.</li>
+      <li><strong>Ä, Ö, Ü und ß</strong> haben eigene Zahlen von 27 bis 30, damit klar ist, ob ß oder ss gemeint ist. Tippen kannst du sie auch als ae, oe, ue und ss.</li>
+    </ul>
+    <p class="small">Deine Serie wächst mit jedem Tag, an dem du mindestens ein Rätsel löst.</p>
+    <button class="btn primary" type="button" data-close autofocus>Los geht’s</button>
+  </div>
+</dialog>
+
+<dialog id="statsDlg" aria-labelledby="statsTitle">
+  <div class="dlg">
+    <div class="dlg-head">
+      <h2 id="statsTitle">Statistik</h2>
+      <button class="icon-btn" type="button" data-close aria-label="Schließen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+    </div>
+    <div id="statsBody" class="dlg" style="padding:0"></div>
+  </div>
+</dialog>
+
+<dialog id="shareDlg" aria-labelledby="shareTitle">
+  <div class="dlg">
+    <div class="dlg-head">
+      <h2 id="shareTitle">Ergebnis teilen</h2>
+      <button class="icon-btn" type="button" data-close aria-label="Schließen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+    </div>
+    <p class="small">Automatisches Kopieren klappt hier nicht. Der Text ist markiert, du kannst ihn selbst kopieren.</p>
+    <textarea id="shareText" rows="7" readonly></textarea>
+    <button class="btn primary" type="button" data-close>Fertig</button>
+  </div>
+</dialog>
+
+<div class="toast" id="toast" role="status" hidden></div>
+
+
+<script>
+(function () {
+'use strict';
+
+/* ============================================================
+   Einstellungen für Betreiber
+   ============================================================ */
+const CONFIG = {
+  launchDate: '2026-10-21',   // An diesem Tag erscheint Rätsel Nr. 1
+  siteUrl: '',                // leer = Adresse der Seite wird automatisch erkannt (z. B. GitHub Pages)
+  storageKey: 'numfact.v2',
+  hintsPerPuzzle: 3           // Tipps pro Rätsel (Buchstabe aufdecken, Verschiebung, Schlüssel ab Mirror)
+};
+
+/* Fakten-Pool: Jeder Tag zieht vier davon, der kürzeste wird Impossible.
+   t = Satz zum Entschlüsseln (keine Ziffern, keine Bindestriche; Ä, Ö, Ü und ß sind ok)
+   m = kurze Erklärung, die nach dem Lösen erscheint */
+const FACTS = [
+  { t: 'Delfine schlafen mit einem offenen Auge.', m: 'Dabei ruht immer nur eine Gehirnhälfte. Die andere bleibt wach, achtet auf Gefahren und sorgt dafür, dass der Delfin zum Atmen auftaucht.' },
+  { t: 'Bananen sind botanisch gesehen Beeren.', m: 'Erdbeeren dagegen sind gar keine echten Beeren, sondern Sammelnussfrüchte. Die eigentlichen Früchte sind die kleinen Nüsschen außen.' },
+  { t: 'Hummeln können elektrische Felder wahrnehmen.', m: 'Mit feinen Härchen spüren sie die schwache Ladung von Blüten und merken so, ob dort gerade schon eine andere Hummel Nektar geholt hat.' },
+  { t: 'Das Universum dehnt sich stetig aus.', m: 'Messungen an weit entfernten Sternexplosionen zeigen sogar, dass die Ausdehnung immer schneller wird.' },
+  { t: 'Kraken haben drei Herzen.', m: 'Zwei pumpen Blut durch die Kiemen, das dritte versorgt den restlichen Körper. Beim Schwimmen setzt dieses dritte Herz sogar aus.' },
+  { t: 'Das Blut von Kraken ist blau.', m: 'Den Sauerstoff transportiert bei ihnen Hämocyanin, ein Blutfarbstoff mit Kupfer statt Eisen.' },
+  { t: 'Honig verdirbt praktisch nie.', m: 'Er enthält kaum freies Wasser und ist leicht sauer. Bakterien und Schimmelpilze finden darin keine guten Bedingungen.' },
+  { t: 'Ein Tag auf der Venus dauert länger als ein Jahr.', m: 'Für eine Drehung um sich selbst braucht die Venus 243 Erdtage, für eine Runde um die Sonne nur rund 225.' },
+  { t: 'Weinbergschnecken haben tausende winzige Zähne.', m: 'Sie sitzen in Reihen auf der Radula, einer Raspelzunge, mit der die Schnecke Pflanzen abschabt. Abgenutzte Zähne wachsen ständig nach.' },
+  { t: 'Der Eiffelturm wird im Sommer höher.', m: 'Bei Hitze dehnt sich das Eisen aus und der Turm wächst um einige Zentimeter. Im Winter schrumpft er wieder.' },
+  { t: 'Wombats hinterlassen würfelförmigen Kot.', m: 'Die Kanten entstehen im Darm, weil die Darmwand an manchen Stellen steifer ist als an anderen. Die Würfel markieren ihr Revier.' },
+  { t: 'Faultiere können bis zu vierzig Minuten die Luft anhalten.', m: 'Unter Wasser verlangsamen sie ihren Herzschlag stark. Schwimmen können sie übrigens erstaunlich gut.' },
+  { t: 'Erdnüsse sind gar keine Nüsse.', m: 'Botanisch gehören sie zu den Hülsenfrüchten und sind mit Erbsen und Bohnen verwandt. Ihre Früchte reifen unter der Erde.' },
+  { t: 'Saturn hat eine geringere Dichte als Wasser.', m: 'Im Schnitt wiegt ein Kubikzentimeter Saturn nur etwa 0,7 Gramm. In einer riesigen Badewanne würde er schwimmen.' },
+  { t: 'Flamingos werden durch ihr Futter rosa.', m: 'Farbstoffe aus Algen und kleinen Krebsen färben ihr Gefieder. Frisch geschlüpfte Küken sind noch grau.' },
+  { t: 'Ein Blitz ist heißer als die Oberfläche der Sonne.', m: 'Im Blitzkanal herrschen kurzzeitig rund 30.000 Grad Celsius, an der Sonnenoberfläche sind es etwa 5.500.' },
+  { t: 'Schall ist im Wasser viermal so schnell wie in der Luft.', m: 'In Wasser legt er rund 1.480 Meter pro Sekunde zurück, in Luft nur etwa 343. Darum hören sich Wale über große Entfernungen.' },
+  { t: 'Koalas haben Fingerabdrücke wie Menschen.', m: 'Sie ähneln unseren so stark, dass man sie selbst unter dem Mikroskop kaum unterscheiden kann.' },
+  { t: 'Seeotter halten sich beim Schlafen an den Pfoten.', m: 'So treiben sie nicht auseinander. Manche wickeln sich zusätzlich in Seetang ein.' },
+  { t: 'Eine einzige Wolke kann hunderte Tonnen wiegen.', m: 'Eine mittelgroße Haufenwolke enthält rund 500 Tonnen Wasser, verteilt auf winzige Tröpfchen, die in aufsteigender Luft schweben.' },
+  { t: 'Kraken schmecken mit ihren Armen.', m: 'In den Saugnäpfen sitzen Sinneszellen, die Stoffe schon bei der Berührung erkennen.' },
+  { t: 'Haie gab es schon vor den Bäumen.', m: 'Die ersten Haie lebten vor über 400 Millionen Jahren. Die ersten Bäume entstanden erst Jahrmillionen später.' },
+  { t: 'Pinguine haben Knie.', m: 'Sie stecken gut versteckt unter dem Federkleid. Der watschelnde Gang täuscht.' },
+  { t: 'Elefanten können nicht springen.', m: 'Beim Gehen und Laufen bleibt immer mindestens ein Fuß am Boden. Für einen Sprung sind ihre Beine zu massiv gebaut.' },
+  { t: 'Ein Straußenauge ist größer als sein Gehirn.', m: 'Jedes Auge misst etwa fünf Zentimeter. Damit haben Strauße die größten Augen aller Landtiere.' },
+  { t: 'Gold ist essbar.', m: 'Als Lebensmittelzusatz E 175 verziert es Torten und Pralinen. Schmecken tut man nichts, es wandert unverändert durch den Körper.' },
+  { t: 'Die Chinesische Mauer ist vom Mond aus nicht zu sehen.', m: 'Sie ist zwar tausende Kilometer lang, aber nur wenige Meter breit. Aus dieser Entfernung ist das viel zu schmal.' },
+  { t: 'Wasser kann gleichzeitig kochen und gefrieren.', m: 'Am Tripelpunkt, bei 0,01 Grad und sehr niedrigem Druck, existiert Wasser zugleich als Eis, Flüssigkeit und Dampf.' },
+  { t: 'Ein Zuckerwürfel Neutronenstern wiegt eine Milliarde Tonnen.', m: 'In Neutronensternen ist Materie so dicht gepackt wie in einem Atomkern. Ein ganzer Stern ist dort nur so groß wie eine Stadt.' },
+  { t: 'Die Erde ist keine perfekte Kugel.', m: 'Durch ihre Drehung ist sie am Äquator rund 43 Kilometer dicker als von Pol zu Pol.' },
+  { t: 'Hirsche verlieren jedes Jahr ihr Geweih.', m: 'Im Spätwinter fällt es ab und wächst danach in wenigen Monaten komplett neu. Kaum ein Gewebe im Tierreich wächst schneller.' },
+  { t: 'Rentiere bekommen im Winter blaue Augen.', m: 'Eine reflektierende Schicht im Auge wechselt von Gold zu Blau. So sehen die Tiere im dunklen Polarwinter besser.' },
+  { t: 'Zebras haben eine dunkle Haut.', m: 'Unter dem gestreiften Fell ist die Haut fast schwarz. Die weißen Streifen sind Stellen, an denen das Fell keinen Farbstoff bildet.' },
+  { t: 'Krokodile können ihre Zunge nicht herausstrecken.', m: 'Ihre Zunge ist mit einer Membran am Unterkiefer verwachsen.' },
+  { t: 'Kängurus können nicht rückwärts hüpfen.', m: 'Der lange, kräftige Schwanz und die großen Hinterfüße lassen das praktisch nicht zu.' },
+  { t: 'Ein Herz kann außerhalb des Körpers weiterschlagen.', m: 'Es erzeugt seine elektrischen Impulse selbst. Solange es Sauerstoff bekommt, schlägt es weiter. Das nutzt man bei Transplantationen.' },
+  { t: 'Der Mensch besteht zu etwa sechzig Prozent aus Wasser.', m: 'Bei Neugeborenen liegt der Anteil sogar bei rund siebzig Prozent.' },
+  { t: 'Libellen erwischen fast jede Beute.', m: 'In Studien lag ihre Trefferquote bei über neunzig Prozent. Sie berechnen die Flugbahn ihrer Beute im Voraus.' },
+  { t: 'Die Sonne enthält fast die gesamte Masse unseres Sonnensystems.', m: 'Es sind rund 99,8 Prozent. Planeten, Monde, Asteroiden und Kometen teilen sich den kleinen Rest.' },
+  { t: 'Sonnenlicht braucht acht Minuten bis zur Erde.', m: 'Die Sonne, die du siehst, ist also immer die Sonne von vor gut acht Minuten.' },
+  { t: 'Fußspuren auf dem Mond bleiben sehr lange erhalten.', m: 'Ohne Wind und Wasser verwischt sie kaum etwas. Sie könnten Millionen Jahre überdauern.' },
+  { t: 'Honigbienen zeigen sich den Weg durch Tanzen.', m: 'Mit dem Schwänzeltanz teilen sie Richtung und Entfernung einer Futterquelle mit.' },
+  { t: 'Katzen können nichts Süßes schmecken.', m: 'Ihnen fehlt ein funktionierendes Gen für den Süßrezeptor. Als reine Fleischfresser brauchen sie ihn nicht.' },
+  { t: 'Goldfische erinnern sich monatelang.', m: 'Das Drei-Sekunden-Gedächtnis ist ein Mythos. In Versuchen lernen Goldfische Fütterungszeiten und unterscheiden Töne.' },
+  { t: 'Kolibris können rückwärts fliegen.', m: 'Ihre Schultergelenke sind so beweglich, dass die Flügel eine liegende Acht beschreiben. Damit stehen sie auch still in der Luft.' },
+  { t: 'Eisbären haben schwarze Haut.', m: 'Ihre Haare sind nicht weiß, sondern farblos. Sie streuen das Licht und wirken deshalb weiß.' },
+  { t: 'Das Wiener Riesenrad dreht sich seit über hundert Jahren.', m: 'Es wurde 1897 im Prater eröffnet und gehört zu den ältesten Riesenrädern der Welt, die noch in Betrieb sind.' },
+  { t: 'Die Donau fließt durch zehn Länder.', m: 'Kein anderer Fluss der Welt durchquert so viele Staaten. Nach rund 2.850 Kilometern mündet sie ins Schwarze Meer.' },
+  { t: 'Manche Bambusarten wachsen fast einen Meter am Tag.', m: 'Der Rekord liegt bei rund 91 Zentimetern in 24 Stunden. Damit gehört Bambus zu den am schnellsten wachsenden Pflanzen.' },
+  { t: 'Sterne funkeln wegen der Luft.', m: 'Wärmere und kältere Luftschichten lenken ihr Licht ständig ein wenig ab. Im Weltall leuchten Sterne ganz ruhig.' },
+  { t: 'Im Weltall herrscht völlige Stille.', m: 'Schall braucht Luft oder ein anderes Medium, um sich auszubreiten. Im Vakuum gibt es nichts, das schwingen könnte.' },
+  { t: 'Regentropfen sind nicht tropfenförmig.', m: 'Kleine Tropfen sind kugelrund. Große werden beim Fallen unten platt gedrückt und sehen eher aus wie ein Brötchen.' },
+  { t: 'Schmetterlinge schmecken mit den Füßen.', m: 'An ihren Beinen sitzen Sinneszellen. Damit prüfen Weibchen, ob eine Pflanze als Futter für ihre Raupen taugt.' },
+  { t: 'Pottwale schlafen senkrecht im Wasser.', m: 'Sie treiben dabei knapp unter der Oberfläche wie riesige Baumstämme und schlafen jeweils nur wenige Minuten am Stück.' },
+  { t: 'Der Blauwal ist das schwerste bekannte Tier aller Zeiten.', m: 'Mit weit über hundert Tonnen übertrifft er auch die größten Dinosaurier, die man bisher kennt.' },
+  { t: 'Spinnenseide ist reißfester als Stahl.', m: 'Zumindest bei gleichem Gewicht: Ein Spinnenfaden hält mehr Zug aus als ein gleich schwerer Stahldraht und ist dabei sehr dehnbar.' },
+  { t: 'Eulen können ihren Kopf weit nach hinten drehen.', m: 'Bis zu 270 Grad sind möglich. Besondere Blutgefäße sorgen dafür, dass das Gehirn dabei weiter versorgt wird.' },
+  { t: 'Diamanten bestehen aus Kohlenstoff.', m: 'Genau wie der Graphit in Bleistiften. Der Unterschied liegt nur darin, wie die Atome angeordnet sind.' },
+  { t: 'Schnee ist eigentlich durchsichtig.', m: 'Einzelne Eiskristalle sind farblos. Weiß wirkt Schnee, weil die vielen Kristalle das Licht in alle Richtungen streuen.' },
+  { t: 'Pferde können nicht durch den Mund atmen.', m: 'Ihr Gaumensegel trennt Mundhöhle und Luftröhre. Die Luft kommt nur durch die Nüstern.' },
+  { t: 'Giraffen haben gleich viele Halswirbel wie Menschen.', m: 'Es sind sieben. Bei der Giraffe ist jeder einzelne aber bis zu 25 Zentimeter lang.' },
+  { t: 'Fledermäuse sind die einzigen fliegenden Säugetiere.', m: 'Flughörnchen gleiten nur. Fledermäuse schlagen aktiv mit ihren Flughäuten und fliegen richtig.' },
+  { t: 'Der Mount Everest wächst jedes Jahr ein Stück.', m: 'Weil die Indische Platte weiter gegen Asien drückt, hebt sich das Gebirge um einige Millimeter pro Jahr.' },
+  { t: 'Der Großglockner ist der höchste Berg Österreichs.', m: 'Er ist 3.798 Meter hoch und liegt an der Grenze zwischen Kärnten und Osttirol.' }
+];
+
+const MODES = [
+  { id: 'easy', name: 'Easy' },
+  { id: 'hard', name: 'Hard' },
+  { id: 'mirror', name: 'Mirror' },
+  { id: 'impossible', name: 'Impossible' }
+];
+
+const RULES = {
+  easy: { text: 'Jede Zahl steht für einen Buchstaben: A\u00A0=\u00A01, B\u00A0=\u00A02 … Z\u00A0=\u00A026. Ä, Ö, Ü und ß haben eigene Zahlen von 27 bis 30.', ex: 'HUND → 8 · 21 · 14 · 4' },
+  hard: { text: 'Dieselben Zahlen, aber ohne Trennung. Wo endet ein Buchstabe? 1\u00A01 kann K sein oder AA. Die Anzahl der Felder verrät, wie viele Buchstaben es sind.', ex: 'HUND → 821144' },
+  mirror: { text: 'Das Alphabet läuft rückwärts: A\u00A0=\u00A026, B\u00A0=\u00A025 … Z\u00A0=\u00A01. Ebenfalls ohne Trennung.', ex: 'HUND → 1961323' },
+  impossible: { text: 'Das Alphabet ist heute um eine geheime Zahl verschoben, ohne Trennung. Knack die Verschiebung an einem kurzen Wort.', ex: null }
+};
+
+/* ============================================================
+   Hilfsfunktionen
+   ============================================================ */
+const $ = (sel, root) => (root || document).querySelector(sel);
+const mq = q => !!(window.matchMedia && window.matchMedia(q).matches);
+const reduceMotion = () => mq('(prefers-reduced-motion: reduce)');
+const finePointer = () => mq('(pointer: fine)');
+
+function esc(s) {
+  return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+
+// Alphabet: A–Z plus Ä, Ö, Ü, ß mit festen Zahlen 27–30 (in jeder Stufe gleich)
+const ALPHABET = [...'ABCDEFGHIJKLMNOPQRSTUVWXYZÄÖÜß'];
+const SPECIAL = { 'Ä': 27, 'Ö': 28, 'Ü': 29, 'ß': 30 };
+const DIGRAPH = { 'Ä': 'AE', 'Ö': 'OE', 'Ü': 'UE', 'ß': 'SS' };
+
+// Text → Symbole: Großbuchstaben A–Z, Ä, Ö, Ü, ß; Akzente weg, alles andere raus
+function symStr(str) {
+  let out = '';
+  for (const c0 of String(str).normalize('NFC')) {
+    if (c0 === 'ß' || c0 === 'ẞ') { out += 'ß'; continue; }
+    const c = c0.toUpperCase();
+    if (c === 'Ä' || c === 'Ö' || c === 'Ü') { out += c; continue; }
+    const base = c.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    if (/^[A-Z]$/.test(base)) out += base;
+  }
+  return out;
+}
+
+// Eingabe an das Zielwort anpassen: „ae“ zählt als Ä, „ss“ als ß, und umgekehrt
+function fitToTarget(raw, target) {
+  const c = [...symStr(raw)], t = [...target], out = [];
+  for (let i = 0; i < c.length && out.length < t.length;) {
+    const want = t[out.length], dg = DIGRAPH[want];
+    if (dg && c[i] === dg[0] && c[i + 1] === dg[1]) { out.push(want); i += 2; continue; }
+    const rd = DIGRAPH[c[i]];
+    if (rd && want === rd[0] && t[out.length + 1] === rd[1]) { out.push(rd[0], rd[1]); i++; continue; }
+    out.push(c[i]); i++;
+  }
+  return out.join('');
+}
+
+function letterCode(ch, mode, shift) {
+  if (SPECIAL[ch]) return SPECIAL[ch];
+  const n = ch.charCodeAt(0) - 64;
+  if (mode === 'mirror') return 27 - n;
+  if (mode === 'impossible') return ((n - 1 + shift) % 26) + 1;
+  return n;
+}
+
+function todayKey(d) {
+  d = d || new Date();
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+}
+function parseKey(k) { return k.split('-').map(Number); }
+function dayIndex(key) {
+  const [y, m, d] = parseKey(key), [a, b, c] = parseKey(CONFIG.launchDate);
+  return Math.round((Date.UTC(y, m - 1, d) - Date.UTC(a, b - 1, c)) / 864e5);
+}
+function addDays(key, n) {
+  const [y, m, d] = parseKey(key);
+  return new Date(Date.UTC(y, m - 1, d + n)).toISOString().slice(0, 10);
+}
+
+function fmtTime(ms) {
+  const t = Math.max(0, Math.round(ms / 1000));
+  const h = Math.floor(t / 3600), m = Math.floor(t % 3600 / 60), s = t % 60;
+  return h ? `${h}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}` : `${m}:${String(s).padStart(2, '0')}`;
+}
+function fmtHMS(ms) {
+  const t = Math.max(0, Math.floor(ms / 1000));
+  return [Math.floor(t / 3600), Math.floor(t % 3600 / 60), t % 60].map(v => String(v).padStart(2, '0')).join(':');
+}
+const tipText = n => n === 1 ? '1 Tipp' : `${n} Tipps`;
+
+function mulberry32(a) {
+  return function () {
+    a |= 0; a = a + 0x6D2B79F5 | 0;
+    let t = Math.imul(a ^ a >>> 15, 1 | a);
+    t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+  };
+}
+
+/* ============================================================
+   Tagesrätsel: für alle Spieler am selben Tag gleich
+   ============================================================ */
+const permCache = new Map();
+function permutation(cycle) {
+  if (permCache.has(cycle)) return permCache.get(cycle);
+  const rnd = mulberry32(0x4E554D46 + cycle * 977);
+  const a = FACTS.map((_, i) => i);
+  for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(rnd() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; }
+  permCache.set(cycle, a);
+  return a;
+}
+
+function makePuzzle(fact, mode, shift) {
+  const words = fact.t.split(/\s+/).map(w => ({ show: w, plain: symStr(w) })).filter(w => w.plain);
+  words.forEach(w => { w.codes = [...w.plain].map(ch => letterCode(ch, mode, shift)); });
+  return { fact, mode, words, sig: words.map(w => w.plain).join(' ') };
+}
+
+function buildDay(key) {
+  const idx = Math.max(0, dayIndex(key));
+  const n = FACTS.length, picks = [];
+  for (let k = idx * 4; picks.length < Math.min(4, n) && k < idx * 4 + 64; k++) {
+    const f = permutation(Math.floor(k / n))[k % n];
+    if (!picks.includes(f)) picks.push(f);
+  }
+  picks.sort((a, b) => [...symStr(FACTS[b].t)].length - [...symStr(FACTS[a].t)].length);
+  const shift = 3 + Math.floor(mulberry32(idx * 7919 + 101)() * 21); // 3 … 23
+  const puzzles = {};
+  MODES.forEach((m, i) => { puzzles[m.id] = makePuzzle(FACTS[picks[i % picks.length]], m.id, shift); });
+  return { key, number: idx + 1, shift, puzzles };
+}
+
+/* ============================================================
+   Speicher (nur dieser Browser)
+   ============================================================ */
+function loadStore() {
+  try {
+    const s = JSON.parse(localStorage.getItem(CONFIG.storageKey));
+    if (s && s.v === 2 && s.days) return s;
+  } catch (e) { /* privat oder blockiert */ }
+  return { v: 2, seenHelp: false, keyOpen: false, days: {} };
+}
+function save() {
+  try { localStorage.setItem(CONFIG.storageKey, JSON.stringify(store)); } catch (e) { /* ignorieren */ }
+}
+
+let store = loadStore();
+let today = null;
+let current = 'easy';
+let activeWord = null;
+let wordEls = [];
+let clock = null;
+let silentFocus = false;
+
+function dayState() { return store.days[today.key] || (store.days[today.key] = {}); }
+function ms(id) {
+  const day = dayState(), p = today.puzzles[id];
+  let s = day[id];
+  if (!s || s.sig !== p.sig || !Array.isArray(s.typed) || s.typed.length !== p.words.length) {
+    s = day[id] = { sig: p.sig, typed: p.words.map(() => ''), hints: {}, hintCount: 0, shiftShown: false, status: 'open', elapsed: 0, given: [] };
+  }
+  return s;
+}
+const finished = s => s.status === 'solved' || s.status === 'revealed';
+const puz = () => today.puzzles[current];
+function isSolved(wi) { return ms(current).typed[wi] === puz().words[wi].plain; }
+function allSolved() { return puz().words.every((w, i) => isSolved(i)); }
+function nextUnsolved(from) {
+  const n = puz().words.length;
+  for (let k = 1; k <= n; k++) { const i = (((from + k) % n) + n) % n; if (!isSolved(i)) return i; }
+  return -1;
+}
+function prevUnsolved(from) { for (let i = from - 1; i >= 0; i--) if (!isSolved(i)) return i; return -1; }
+function nextOpenMode(from) {
+  const i = MODES.findIndex(m => m.id === from);
+  for (let k = 1; k < MODES.length; k++) { const m = MODES[(i + k) % MODES.length]; if (!finished(ms(m.id))) return m; }
+  return null;
+}
+
+/* Zeit zählt nur, solange das Rätsel offen und sichtbar ist */
+function startClock() {
+  stopClock();
+  if (ms(current).status !== 'playing' || document.hidden) return;
+  clock = { mode: current, start: Date.now() };
+}
+function stopClock() {
+  if (!clock) return;
+  const s = ms(clock.mode);
+  s.elapsed = (s.elapsed || 0) + (Date.now() - clock.start);
+  clock = null;
+  save();
+}
+function markPlaying() {
+  const s = ms(current);
+  if (s.status === 'open') { s.status = 'playing'; save(); startClock(); renderTabs(); }
+  else if (s.status === 'playing' && !clock) startClock();
+}
+
+/* ============================================================
+   Darstellung
+   ============================================================ */
+function renderIssue() {
+  const [y, m, d] = parseKey(today.key);
+  const lang = (navigator.language || '').toLowerCase().startsWith('de') ? navigator.language : 'de-DE';
+  let date;
+  try { date = new Date(y, m - 1, d).toLocaleDateString(lang, { weekday: 'long', day: 'numeric', month: 'long' }); }
+  catch (e) { date = today.key; }
+  $('#issue').textContent = `Nr. ${today.number} · ${date}`;
+}
+
+function renderTabs() {
+  MODES.forEach(m => {
+    const b = $('#tab-' + m.id), s = ms(m.id), p = today.puzzles[m.id];
+    b.setAttribute('aria-pressed', String(m.id === current));
+    b.classList.toggle('done', s.status === 'solved');
+    b.classList.toggle('revealed', s.status === 'revealed');
+    let st;
+    if (s.status === 'solved') st = 'Gelöst · ' + fmtTime(s.elapsed);
+    else if (s.status === 'revealed') st = 'Aufgelöst';
+    else {
+      const c = p.words.filter((w, i) => s.typed[i] === w.plain).length;
+      st = c ? `${c} von ${p.words.length} Wörtern` : `${p.words.length} Wörter`;
+    }
+    b.querySelector('.state').textContent = st;
+  });
+}
+
+function renderRule() {
+  const r = RULES[current], s = ms(current), p = puz();
+  let ex = r.ex;
+  if (current === 'impossible') {
+    ex = s.shiftShown
+      ? `Heute um ${today.shift} verschoben: A = ${today.shift + 1}, B = ${today.shift + 2} … Z = ${today.shift}`
+      : null;
+  }
+  const um = /[äöüÄÖÜßẞ]/.test(p.fact.t);
+  $('#rule').innerHTML =
+    `<p>${esc(r.text)}</p>` +
+    (ex ? `<p class="example">${esc(ex)}</p>` : '') +
+    (um ? '<p class="note">In diesem Satz stecken Umlaute oder ß. Sie haben in jeder Stufe feste Zahlen: Ä\u00A0=\u00A027, Ö\u00A0=\u00A028, Ü\u00A0=\u00A029, ß\u00A0=\u00A030. Tippen kannst du sie auch als ae, oe, ue und ss.</p>' : '');
+}
+
+function buildBoard() {
+  const p = puz(), board = $('#board');
+  board.innerHTML = '';
+  wordEls = p.words.map((w, wi) => {
+    const el = document.createElement('div');
+    el.className = 'word' + (current === 'easy' ? ' easy' : '');
+    let html;
+    if (current === 'easy') {
+      html = '<div class="row cols" aria-hidden="true">' +
+        w.codes.map((c, i) => `<div class="col"><span class="d">${c}</span><span class="s" data-i="${i}"></span></div>`).join('') +
+        '</div>';
+    } else {
+      const digits = w.codes.join('');
+      html = '<div class="row digits" aria-hidden="true">' + [...digits].map(ch => `<span class="d">${ch}</span>`).join('') + '</div>' +
+        '<div class="row slots" aria-hidden="true">' + [...w.plain].map((_, i) => `<span class="s" data-i="${i}"></span>`).join('') + '</div>';
+    }
+    const codeLabel = current === 'easy' ? w.codes.join(', ') : w.codes.join('');
+    html += `<input type="text" inputmode="text" autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false" enterkeyhint="next"
+      aria-label="Wort ${wi + 1} von ${p.words.length}, ${w.plain.length} Buchstaben, Code ${codeLabel}">`;
+    el.innerHTML = html;
+    const inp = el.querySelector('input');
+    inp.addEventListener('focus', () => onFocus(wi));
+    inp.addEventListener('input', () => onInput(wi));
+    inp.addEventListener('keydown', e => onKey(wi, e));
+    board.appendChild(el);
+    return { el, inp, slots: [...el.querySelectorAll('.s')] };
+  });
+  wordEls.forEach((_, i) => updateWord(i));
+}
+
+function updateWord(wi) {
+  const p = puz(), s = ms(current), w = p.words[wi], we = wordEls[wi];
+  if (!we) return;
+  const typed = s.typed[wi] || '';
+  const tt = [...typed], target = [...w.plain];
+  const solved = typed === w.plain, full = tt.length === target.length, done = finished(s);
+  const hp = s.hints[wi] || [];
+  const given = (s.given || []).includes(wi);
+  const isActive = wi === activeWord && !solved && !done;
+  we.slots.forEach((el, i) => {
+    const ch = tt[i] || '';
+    if (el.textContent !== ch) el.textContent = ch;
+    el.classList.toggle('filled', !!ch);
+    el.classList.toggle('hint', !!ch && hp.includes(i) && ch === target[i]);
+    el.classList.toggle('cursor', isActive && i === tt.length);
+  });
+  we.el.classList.toggle('solved', solved && !given);
+  we.el.classList.toggle('given', solved && given);
+  we.el.classList.toggle('wrong', full && !solved);
+  we.el.classList.toggle('active', isActive);
+  if (fitToTarget(we.inp.value, w.plain) !== typed) we.inp.value = typed;
+  const lock = solved || done;
+  we.el.classList.toggle('locked', lock);
+  we.inp.readOnly = lock;
+  we.inp.tabIndex = lock ? -1 : 0;
+}
+
+function setActive(wi) {
+  const prev = activeWord;
+  activeWord = wi;
+  if (prev != null && prev !== wi) updateWord(prev);
+  if (wi != null) updateWord(wi);
+}
+function focusWord(wi, silent) {
+  if (wi == null || wi < 0 || !wordEls[wi]) return;
+  setActive(wi);
+  silentFocus = !!silent;
+  wordEls[wi].inp.focus();
+  silentFocus = false;
+}
+function autoFocus() {
+  if (!finePointer() || finished(ms(current)) || document.querySelector('dialog[open]')) return;
+  const i = activeWord != null && !isSolved(activeWord) ? activeWord : nextUnsolved(-1);
+  if (i >= 0) focusWord(i, true);
+}
+
+function renderKey() {
+  const s = ms(current), known = !keyLocked(s);
+  $('#key').innerHTML = ALPHABET
+    .map(ch => `<div><b>${ch}</b><span>${known ? letterCode(ch, current, today.shift) : '?'}</span></div>`).join('');
+  $('#key').setAttribute('aria-label', 'Schlüssel');
+}
+
+function onKeyBtn() {
+  const s = ms(current);
+  if (!keyLocked(s)) { store.keyOpen = !store.keyOpen; save(); renderTools(); return; }
+  if (!hintsLeft(s)) return;
+  markPlaying();
+  s.hintCount++;
+  if (current === 'impossible') s.shiftShown = true; else s.keyUnlocked = true;
+  store.keyOpen = true;
+  save(); renderRule(); renderKey(); renderTools();
+}
+
+function renderTools() {
+  const s = ms(current), done = finished(s);
+  const left = hintsLeft(s), locked = keyLocked(s), max = CONFIG.hintsPerPuzzle;
+  $('#tools').hidden = done;
+  $('#key').hidden = done || locked || !store.keyOpen;
+  $('#keyBtn').setAttribute('aria-expanded', String(!!store.keyOpen && !done && !locked));
+  $('#keyLabel').textContent = locked ? 'Schlüssel · 1 Tipp' : 'Schlüssel';
+  $('#keyBtn').disabled = locked && !left;
+  $('#hintBtn').disabled = !left;
+  $('#hintLabel').textContent = !left ? 'Keine Tipps mehr' : (current === 'impossible' && !s.shiftShown ? 'Verschiebung zeigen' : 'Buchstabe aufdecken');
+  $('#toolMeta').innerHTML = '<span class="pips" aria-hidden="true">' +
+    Array.from({ length: max }, (_, i) => `<i class="${i < left ? 'on' : ''}"></i>`).join('') +
+    `</span>${left} von ${max} Tipps übrig`;
+  $('#revealConfirm').hidden = true;
+  $('#revealBtn').hidden = false;
+}
+
+function renderResult() {
+  const s = ms(current), p = puz(), box = $('#result');
+  if (!finished(s)) { box.hidden = true; box.innerHTML = ''; return; }
+  const label = s.status === 'solved'
+    ? `Geknackt in ${fmtTime(s.elapsed)} · ${s.hintCount ? tipText(s.hintCount) : 'ohne Tipp'}`
+    : 'Aufgelöst';
+  const next = nextOpenMode(current);
+  const allDone = MODES.every(m => finished(ms(m.id)));
+  box.innerHTML =
+    `<div class="label">${esc(label)}</div>` +
+    `<p class="fact">${esc(p.fact.t)}</p>` +
+    `<p class="more">${esc(p.fact.m)}</p>` +
+    (allDone ? '<p class="daydone">Alle vier Codes für heute erledigt. Die nächsten kommen in <span class="countdown" data-countdown></span>.</p>' : '') +
+    '<div class="actions">' +
+      (next ? `<button class="btn primary" type="button" data-act="next">Weiter mit ${esc(next.name)} →</button>` : '') +
+      `<button class="btn${next ? '' : ' primary'}" type="button" data-act="share">Ergebnis teilen</button>` +
+      (allDone ? '<button class="btn" type="button" data-act="stats">Statistik</button>' : '') +
+    '</div>';
+  box.hidden = false;
+  tick();
+}
+
+function setMode(id) {
+  stopClock();
+  current = id;
+  activeWord = null;
+  buildBoard();
+  renderTabs(); renderRule(); renderKey(); renderTools(); renderResult();
+  if (ms(current).status === 'playing') startClock();
+  autoFocus();
+}
+
+/* ============================================================
+   Eingabe
+   ============================================================ */
+function onFocus(wi) {
+  if (finished(ms(current)) || isSolved(wi)) return;
+  setActive(wi);
+  if (!silentFocus) markPlaying();
+}
+
+function onInput(wi) {
+  if (finished(ms(current))) return;
+  markPlaying();
+  applyText(wi, wordEls[wi].inp.value);
+}
+
+function applyText(wi, raw) {
+  const p = puz(), s = ms(current), w = p.words[wi];
+  const ws = raw.search(/\s/);
+  const head = ws < 0 ? raw : raw.slice(0, ws);
+  const rest = ws < 0 ? '' : raw.slice(ws).replace(/^\s+/, '');
+  const prev = s.typed[wi] || '';
+  const val = fitToTarget(head, w.plain);
+
+  s.typed[wi] = val;
+  if (ws >= 0 || symStr(raw) !== val) wordEls[wi].inp.value = val;
+  // aufgedeckte Buchstaben vergessen, wenn sie gelöscht wurden
+  if (s.hints[wi]) { const v = [...val], t = [...w.plain]; s.hints[wi] = s.hints[wi].filter(i => i < v.length && v[i] === t[i]); }
+  updateWord(wi);
+
+  const solved = val === w.plain;
+  if ([...val].length === [...w.plain].length && !solved && val !== prev) shake(wi);
+
+  let target = wi;
+  if (solved && prev !== w.plain) {
+    flashWord(wi);
+    if (allSolved()) { save(); completeMode('solved'); return; }
+    target = nextUnsolved(wi);
+  } else if (ws >= 0 && val !== '') {
+    const nx = nextUnsolved(wi);
+    if (nx >= 0) target = nx;
+  }
+  if (target !== wi) focusWord(target);
+  if (rest) {
+    if (target !== wi) applyText(target, rest);
+    else if (val === '') applyText(wi, rest);
+  }
+  save();
+  renderTabs();
+}
+
+function onKey(wi, e) {
+  if (e.key === 'Backspace' && !wordEls[wi].inp.value) {
+    const pv = prevUnsolved(wi);
+    if (pv >= 0) { e.preventDefault(); focusWord(pv); }
+  } else if (e.key === 'Enter') {
+    e.preventDefault();
+    const nx = nextUnsolved(wi);
+    if (nx >= 0 && nx !== wi) focusWord(nx);
+  }
+}
+
+function shake(wi) {
+  const el = wordEls[wi].el;
+  el.classList.remove('shake'); void el.offsetWidth; el.classList.add('shake');
+  setTimeout(() => el.classList.remove('shake'), 400);
+  try { if (navigator.vibrate) navigator.vibrate(25); } catch (e) { /* egal */ }
+}
+function flashWord(wi) {
+  const el = wordEls[wi].el;
+  el.classList.add('just');
+  setTimeout(() => el.classList.remove('just'), 600);
+}
+
+const hintsLeft = s => Math.max(0, CONFIG.hintsPerPuzzle - (s.hintCount || 0));
+const keyLocked = s => (current === 'mirror' && !s.keyUnlocked) || (current === 'impossible' && !s.shiftShown);
+
+function useHint() {
+  const p = puz(), s = ms(current);
+  if (finished(s)) return;
+  if (!hintsLeft(s)) { toast('Keine Tipps mehr für dieses Rätsel'); return; }
+  markPlaying();
+  if (current === 'impossible' && !s.shiftShown) {
+    s.shiftShown = true; s.hintCount++;
+    save(); renderRule(); renderKey(); renderTools();
+    toast(`Heute um ${today.shift} verschoben: A = ${today.shift + 1}`);
+    return;
+  }
+  const wi = activeWord != null && !isSolved(activeWord) ? activeWord : nextUnsolved(-1);
+  if (wi < 0) return;
+  const w = p.words[wi], t = [...w.plain], typed = [...(s.typed[wi] || '')];
+  let k = 0;
+  while (k < typed.length && typed[k] === t[k]) k++;
+  s.typed[wi] = t.slice(0, k + 1).join('');
+  const hp = s.hints[wi] || (s.hints[wi] = []);
+  if (!hp.includes(k)) hp.push(k);
+  s.hintCount++;
+  setActive(wi);
+  updateWord(wi);
+  if (s.typed[wi] === w.plain) {
+    flashWord(wi);
+    if (allSolved()) { save(); completeMode('solved'); return; }
+    const nx = nextUnsolved(wi);
+    if (finePointer()) focusWord(nx); else setActive(nx);
+  } else if (finePointer()) focusWord(wi);
+  save(); renderTabs(); renderTools();
+}
+
+function completeMode(status) {
+  const p = puz(), s = ms(current);
+  stopClock();
+  if (status === 'revealed') {
+    s.given = p.words.map((w, i) => i).filter(i => s.typed[i] !== p.words[i].plain);
+    p.words.forEach((w, i) => { s.typed[i] = w.plain; });
+  }
+  s.status = status;
+  save();
+  if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
+  activeWord = null;
+  wordEls.forEach((_, i) => updateWord(i));
+  renderTabs(); renderTools(); renderResult();
+  if (status === 'solved') burst();
+  requestAnimationFrame(() => $('#result').scrollIntoView({ behavior: reduceMotion() ? 'auto' : 'smooth', block: 'nearest' }));
+}
+
+function burst() {
+  if (reduceMotion()) return;
+  const cs = getComputedStyle(document.documentElement);
+  const colors = ['--ink', '--marker', '--red'].map(v => cs.getPropertyValue(v).trim()).filter(Boolean);
+  const cv = document.createElement('canvas');
+  const ctx = cv.getContext && cv.getContext('2d');
+  if (!ctx || !colors.length) return;
+  const W = window.innerWidth, H = window.innerHeight, dpr = Math.min(2, window.devicePixelRatio || 1);
+  cv.className = 'confetti';
+  cv.setAttribute('aria-hidden', 'true');
+  cv.width = W * dpr; cv.height = H * dpr;
+  document.body.appendChild(cv);
+  ctx.scale(dpr, dpr);
+  // Papierschnipsel in Füller-Blau, Textmarker-Gelb und Rotstift-Rot, nach oben geworfen
+  const parts = Array.from({ length: 90 }, () => {
+    const a = (-90 + (Math.random() - 0.5) * 70) * Math.PI / 180;
+    const v = 12 + Math.random() * 9;
+    return {
+      x: W / 2, y: H * 0.7, vx: Math.cos(a) * v, vy: Math.sin(a) * v,
+      w: 6 + Math.random() * 5, h: 3 + Math.random() * 3,
+      r: Math.random() * Math.PI, vr: (Math.random() - 0.5) * 0.3,
+      c: colors[Math.floor(Math.random() * colors.length)]
+    };
+  });
+  const life = 150;
+  let frame = 0;
+  (function step() {
+    frame++;
+    ctx.clearRect(0, 0, W, H);
+    ctx.globalAlpha = Math.max(0, 1 - frame / life);
+    parts.forEach(p => {
+      p.vx *= 0.985; p.vy = p.vy * 0.985 + 0.32;
+      p.x += p.vx; p.y += p.vy; p.r += p.vr;
+      ctx.save();
+      ctx.translate(p.x, p.y); ctx.rotate(p.r);
+      ctx.fillStyle = p.c;
+      ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h * Math.abs(Math.cos(p.r * 2)) + 1);
+      ctx.restore();
+    });
+    if (frame < life) requestAnimationFrame(step); else cv.remove();
+  })();
+}
+
+/* ============================================================
+   Statistik und Teilen
+   ============================================================ */
+function computeStats() {
+  const perMode = { easy: 0, hard: 0, mirror: 0, impossible: 0 };
+  const solvedDays = new Set();
+  let played = 0, solvedTotal = 0;
+  Object.keys(store.days).forEach(k => {
+    const d = store.days[k];
+    let any = false, anySolved = false;
+    MODES.forEach(m => {
+      const s = d[m.id];
+      if (!s) return;
+      if (s.status === 'solved') { solvedTotal++; perMode[m.id]++; any = anySolved = true; }
+      else if (s.status === 'revealed') any = true;
+    });
+    if (any) played++;
+    if (anySolved) solvedDays.add(k);
+  });
+  let streak = 0, k = today.key;
+  if (!solvedDays.has(k)) k = addDays(k, -1);
+  while (solvedDays.has(k)) { streak++; k = addDays(k, -1); }
+  let best = 0, run = 0, prev = null;
+  [...solvedDays].sort().forEach(day => {
+    run = prev && addDays(prev, 1) === day ? run + 1 : 1;
+    best = Math.max(best, run);
+    prev = day;
+  });
+  return { played, solvedTotal, perMode, streak, best };
+}
+
+function renderStats() {
+  const st = computeStats();
+  const max = Math.max(1, ...Object.values(st.perMode));
+  $('#statsBody').innerHTML =
+    '<div class="stats">' +
+      `<div><div class="n">${st.played}</div><div class="l">Tage gespielt</div></div>` +
+      `<div><div class="n">${st.streak}</div><div class="l">Aktuelle Serie</div></div>` +
+      `<div><div class="n">${st.best}</div><div class="l">Beste Serie</div></div>` +
+      `<div><div class="n">${st.solvedTotal}</div><div class="l">Codes geknackt</div></div>` +
+    '</div>' +
+    '<div class="bars"><h3>Geknackt nach Stufe</h3>' +
+      MODES.map(m => `<div class="bar"><span>${m.name}</span><span class="track"><span class="fill" style="width:${(st.perMode[m.id] / max * 100).toFixed(1)}%"></span></span><span class="v">${st.perMode[m.id]}</span></div>`).join('') +
+    '</div>' +
+    '<p class="small">Die Serie wächst mit jedem Tag, an dem du mindestens einen Code knackst. Nächste Codes in <span class="countdown" data-countdown></span>.</p>' +
+    '<button class="btn primary" type="button" data-act="share">Heutiges Ergebnis teilen</button>';
+  tick();
+}
+
+function shareText() {
+  const lines = [`NumFact Nr. ${today.number}`];
+  MODES.forEach(m => {
+    const s = ms(m.id);
+    let sq = '⬜', tail = '';
+    if (s.status === 'solved') { sq = s.hintCount ? '🟨' : '🟩'; tail = ' ' + fmtTime(s.elapsed) + (s.hintCount ? ` · ${tipText(s.hintCount)}` : ''); }
+    else if (s.status === 'revealed') { sq = '🟥'; tail = ' aufgelöst'; }
+    lines.push(`${sq} ${m.name}${tail}`);
+  });
+  const st = computeStats();
+  if (st.streak > 1) lines.push(`🔥 ${st.streak} Tage in Folge`);
+  const url = CONFIG.siteUrl ||
+    (/^https?:$/.test(location.protocol) && !/claude/.test(location.hostname) ? location.origin + location.pathname.replace(/index\.html$/, '') : '');
+  if (url) lines.push(url);
+  return lines.join('\n');
+}
+
+async function doShare(btn) {
+  const text = shareText();
+  if (navigator.share && mq('(pointer: coarse)')) {
+    try { await navigator.share({ text }); return; }
+    catch (e) { if (e && e.name === 'AbortError') return; }
+  }
+  try {
+    await navigator.clipboard.writeText(text);
+    toast('Ergebnis kopiert');
+    if (btn) { const old = btn.textContent; btn.textContent = 'Kopiert ✓'; setTimeout(() => { btn.textContent = old; }, 1800); }
+  } catch (e) {
+    const ta = $('#shareText');
+    ta.value = text;
+    openDlg($('#shareDlg'));
+    ta.focus(); ta.select();
+  }
+}
+
+let toastTimer;
+function toast(msg) {
+  const t = $('#toast');
+  t.textContent = msg; t.hidden = false;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { t.hidden = true; }, 2600);
+}
+
+/* ============================================================
+   Countdown, Tageswechsel, Dialoge
+   ============================================================ */
+function tick() {
+  const n = new Date(), mid = new Date(n.getFullYear(), n.getMonth(), n.getDate() + 1);
+  const txt = fmtHMS(mid - n);
+  document.querySelectorAll('[data-countdown]').forEach(el => { if (el.textContent !== txt) el.textContent = txt; });
+  if (today && todayKey() !== today.key) $('#newday').hidden = false;
+}
+
+function openDlg(d) { if (typeof d.showModal === 'function') { if (!d.open) d.showModal(); } else d.setAttribute('open', ''); }
+function closeDlg(d) { if (typeof d.close === 'function') d.close(); else d.removeAttribute('open'); }
+
+function init() {
+  stopClock();
+  today = buildDay(todayKey());
+  $('#newday').hidden = true;
+  renderIssue();
+  const first = MODES.find(m => !finished(ms(m.id)));
+  setMode(first ? first.id : 'impossible');
+  tick();
+}
+
+/* ============================================================
+   Ereignisse
+   ============================================================ */
+document.querySelectorAll('.mode').forEach(b => b.addEventListener('click', () => setMode(b.dataset.mode)));
+$('#hintBtn').addEventListener('click', useHint);
+$('#keyBtn').addEventListener('click', onKeyBtn);
+$('#revealBtn').addEventListener('click', () => { $('#revealBtn').hidden = true; $('#revealConfirm').hidden = false; $('#revealNo').focus(); });
+$('#revealNo').addEventListener('click', () => { $('#revealConfirm').hidden = true; $('#revealBtn').hidden = false; autoFocus(); });
+$('#revealYes').addEventListener('click', () => completeMode('revealed'));
+$('#statsBtn').addEventListener('click', () => { renderStats(); openDlg($('#statsDlg')); });
+$('#helpBtn').addEventListener('click', () => openDlg($('#helpDlg')));
+$('#newdayBtn').addEventListener('click', init);
+
+$('#board').addEventListener('click', e => {
+  if (e.target !== e.currentTarget || finished(ms(current))) return;
+  const i = activeWord != null && !isSolved(activeWord) ? activeWord : nextUnsolved(-1);
+  if (i >= 0) focusWord(i);
+});
+
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-act]');
+  if (!b) return;
+  const act = b.dataset.act;
+  if (act === 'next') {
+    const m = nextOpenMode(current);
+    if (m) { setMode(m.id); $('.modes').scrollIntoView({ behavior: reduceMotion() ? 'auto' : 'smooth', block: 'nearest' }); }
+  } else if (act === 'share') doShare(b);
+  else if (act === 'stats') { renderStats(); openDlg($('#statsDlg')); }
+});
+
+document.querySelectorAll('dialog').forEach(d => {
+  d.addEventListener('click', e => {
+    if (e.target === d || e.target.closest('[data-close]')) closeDlg(d);
+  });
+});
+$('#helpDlg').addEventListener('close', () => {
+  if (!store.seenHelp) { store.seenHelp = true; save(); }
+  autoFocus();
+});
+
+// Am Computer einfach lostippen, ohne vorher zu klicken
+document.addEventListener('keydown', e => {
+  if (e.target !== document.body || e.ctrlKey || e.metaKey || e.altKey) return;
+  if (document.querySelector('dialog[open]') || finished(ms(current))) return;
+  if (!/^[a-zäöüß]$/i.test(e.key)) return;
+  const i = activeWord != null && !isSolved(activeWord) ? activeWord : nextUnsolved(-1);
+  if (i >= 0) focusWord(i);
+});
+
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) stopClock();
+  else { if (ms(current).status === 'playing') startClock(); tick(); }
+});
+window.addEventListener('pagehide', stopClock);
+setInterval(tick, 1000);
+
+/* Start */
+if (!store.seenHelp) openDlg($('#helpDlg'));
+init();
+
+})();
+</script>
+</body>
+</html>
