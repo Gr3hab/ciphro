@@ -100,6 +100,15 @@ button{font:inherit;color:inherit}
 .rule .example{font-family:var(--display);font-size:.8rem;font-weight:500;color:var(--ink)}
 .rule .note{font-size:.88rem;color:var(--muted)}
 
+/* Leiste über dem Blatt: bleibt beim Scrollen oben */
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top, 0px);z-index:10;background:var(--paper)}
+.play{display:flex;flex-direction:column}
+.boardbar{position:sticky;top:env(safe-area-inset-top, 0px);z-index:5;display:flex;align-items:center;justify-content:space-between;gap:12px;padding-block:8px;background:var(--paper)}
+.progress{font-size:.92rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.timer{display:inline-flex;align-items:center;gap:6px;font-family:var(--display);font-weight:700;font-size:1.05rem;color:var(--ink);font-variant-numeric:tabular-nums;letter-spacing:.02em}
+.timer svg{width:19px;height:19px}
+.timer.stopped{color:var(--muted)}
+
 /* Rätselblatt */
 .sheet{
   background-color:var(--sheet);
@@ -115,6 +124,8 @@ button{font:inherit;color:inherit}
 .word{position:relative;display:flex;flex-direction:column;max-width:100%;border-radius:2px}
 .word .row{display:flex;flex-wrap:wrap;position:relative;z-index:1}
 .d{width:var(--cell);height:var(--cell);display:grid;place-items:center;font-family:var(--display);font-weight:700;font-size:calc(var(--cell) * .56);color:var(--ink);font-variant-numeric:tabular-nums;line-height:1}
+.d.cut{box-shadow:inset 2px 0 0 var(--pencil)}
+.word.solved .d.cut{box-shadow:inset 2px 0 0 var(--marker-text)}
 .s{width:var(--cell);height:var(--cell);display:grid;place-items:center;font-weight:700;font-size:calc(var(--cell) * .7);line-height:1;position:relative;color:var(--text)}
 .s::after{content:"";position:absolute;left:18%;right:18%;bottom:3px;height:2px;border-radius:1px;background:var(--muted);opacity:.45}
 .s.filled::after{opacity:.18}
@@ -210,7 +221,10 @@ dialog::backdrop{background:var(--scrim)}
 .stats .n{font-family:var(--display);font-size:1.7rem;font-weight:800;line-height:1.1;font-variant-numeric:tabular-nums}
 .stats .l{font-size:.78rem;color:var(--muted);line-height:1.25;margin-top:4px}
 .bars{display:flex;flex-direction:column;gap:7px}
-.bar{display:grid;grid-template-columns:6.2em minmax(0,1fr) 2em;align-items:center;gap:10px;font-size:.9rem}
+.bar{display:grid;grid-template-columns:6.2em minmax(0,1fr) 2em 3.6em;align-items:center;gap:10px;font-size:.9rem}
+.bar .t{text-align:right;font-variant-numeric:tabular-nums;color:var(--muted)}
+.bar.head{font-size:.75rem;color:var(--muted)}
+.bar.head span:nth-child(3),.bar.head span:nth-child(4){text-align:right}
 .bar .track{height:10px;background:var(--grid);border-radius:2px;overflow:hidden}
 .bar .fill{display:block;height:100%;background:var(--ink)}
 .bar .v{text-align:right;font-variant-numeric:tabular-nums;font-weight:700}
@@ -257,6 +271,14 @@ textarea{width:100%;font:inherit;font-size:.95rem;padding:10px;border:1px solid 
 
   <section class="rule" id="rule"></section>
 
+  <div class="play">
+  <div class="boardbar" id="boardbar">
+    <span class="progress" id="progress"></span>
+    <span class="timer" title="Zeit für dieses Rätsel">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="13.5" r="7.5"/><path d="M12 13.5V9.5M10 2.5h4M18.2 6.8l1.3-1.3"/></svg>
+      <span class="sr">Zeit</span><span id="timerText">0:00</span>
+    </span>
+  </div>
   <section class="sheet" id="board" role="group" aria-label="Zahlencode">
     <div class="nojs" id="nojs">
       <strong>Hier fehlt das Rätsel?</strong>
@@ -264,6 +286,7 @@ textarea{width:100%;font:inherit;font-size:.95rem;padding:10px;border:1px solid 
       <p>Öffne NumFact stattdessen über den Link im Browser.</p>
     </div>
   </section>
+  </div>
 
   <div class="tools" id="tools">
     <button class="btn" id="hintBtn" type="button">
@@ -307,10 +330,10 @@ textarea{width:100%;font:inherit;font-size:.95rem;padding:10px;border:1px solid 
     <ul class="howto">
       <li><strong>Tippe ein Wort an</strong> und schreib, was du entschlüsselt hast. Ein richtiges Wort wird sofort markiert.</li>
       <li><strong>Leertaste</strong> springt zum nächsten Wort.</li>
-      <li><strong>Drei Tipps pro Rätsel.</strong> Ein Tipp deckt einen Buchstaben auf, bei Impossible verrät der erste die Verschiebung. Teil sie dir gut ein.</li>
+      <li><strong>Drei Tipps pro Rätsel.</strong> Ein Tipp deckt einen Buchstaben auf. Bei Impossible zeigt er stattdessen, wo in einem Wort die Buchstaben getrennt sind. Die Verschiebung musst du selbst finden.</li>
       <li><strong>Ä, Ö, Ü und ß</strong> haben eigene Zahlen von 27 bis 30, damit klar ist, ob ß oder ss gemeint ist. Tippen kannst du sie auch als ae, oe, ue und ss.</li>
     </ul>
-    <p class="small">Deine Serie wächst mit jedem Tag, an dem du mindestens ein Rätsel löst.</p>
+    <p class="small">Die Uhr läuft, solange ein Rätsel offen und sichtbar ist. Deine Serie wächst mit jedem Tag, an dem du mindestens ein Rätsel löst.</p>
     <button class="btn primary" type="button" data-close autofocus>Los geht’s</button>
   </div>
 </dialog>
@@ -609,7 +632,7 @@ function ms(id) {
   const day = dayState(), p = today.puzzles[id];
   let s = day[id];
   if (!s || s.sig !== p.sig || !Array.isArray(s.typed) || s.typed.length !== p.words.length) {
-    s = day[id] = { sig: p.sig, typed: p.words.map(() => ''), hints: {}, hintCount: 0, shiftShown: false, status: 'open', elapsed: 0, given: [] };
+    s = day[id] = { sig: p.sig, typed: p.words.map(() => ''), hints: {}, hintCount: 0, cuts: [], status: 'open', elapsed: 0, given: [] };
   }
   return s;
 }
@@ -632,8 +655,32 @@ function nextOpenMode(from) {
 /* Zeit zählt nur, solange das Rätsel offen und sichtbar ist */
 function startClock() {
   stopClock();
-  if (ms(current).status !== 'playing' || document.hidden) return;
+  if (ms(current).status !== 'playing' || document.hidden || document.querySelector('dialog[open]')) return;
   clock = { mode: current, start: Date.now() };
+}
+// Sobald ein offenes Rätsel sichtbar ist, läuft seine Uhr (nicht erst beim ersten Tippen – fair für alle)
+function beginView() {
+  if (!today) return;
+  const s = ms(current);
+  if (finished(s) || document.hidden || document.querySelector('dialog[open]')) return;
+  if (s.status === 'open') { s.status = 'playing'; save(); }
+  if (!clock) startClock();
+  renderTabs();
+}
+function elapsedOf(id) {
+  const s = ms(id);
+  return (s.elapsed || 0) + (clock && clock.mode === id ? Date.now() - clock.start : 0);
+}
+function renderTimer() {
+  if (!today) return;
+  const s = ms(current), p = puz();
+  const txt = fmtTime(elapsedOf(current));
+  const el = $('#timerText');
+  if (el.textContent !== txt) el.textContent = txt;
+  $('.timer').classList.toggle('stopped', !clock);
+  const c = p.words.filter((w, i) => s.typed[i] === w.plain).length;
+  const prog = s.status === 'solved' ? 'Gelöst' : s.status === 'revealed' ? 'Aufgelöst' : `${c} von ${p.words.length} Wörtern`;
+  if ($('#progress').textContent !== prog) $('#progress').textContent = prog;
 }
 function stopClock() {
   if (!clock) return;
@@ -675,20 +722,22 @@ function renderTabs() {
     }
     b.querySelector('.state').textContent = st;
   });
+  renderTimer();
 }
 
 function renderRule() {
   const r = RULES[current], s = ms(current), p = puz();
   let ex = r.ex;
   if (current === 'impossible') {
-    ex = s.shiftShown
-      ? `Heute um ${today.shift} verschoben: A = ${today.shift + 1}, B = ${today.shift + 2} … Z = ${today.shift}`
+    ex = s.shiftShown || finished(s)
+      ? `Heute ${finished(s) ? 'war es' : 'ist es'} um ${today.shift} verschoben: A\u00A0=\u00A0${today.shift + 1}, B\u00A0=\u00A0${today.shift + 2} … Z\u00A0=\u00A0${today.shift}`
       : null;
   }
   const um = /[äöüÄÖÜßẞ]/.test(p.fact.t);
   $('#rule').innerHTML =
     `<p>${esc(r.text)}</p>` +
     (ex ? `<p class="example">${esc(ex)}</p>` : '') +
+    (current === 'impossible' && !ex ? '<p class="note">Tipps zeigen hier nur, wo in einem Wort die Buchstaben getrennt sind.</p>' : '') +
     (um ? '<p class="note">In diesem Satz stecken Umlaute oder ß. Sie haben in jeder Stufe feste Zahlen: Ä\u00A0=\u00A027, Ö\u00A0=\u00A028, Ü\u00A0=\u00A029, ß\u00A0=\u00A030. Tippen kannst du sie auch als ae, oe, ue und ss.</p>' : '');
 }
 
@@ -704,11 +753,14 @@ function buildBoard() {
         w.codes.map((c, i) => `<div class="col"><span class="d">${c}</span><span class="s" data-i="${i}"></span></div>`).join('') +
         '</div>';
     } else {
-      const digits = w.codes.join('');
-      html = '<div class="row digits" aria-hidden="true">' + [...digits].map(ch => `<span class="d">${ch}</span>`).join('') + '</div>' +
+      const cut = (ms(current).cuts || []).includes(wi);
+      const cells = [];
+      w.codes.forEach((c, ci) => [...String(c)].forEach((ch, k) => cells.push(`<span class="d${cut && ci > 0 && k === 0 ? ' cut' : ''}">${ch}</span>`)));
+      html = `<div class="row digits${cut ? ' has-cuts' : ''}" aria-hidden="true">` + cells.join('') + '</div>' +
         '<div class="row slots" aria-hidden="true">' + [...w.plain].map((_, i) => `<span class="s" data-i="${i}"></span>`).join('') + '</div>';
     }
-    const codeLabel = current === 'easy' ? w.codes.join(', ') : w.codes.join('');
+    const showSep = current === 'easy' || (ms(current).cuts || []).includes(wi);
+    const codeLabel = showSep ? w.codes.join(', ') : w.codes.join('');
     html += `<input type="text" inputmode="text" autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false" enterkeyhint="next"
       aria-label="Wort ${wi + 1} von ${p.words.length}, ${w.plain.length} Buchstaben, Code ${codeLabel}">`;
     el.innerHTML = html;
@@ -778,10 +830,10 @@ function renderKey() {
 function onKeyBtn() {
   const s = ms(current);
   if (!keyLocked(s)) { store.keyOpen = !store.keyOpen; save(); renderTools(); return; }
-  if (!hintsLeft(s)) return;
+  if (keyForbidden(s) || !hintsLeft(s)) return;
   markPlaying();
   s.hintCount++;
-  if (current === 'impossible') s.shiftShown = true; else s.keyUnlocked = true;
+  s.keyUnlocked = true;
   store.keyOpen = true;
   save(); renderRule(); renderKey(); renderTools();
 }
@@ -792,10 +844,13 @@ function renderTools() {
   $('#tools').hidden = done;
   $('#key').hidden = done || locked || !store.keyOpen;
   $('#keyBtn').setAttribute('aria-expanded', String(!!store.keyOpen && !done && !locked));
-  $('#keyLabel').textContent = locked ? 'Schlüssel (1 Tipp)' : 'Schlüssel';
-  $('#keyBtn').disabled = locked && !left;
-  $('#hintBtn').disabled = !left;
-  $('#hintLabel').textContent = !left ? 'Keine Tipps mehr' : (current === 'impossible' && !s.shiftShown ? 'Verschiebung zeigen' : 'Buchstabe aufdecken');
+  const forbidden = keyForbidden(s), canCut = current === 'impossible' && !s.shiftShown;
+  const cutTarget = canCut ? nextCutTarget(s) : 0;
+  $('#keyLabel').textContent = forbidden ? 'Schlüssel gesperrt' : locked ? 'Schlüssel (1 Tipp)' : 'Schlüssel';
+  $('#keyBtn').disabled = forbidden || (locked && !left);
+  $('#keyBtn').title = forbidden ? 'Bei Impossible gibt es keinen Schlüssel' : '';
+  $('#hintBtn').disabled = !left || cutTarget < 0;
+  $('#hintLabel').textContent = !left ? 'Keine Tipps mehr' : canCut ? (cutTarget < 0 ? 'Alle Trennungen sichtbar' : 'Trennung zeigen') : 'Buchstabe aufdecken';
   $('#toolMeta').innerHTML = '<span class="pips" aria-hidden="true">' +
     Array.from({ length: max }, (_, i) => `<i class="${i < left ? 'on' : ''}"></i>`).join('') +
     `</span>${left} von ${max} Tipps übrig`;
@@ -831,7 +886,8 @@ function setMode(id) {
   activeWord = null;
   buildBoard();
   renderTabs(); renderRule(); renderKey(); renderTools(); renderResult();
-  if (ms(current).status === 'playing') startClock();
+  beginView();
+  renderTimer();
   autoFocus();
 }
 
@@ -910,6 +966,16 @@ function flashWord(wi) {
 
 const hintsLeft = s => Math.max(0, CONFIG.hintsPerPuzzle - (s.hintCount || 0));
 const keyLocked = s => (current === 'mirror' && !s.keyUnlocked) || (current === 'impossible' && !s.shiftShown);
+const keyForbidden = s => current === 'impossible' && !s.shiftShown;
+
+// Wort für den nächsten Trennstrich-Tipp: das aktive, sonst das erste offene ohne Trennung
+function nextCutTarget(s) {
+  const cuts = s.cuts || [], p = puz();
+  const ok = i => i >= 0 && i < p.words.length && !isSolved(i) && !cuts.includes(i) && p.words[i].codes.length > 1;
+  if (activeWord != null && ok(activeWord)) return activeWord;
+  for (let i = 0; i < p.words.length; i++) if (ok(i)) return i;
+  return -1;
+}
 
 function useHint() {
   const p = puz(), s = ms(current);
@@ -917,9 +983,15 @@ function useHint() {
   if (!hintsLeft(s)) { toast('Keine Tipps mehr für dieses Rätsel'); return; }
   markPlaying();
   if (current === 'impossible' && !s.shiftShown) {
-    s.shiftShown = true; s.hintCount++;
-    save(); renderRule(); renderKey(); renderTools();
-    toast(`Heute um ${today.shift} verschoben: A = ${today.shift + 1}`);
+    const wi = nextCutTarget(s);
+    if (wi < 0) return;
+    (s.cuts || (s.cuts = [])).push(wi);
+    s.hintCount++;
+    save();
+    buildBoard();
+    if (finePointer() && !isSolved(wi)) focusWord(wi); else setActive(isSolved(wi) ? null : wi);
+    renderTabs(); renderTools();
+    toast(`Trennung bei Wort ${wi + 1} eingezeichnet`);
     return;
   }
   const wi = activeWord != null && !isSolved(activeWord) ? activeWord : nextUnsolved(-1);
@@ -955,6 +1027,7 @@ function completeMode(status) {
   activeWord = null;
   wordEls.forEach((_, i) => updateWord(i));
   renderTabs(); renderTools(); renderResult();
+  renderTimer(); renderRule();
   if (status === 'solved') burst();
   requestAnimationFrame(() => $('#result').scrollIntoView({ behavior: reduceMotion() ? 'auto' : 'smooth', block: 'nearest' }));
 }
@@ -1007,6 +1080,7 @@ function burst() {
    ============================================================ */
 function computeStats() {
   const perMode = { easy: 0, hard: 0, mirror: 0, impossible: 0 };
+  const bestTime = { easy: null, hard: null, mirror: null, impossible: null };
   const solvedDays = new Set();
   let played = 0, solvedTotal = 0;
   Object.keys(store.days).forEach(k => {
@@ -1015,7 +1089,10 @@ function computeStats() {
     MODES.forEach(m => {
       const s = d[m.id];
       if (!s) return;
-      if (s.status === 'solved') { solvedTotal++; perMode[m.id]++; any = anySolved = true; }
+      if (s.status === 'solved') {
+        solvedTotal++; perMode[m.id]++; any = anySolved = true;
+        if (bestTime[m.id] == null || s.elapsed < bestTime[m.id]) bestTime[m.id] = s.elapsed;
+      }
       else if (s.status === 'revealed') any = true;
     });
     if (any) played++;
@@ -1030,7 +1107,7 @@ function computeStats() {
     best = Math.max(best, run);
     prev = day;
   });
-  return { played, solvedTotal, perMode, streak, best };
+  return { played, solvedTotal, perMode, bestTime, streak, best };
 }
 
 function renderStats() {
@@ -1043,8 +1120,9 @@ function renderStats() {
       `<div><div class="n">${st.best}</div><div class="l">Beste Serie</div></div>` +
       `<div><div class="n">${st.solvedTotal}</div><div class="l">Codes geknackt</div></div>` +
     '</div>' +
-    '<div class="bars"><h3>Geknackt nach Stufe</h3>' +
-      MODES.map(m => `<div class="bar"><span>${m.name}</span><span class="track"><span class="fill" style="width:${(st.perMode[m.id] / max * 100).toFixed(1)}%"></span></span><span class="v">${st.perMode[m.id]}</span></div>`).join('') +
+    '<div class="bars"><h3>Nach Stufe</h3>' +
+      '<div class="bar head"><span></span><span></span><span>Gelöst</span><span>Bestzeit</span></div>' +
+      MODES.map(m => `<div class="bar"><span>${m.name}</span><span class="track"><span class="fill" style="width:${(st.perMode[m.id] / max * 100).toFixed(1)}%"></span></span><span class="v">${st.perMode[m.id]}</span><span class="t">${st.bestTime[m.id] == null ? '–' : fmtTime(st.bestTime[m.id])}</span></div>`).join('') +
     '</div>' +
     '<p class="small">Die Serie wächst mit jedem Tag, an dem du mindestens einen Code knackst. Nächste Codes in <span class="countdown" data-countdown></span>.</p>' +
     '<button class="btn primary" type="button" data-act="share">Heutiges Ergebnis teilen</button>';
@@ -1098,13 +1176,14 @@ function toast(msg) {
    Countdown, Tageswechsel, Dialoge
    ============================================================ */
 function tick() {
+  renderTimer();
   const n = new Date(), mid = new Date(n.getFullYear(), n.getMonth(), n.getDate() + 1);
   const txt = fmtHMS(mid - n);
   document.querySelectorAll('[data-countdown]').forEach(el => { if (el.textContent !== txt) el.textContent = txt; });
   if (today && todayKey() !== today.key) $('#newday').hidden = false;
 }
 
-function openDlg(d) { if (typeof d.showModal === 'function') { if (!d.open) d.showModal(); } else d.setAttribute('open', ''); }
+function openDlg(d) { stopClock(); if (typeof d.showModal === 'function') { if (!d.open) d.showModal(); } else d.setAttribute('open', ''); }
 function closeDlg(d) { if (typeof d.close === 'function') d.close(); else d.removeAttribute('open'); }
 
 function init() {
@@ -1151,6 +1230,7 @@ document.querySelectorAll('dialog').forEach(d => {
   d.addEventListener('click', e => {
     if (e.target === d || e.target.closest('[data-close]')) closeDlg(d);
   });
+  d.addEventListener('close', () => { beginView(); renderTimer(); });
 });
 $('#helpDlg').addEventListener('close', () => {
   if (!store.seenHelp) { store.seenHelp = true; save(); }
@@ -1179,10 +1259,10 @@ window.addEventListener('storage', e => {
 
 document.addEventListener('visibilitychange', () => {
   if (document.hidden) stopClock();
-  else { if (ms(current).status === 'playing') startClock(); tick(); }
+  else { beginView(); tick(); }
 });
 window.addEventListener('pagehide', stopClock);
-setInterval(tick, 1000);
+setInterval(tick, 500);
 
 /* Start */
 if (!store.seenHelp) openDlg($('#helpDlg'));
