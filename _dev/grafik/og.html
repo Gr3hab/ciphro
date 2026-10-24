@@ -1,5 +1,6 @@
 <!doctype html><html><head><meta charset="utf-8">
-<!-- Vorschaubild für geteilte Links (og.png, 1200×630). Erzeugen: node _dev/grafik/render.js -->
+<!-- Vorschaubilder für geteilte Links, 1200×630: og-de.png (?lang=de) und og-en.png (?lang=en), gleiches Design, nur der Slogan in der Sprache.
+     Erzeugen im Ordner _dev: node grafik/render.js -->
 <style>
 @font-face{font-family:"Martian Mono";font-weight:800;src:url(../../fonts/martian-mono-latin-800-normal.woff2) format("woff2")}
 @font-face{font-family:"Martian Mono";font-weight:700;src:url(../../fonts/martian-mono-latin-700-normal.woff2) format("woff2")}
@@ -21,5 +22,8 @@ body{width:1200px;height:630px;box-sizing:border-box;padding:0 60px;background:#
   <div class="col num"><b>14</b><span>N</span></div><div class="col num"><b>21</b><span>U</span></div><div class="col num"><b>13</b><span>M</span></div>
   <div class="col"><b>9</b><span>I</span></div><div class="col"><b>7</b><span>G</span></div><div class="col"><b>13</b><span>M</span></div><div class="col"><b>1</b><span>A</span></div>
 </div>
-<div class="tag"><span>CRACK THE CODE.</span><span><em>REVEAL THE FACT.</em></span></div>
+<div class="tag" id="tag"><span>CRACK THE CODE.</span><span><em>REVEAL THE FACT.</em></span></div>
+<script>
+  if (/[?&]lang=de\b/.test(location.search)) document.getElementById('tag').innerHTML = '<span>KNACK DEN CODE.</span><span><em>ENTDECK DEN FAKT.</em></span>';
+</script>
 </body></html>

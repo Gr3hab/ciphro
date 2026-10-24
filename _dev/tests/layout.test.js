@@ -35,6 +35,17 @@ async function measure(page) {
       if (!vis(b)) return;
       const r = b.getBoundingClientRect();
       if (r.width < 24 || r.height < 34) out.push(`Taste ${b.textContent.trim() || b.getAttribute('aria-label')} zu klein: ${Math.round(r.width)}×${Math.round(r.height)}`);
+      // Zahl auf der Taste: lesbar groß, unter dem Buchstaben, ganz auf der Taste
+      const i = b.querySelector('i');
+      if (i && i.textContent && vis(i)) {
+        const ri = i.getBoundingClientRect(), rb = b.querySelector('b').getBoundingClientRect(), fs = parseFloat(getComputedStyle(i).fontSize);
+        if (fs < 11) out.push(`Zahl auf Taste ${b.querySelector('b').textContent} zu klein: ${fs}px`);
+        if (ri.top < rb.bottom - 1 || ri.left < r.left - 0.5 || ri.right > r.right + 0.5 || ri.bottom > r.bottom + 0.5) out.push(`Zahl auf Taste ${b.querySelector('b').textContent} liegt schief`);
+      }
+    });
+    // Regelzeile: nichts darf mit „…“ abgeschnitten werden
+    document.querySelectorAll('.rulechip .rt > *').forEach(el => {
+      if (vis(el) && el.scrollWidth > el.clientWidth + 1) out.push(`Regel abgeschnitten: ${el.textContent.trim()}`);
     });
     document.querySelectorAll('.mode .n, .tool, .btn, .rulechip span').forEach(el => {
       if (!vis(el)) return;

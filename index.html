@@ -4,16 +4,19 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>NUMIGMA · Crack the code. Reveal the fact.</title>
-<meta name="description" content="Crack the code. Reveal the fact. Jeden Tag vier Zahlencodes, hinter jedem ein wahrer Fakt. Four daily number codes, each hiding a true fact.">
+<!-- Linkvorschau (WhatsApp & Co.): Wer den Link bekommt, weiß sonst nicht, was ihn erwartet. Deshalb auf Deutsch, klar und mit „kostenlos“.
+     Bild og-de.png mit deutschem Slogan. Englische Links (/en/) haben eine eigene Vorschau mit og-en.png. Neue Bildnamen, weil WhatsApp Bilder zwischenspeichert. -->
+<meta name="description" content="Das tägliche Zahlenrätsel: Jede Zahl ist ein Buchstabe. Knack den Code, dahinter steckt ein wahrer Fakt. Kostenlos, ohne Anmeldung, ohne Werbung.">
 <meta property="og:site_name" content="NUMIGMA">
-<meta property="og:title" content="NUMIGMA · Crack the code. Reveal the fact.">
-<meta property="og:description" content="Jeden Tag vier Zahlencodes, hinter jedem ein wahrer Fakt. Four daily number codes, each hiding a true fact.">
+<meta property="og:title" content="NUMIGMA · Das tägliche Zahlenrätsel">
+<meta property="og:description" content="Jede Zahl ist ein Buchstabe. Knack den Code, dahinter steckt ein wahrer Fakt. Kostenlos, ohne Anmeldung, ohne Werbung.">
+<meta property="og:locale" content="de_AT">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://gr3hab.github.io/numfact/">
-<meta property="og:image" content="https://gr3hab.github.io/numfact/og.png">
+<meta property="og:image" content="https://gr3hab.github.io/numfact/og-de.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="NUMIGMA: Crack the code. Reveal the fact.">
+<meta property="og:image:alt" content="NUMIGMA: Knack den Code. Entdeck den Fakt.">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="theme-color" content="#f2f4f7" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#111715" media="(prefers-color-scheme: dark)">
@@ -118,10 +121,12 @@ a{color:var(--ink)}
 
 /* Leiste mit Regel, Fortschritt, Uhr */
 .bar{flex:none;display:flex;align-items:center;gap:8px;padding-block:6px;min-height:46px}
-.rulechip{min-width:0;flex:1;display:flex;align-items:center;gap:6px;border:0;background:none;padding:4px 0;cursor:pointer;text-align:left;color:var(--ink);font-family:var(--display);font-weight:500;font-size:.74rem;letter-spacing:.02em}
-.rulechip span{min-width:0;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.rulechip svg{width:16px;height:16px;flex:none}
-.progress{font-size:.82rem;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
+/* Regel in zwei kurzen Zeilen statt einer abgeschnittenen: oben das Alphabet, darunter der Zusatz */
+.rulechip{min-width:0;flex:1;display:flex;align-items:center;gap:7px;border:0;background:none;padding:2px 0;cursor:pointer;text-align:left;color:var(--ink)}
+.rulechip .rt{min-width:0;flex:1;display:flex;flex-direction:column;line-height:1.22}
+.rulechip .rt b{font-weight:700;font-size:.9rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rulechip .rt small{font-size:.8rem;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rulechip svg{width:18px;height:18px;flex:none}
 .timer{display:inline-flex;align-items:center;gap:5px;font-family:var(--display);font-weight:700;font-size:1rem;color:var(--ink);font-variant-numeric:tabular-nums}
 .timer svg{width:18px;height:18px}
 .timer.stopped{color:var(--muted)}
@@ -147,7 +152,7 @@ a{color:var(--ink)}
 .dr,.lr{display:flex;flex-wrap:wrap;position:relative;z-index:1}
 .dr{min-height:var(--cell)}
 .d{width:calc(var(--cell) / 2);height:var(--cell);display:grid;place-items:center;font-family:var(--display);font-weight:700;font-size:calc(var(--cell) * .54);color:var(--ink);font-variant-numeric:tabular-nums;line-height:1}
-.easy .d{width:var(--cell);font-size:calc(var(--cell) * .46);letter-spacing:-.03em}
+.easy .d{width:var(--cell);font-size:calc(var(--cell) * .5);letter-spacing:-.04em}
 .d.cut{box-shadow:inset 2px 0 0 var(--pencil)}
 .c{width:var(--cell);height:var(--cell);display:grid;place-items:center;background:var(--cellbg);box-shadow:inset 0 0 0 1px var(--cellline);font-weight:700;font-size:calc(var(--cell) * .62);line-height:1;color:var(--text);user-select:none;-webkit-user-select:none}
 .c.hint{color:var(--pencil)}
@@ -189,6 +194,8 @@ a{color:var(--ink)}
 .card .note{font-size:.9rem;color:var(--muted)}
 .card .tip{font-size:.92rem;border-left:3px solid var(--marker);padding-left:10px}
 .card .small{font-size:.85rem;color:var(--muted)}
+.card .toeasy{min-height:36px;padding:0;margin-top:-6px;color:var(--ink);text-align:left}
+.card .toeasy svg{width:16px;height:16px}
 .pausecard{align-items:center;text-align:center;padding-block:34px}
 .pausecard .ptitle{font-family:var(--display);font-weight:800;font-size:1.45rem;display:flex;align-items:center;gap:10px}
 .pausecard .ptitle svg{width:24px;height:24px;color:var(--ink)}
@@ -241,18 +248,21 @@ a{color:var(--ink)}
 .confirm,.coach{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:10px 12px;border:1px solid var(--red);border-radius:var(--r);background:var(--sheet)}
 .confirm.calm,.coach{border-color:var(--ink)}
 .confirm span,.coach span{flex:1 1 200px;font-size:.92rem}
+.coach span{flex-basis:140px}
 .confirm .btn,.coach .btn{min-height:38px}
+.coach .btn{padding-inline:12px}
 
 .kb{display:flex;flex-direction:column;gap:6px;user-select:none;-webkit-user-select:none}
 .kr{display:flex;gap:4px}
 .k{position:relative;flex:1 1 0;min-width:0;height:var(--kh)}
-.k > button{width:100%;height:100%;display:grid;place-items:center;border:0;border-radius:6px;background:var(--key);color:var(--text);font-weight:700;font-size:1.05rem;cursor:pointer;touch-action:manipulation;padding:0;position:relative;overflow:hidden}
-.k > button b{font-weight:700}
+.k > button{width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border:0;border-radius:6px;background:var(--key);color:var(--text);font-weight:700;font-size:1.05rem;line-height:1;cursor:pointer;touch-action:manipulation;padding:0;position:relative;overflow:hidden}
+.k > button b{font-weight:700;line-height:1}
 .k:active > button,.k.down > button{background:var(--key-hi)}
 .k.wide{flex:1.5 1 0}
 .k.wide > button{font-size:.95rem}
 .k svg{width:22px;height:22px}
-.k i{position:absolute;top:2px;right:3px;font-style:normal;font-family:var(--display);font-size:.62rem;font-weight:700;color:var(--ink);line-height:1}
+.k i{font-style:normal;font-family:var(--display);font-size:.72rem;font-weight:700;color:var(--ink);line-height:1;letter-spacing:-.03em}
+.k i:empty{display:none}
 .kb.off .k{opacity:.5}
 .hsw{position:absolute;inset:0;width:100%;height:100%;margin:0;opacity:0;clip-path:inset(0 round 999px);touch-action:manipulation;z-index:2}
 .no-haptics .hsw{display:none}
@@ -279,7 +289,7 @@ a{color:var(--ink)}
   .k > button{font-size:1rem}
   .card{padding:16px 14px}
 }
-@media (max-width:380px){ .dlg .eyebrow{display:none} .dlg{padding:16px 14px 18px;gap:12px} }
+@media (max-width:380px){ .dlg .eyebrow:not(.keep){display:none} .dlg{padding:16px 14px 18px;gap:12px} }
 @media (max-height:700px){ :root{--kh:44px} .top{padding-block:6px 6px} .bar{min-height:40px;padding-block:3px} }
 @media (max-height:600px){ :root{--kh:40px} .kb{gap:5px} .dock{gap:6px} }
 
@@ -384,7 +394,7 @@ textarea{width:100%;font:inherit;font-size:.95rem;padding:10px;border:1px solid 
 .demo2.won .c{background:transparent;box-shadow:none;color:var(--marker-text)}
 .demo2.won b{color:var(--marker-text)}
 .demo2.won::before{content:none}
-.demo2 .hl{position:absolute;left:9px;right:9px;bottom:7px;height:52px;pointer-events:none;background:var(--marker);border-radius:3px 10px 4px 9px;transform:rotate(-.6deg);z-index:0;animation:swipe .45s ease-out both}
+.demo2 .hl{position:absolute;left:8px;right:8px;top:7px;bottom:7px;pointer-events:none;background:var(--marker);border-radius:3px 10px 4px 9px;transform:rotate(-.6deg);z-index:0;animation:swipe .45s ease-out both}
 .demo2 .c.no{color:var(--red);box-shadow:inset 0 0 0 2px var(--red)}
 .demo-keys{display:grid;grid-template-columns:repeat(7, minmax(0,1fr));gap:5px}
 .dk{height:52px;border:0;border-radius:6px;background:var(--key);cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;padding:0;touch-action:manipulation}
@@ -396,6 +406,9 @@ textarea{width:100%;font:inherit;font-size:.95rem;padding:10px;border:1px solid 
 .demo-msg{color:var(--red)!important;font-weight:700}
 @media (max-height:640px){ .demo2 .c{width:40px;height:40px} .dk{height:46px} #introBody{gap:10px} }
 .win{display:flex;flex-direction:column;gap:6px}
+#introBody .free{margin-top:-8px}
+.intro-foot{display:flex;justify-content:space-between;align-items:center;gap:8px;margin:-4px -8px -6px}
+.intro-foot .btn{min-height:40px}
 .win strong{font-family:var(--display);font-size:1.02rem}
 
 .toast{position:fixed;left:50%;top:calc(14px + env(safe-area-inset-top, 0px));transform:translateX(-50%);z-index:50;background:var(--text);color:var(--paper);padding:10px 16px;border-radius:var(--r);font-weight:700;font-size:.92rem;max-width:calc(100vw - 32px);box-shadow:0 6px 24px var(--scrim);text-align:center}
@@ -461,9 +474,8 @@ textarea{width:100%;font:inherit;font-size:.95rem;padding:10px;border:1px solid 
   <div class="bar">
     <button class="rulechip" id="ruleBtn" type="button">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5h.01"/></svg>
-      <span id="ruleShort"></span>
+      <span class="rt" id="ruleShort"></span>
     </button>
-    <span class="progress" id="progress"></span>
     <span class="timer" id="timer" role="timer">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="13.5" r="7.5"/><path d="M12 13.5V9.5M10 2.5h4M18.2 6.8l1.3-1.3"/></svg>
       <span class="sr" id="timerSr"></span><span id="timerText">0:00</span>
@@ -563,10 +575,11 @@ const STR = {
     badLink: 'Diesen Link kennen wir nicht. Hier ist das heutige Rätsel.',
     menu: { archive: 'Archiv', stats: 'Statistik', settings: 'Einstellungen', help: 'Anleitung' }, menuAria: 'Menü', close: 'Schließen', dismiss: 'Hinweis schließen',
     modesAria: 'Stufe', ruleAria: 'Regel anzeigen', timer: 'Zeit für dieses Rätsel', timerSr: 'Zeit', pause: 'Pause', board: 'Zahlencode', stage: 'Rätsel',
-    words: n => n === 1 ? '1 Wort' : `${n} Wörter`, revealedShort: 'aufgelöst', of: (c, n) => `${c} von ${n}`,
-    solved: 'Gelöst', revealed: 'Aufgelöst', solvedSr: 'gelöst',
+    words: n => n === 1 ? '1 Wort' : `${n} Wörter`, revealedShort: 'aufgelöst', solvedSr: 'gelöst',
     startMeta: (w, l) => `${w === 1 ? '1 Wort' : w + ' Wörter'} · ${l} Buchstaben`, start: 'Start',
-    startNote: 'Der Code erscheint erst nach Start. Die Uhr läuft nur, solange du ihn siehst. Mit ⏸ pausierst du.',
+    startNote: 'Der Code erscheint erst nach Start. Die Uhr läuft nur, solange du ihn siehst. Die Pause-Taste neben der Uhr hält sie an.',
+    toEasy: 'Neu hier? Fang lieber mit Easy an',
+    noNumbers: 'Auf der Tastatur stehen hier keine Zahlen. Der Schlüssel blendet sie für einen Buchstaben ein und kostet 1 Tipp.',
     impTip: 'Tipp: Fang mit einem kurzen Wort an. Errätst du einen Buchstaben, kennst du die Verschiebung für alle.',
     rotateTitle: 'Bitte hochkant halten', rotateText: 'Im Querformat ist auf diesem Bildschirm zu wenig Platz für Code und Tastatur. Die Uhr steht so lange.',
     paused: 'Pausiert', pausedAt: t => `Die Uhr steht bei ${t}. Der Code ist so lange verdeckt.`,
@@ -577,13 +590,15 @@ const STR = {
     keyEasy: on => on ? 'Zahlen auf der Tastatur ausblenden (gratis)' : 'Zahlen auf der Tastatur einblenden (gratis)',
     keyPaid: open => open ? 'Schlüssel offen: Die Zahlen gelten für deinen nächsten Buchstaben' : 'Schlüssel: Zahlen für einen Buchstaben einblenden, kostet 1 Tipp',
     keyForbidden: 'Bei Impossible gibt es keinen Schlüssel',
+    keyShown: 'Zahlen auf der Tastatur sind wieder da', keyHidden: 'Zahlen ausgeblendet. „Schlüssel“ blendet sie wieder ein.',
     keyExplain: 'Der Schlüssel zeigt die Zahlen auf der Tastatur, bis du den nächsten Buchstaben tippst. Er kostet 1 Tipp und das Wort zählt beim Teilen als 🟨.',
     keyYes: 'Schlüssel nutzen', cancel: 'Abbrechen',
     keyOpened: 'Schlüssel offen: Die Zahlen gelten für deinen nächsten Buchstaben.',
     revealQ: 'Lösung anzeigen? Dann zählt dieses Rätsel nicht als gelöst.', revealYes: 'Ja, auflösen', revealNo: 'Weiter rätseln',
     kb: 'Tastatur', nextWord: 'Nächstes Wort', backspace: 'Löschen',
     coach: {
-      fix: 'Ein Buchstabe stimmt nicht? Tipp auf das Kästchen und überschreib ihn einfach.',
+      first: 'Schreib mit der Tastatur unten. Richtige Wörter werden grün.',
+      fix: 'Ein Buchstabe stimmt nicht? Tippe das Kästchen an und überschreibe ihn einfach.',
       hint: 'Wörter mit Hilfe werden beim Teilen gelb 🟨. Das bleibt so, auch wenn du den Buchstaben später überschreibst.'
     },
     gotIt: 'Verstanden',
@@ -614,32 +629,33 @@ const STR = {
       intro: 'Kurz-Einstieg ansehen', done: 'Fertig' },
     shareDlg: { title: 'Ergebnis teilen', note: 'Automatisches Kopieren klappt hier nicht. Der Text ist markiert, du kannst ihn selbst kopieren.', done: 'Fertig' },
     intro: {
+      eyebrow: 'Das tägliche Zahlenrätsel', free: 'Kostenlos, ohne Anmeldung, ohne Werbung.',
       title: 'Knack den Code', lead: 'Jede Zahl ist ein Buchstabe: A = 1, B = 2, C\u00a0=\u00a03\u00a0…',
       task: 'Probier es aus: Welches Wort ist das? Die kleinen Zahlen auf den Tasten helfen dir.', word: 'EIS', keys: [...'AEHIRS'], wrong: c => `Gesucht ist die ${c}. Schau auf die kleinen Zahlen.`,
-      won: 'Geknackt! Genau so geht’s.', wonMore: 'Hinter jedem Code steckt ein kurzer, wahrer Fakt. Jeden Tag gibt es vier: Easy, Hard, Mirror und Impossible.',
-      go: 'Zum Rätsel von heute', skip: 'Überspringen', rules: 'Alle Regeln', aria: n => `Übungs-Code ${n}`
+      won: 'Geknackt! Genau so geht’s.', wonMore: 'Jeden Tag gibt es vier neue Codes, von Easy bis Impossible. Hinter jedem steckt ein kurzer, wahrer Fakt.',
+      go: 'Zum Rätsel von heute', goTo: n => `Zum Rätsel #${n}`, skip: 'Überspringen', rules: 'Alle Regeln', aria: n => `Übungs-Code ${n}`
     },
     help: {
       title: 'So funktioniert’s',
       lead: 'Jede Zahl steht für einen Buchstaben. Knack den Code und du erfährst einen wahren Fakt. Jeden Tag vier neue.',
       sections: [
         ['Die vier Stufen', '<ul><li><strong>Easy:</strong> A&nbsp;=&nbsp;1 … Z&nbsp;=&nbsp;26. Jede Zahl hat ihr eigenes Kästchen.</li><li><strong>Hard:</strong> dieselben Zahlen, aber ohne Trennung. 1 1 kann K sein oder AA.</li><li><strong>Mirror:</strong> rückwärts, A&nbsp;=&nbsp;26 … Z&nbsp;=&nbsp;1, ohne Trennung.</li><li><strong>Impossible:</strong> Das Alphabet ist um eine geheime Zahl verschoben, ohne Trennung.</li></ul><p>Die Kästchen verraten immer, wie viele Buchstaben ein Wort hat. Ä&nbsp;=&nbsp;27, Ö&nbsp;=&nbsp;28, Ü&nbsp;=&nbsp;29, ß&nbsp;=&nbsp;30, in jeder Stufe gleich. Du kannst auch ae, oe, ue oder ss tippen.</p>'],
-        ['Tippen und korrigieren', '<p>Tipp auf ein Kästchen und schreib mit der Tastatur. Jedes Kästchen lässt sich einzeln überschreiben. Ein volles, aber falsches Wort wird rot und gestrichelt umrandet. Richtige Wörter werden grün markiert. Der Pfeil springt zum nächsten Wort.</p><p>Am Computer: Buchstaben tippen, Pfeiltasten, Enter für das nächste Wort, Rücktaste.</p>'],
+        ['Tippen und korrigieren', '<p>Tippe ein Kästchen an und schreibe mit der Tastatur. Jedes Kästchen lässt sich einzeln überschreiben. Ein volles, aber falsches Wort wird rot und gestrichelt umrandet. Richtige Wörter werden grün markiert. Der Pfeil springt zum nächsten Wort.</p><p>Am Computer: Buchstaben tippen, Pfeiltasten, Enter für das nächste Wort, Rücktaste.</p>'],
         ['Tipps, Schlüssel, Auflösen', '<p>Pro Rätsel hast du drei Tipps. Ein Tipp deckt das gewählte Kästchen auf. Bei Impossible zeigt er stattdessen, wo in einem Wort die Buchstaben getrennt sind.</p><p>Der <strong>Schlüssel</strong> blendet die Zahlen auf der Tastatur ein: bei Easy gratis und von Anfang an eingeschaltet (du kannst ihn ausschalten), bei Hard und Mirror für 1 Tipp bis zum nächsten Buchstaben. Bei Impossible gibt es keinen.</p><p><strong>Auflösen</strong> zeigt die ganze Lösung. Dann zählt das Rätsel nicht als gelöst.</p>'],
         ['Grün, Gelb, Rot', '<p>Im Ergebnis steht jedes Kästchen für ein Wort: 🟩 ohne Hilfe gelöst, 🟨 mit Tipp, Schlüssel oder Trennung, 🟥 aufgelöst. Einmal gelb bleibt gelb. Ein kleiner Punkt am grünen Wort zeigt dir schon im Rätsel, wo du Hilfe hattest.</p><p>Geteilt werden nur Stufen, die du selbst geknackt hast. Die Lösung wird dabei nie verraten.</p>'],
-        ['Zeit und Pause', '<p>Die Uhr startet mit Start und läuft nur, solange der Code zu sehen ist. Sie hält an, wenn du ein Menü öffnest, den Tab wechselst, die App verlässt oder auf ⏸ tippst. Dann ist der Code verdeckt. Mit Weiter geht es genau dort weiter. Jede Stufe hat ihre eigene Uhr.</p>'],
+        ['Zeit und Pause', '<p>Die Uhr startet mit Start und läuft nur, solange der Code zu sehen ist. Sie hält an, wenn du ein Menü öffnest, den Tab wechselst, die App verlässt oder auf die Pause-Taste tippst. Dann ist der Code verdeckt. Mit Weiter geht es genau dort weiter. Jede Stufe hat ihre eigene Uhr.</p>'],
         ['Serie, Archiv, Statistik', '<p>Deine Serie wächst mit jedem Tag, an dem du mindestens ein Rätsel des Tages löst. Neue Codes gibt es um Mitternacht nach deiner Uhrzeit. Ältere Rätsel kannst du im Archiv nachspielen. Sie zählen für die Statistik, nicht für die Serie.</p>']
       ],
       replay: 'Kurz-Einstieg', go: 'Los geht’s'
     },
     rules: {
-      easy: { short: 'A=1 … Z=26', text: 'Jede Zahl steht für einen Buchstaben: A = 1, B = 2 … Z = 26.', ex: 'HUND → 8 · 21 · 14 · 4' },
-      hard: { short: 'A=1 … Z=26 · ohne Trennung', text: 'Dieselben Zahlen wie bei Easy, aber ohne Trennung. Wo endet ein Buchstabe? 1 1 kann K sein oder AA. Die Anzahl der Kästchen verrät, wie viele Buchstaben es sind.', ex: 'HUND → 821144' },
-      mirror: { short: 'A=26 … Z=1 · ohne Trennung', text: 'Das Alphabet läuft rückwärts: A = 26, B = 25 … Z = 1. Ebenfalls ohne Trennung.', ex: 'HUND → 1961323' },
-      impossible: { short: 'Geheime Verschiebung · ohne Trennung', text: 'Das Alphabet ist um eine geheime Zahl verschoben, ohne Trennung. Tipps zeigen hier nur, wo in einem Wort die Buchstaben getrennt sind.', ex: null }
+      easy: { short: 'A = 1 … Z = 26', sub: null, text: 'Jede Zahl steht für einen Buchstaben: A = 1, B = 2 … Z = 26.', ex: 'HUND → 8 · 21 · 14 · 4' },
+      hard: { short: 'A = 1 … Z = 26', sub: 'ohne Trennung', text: 'Dieselben Zahlen wie bei Easy, aber ohne Trennung. Wo endet ein Buchstabe? 1 1 kann K sein oder AA. Die Anzahl der Kästchen verrät, wie viele Buchstaben es sind.', ex: 'HUND → 821144' },
+      mirror: { short: 'A = 26 … Z = 1', sub: 'rückwärts, ohne Trennung', text: 'Das Alphabet läuft rückwärts: A = 26, B = 25 … Z = 1. Ebenfalls ohne Trennung.', ex: 'HUND → 1961323' },
+      impossible: { short: 'A = ? … Z = ?', sub: 'geheim, ohne Trennung', text: 'Das Alphabet ist um eine geheime Zahl verschoben, ohne Trennung. Tipps zeigen hier nur, wo in einem Wort die Buchstaben getrennt sind.', ex: null }
     },
     ruleTitle: m => `Regel: ${m}`,
-    shiftShort: s => `Verschiebung ${s}: A=${s + 1} … Z=${s}`,
+    shiftShort: s => [`A = ${s + 1} … Z = ${s}`, `um ${s} verschoben`],
     shiftLong: (s, past) => `Heute ${past ? 'war es' : 'ist es'} um ${s} verschoben: A = ${s + 1}, B = ${s + 2} … Z = ${s}`,
     umlauts: used => `${used ? 'In diesem Satz stecken Umlaute oder ß: ' : 'Umlaute und ß: '}Ä = 27, Ö = 28, Ü = 29, ß = 30, in jeder Stufe gleich.`,
     keyrows: [[...'QWERTZUIOPÜ'], [...'ASDFGHJKLÖÄ'], ['next', ...'YXCVBNMß', 'back']],
@@ -657,10 +673,11 @@ const STR = {
     badLink: 'That link did not work. Here is today’s puzzle.',
     menu: { archive: 'Archive', stats: 'Statistics', settings: 'Settings', help: 'How to play' }, menuAria: 'Menu', close: 'Close', dismiss: 'Dismiss',
     modesAria: 'Level', ruleAria: 'Show rule', timer: 'Time for this puzzle', timerSr: 'Time', pause: 'Pause', board: 'Number code', stage: 'Puzzle',
-    words: n => n === 1 ? '1 word' : `${n} words`, revealedShort: 'revealed', of: (c, n) => `${c} of ${n}`,
-    solved: 'Solved', revealed: 'Revealed', solvedSr: 'solved',
+    words: n => n === 1 ? '1 word' : `${n} words`, revealedShort: 'revealed', solvedSr: 'solved',
     startMeta: (w, l) => `${w === 1 ? '1 word' : w + ' words'} · ${l} letters`, start: 'Start',
-    startNote: 'The code appears when you press Start. The clock only runs while you can see it. Tap ⏸ to pause.',
+    startNote: 'The code appears when you press Start. The clock only runs while you can see it. The pause button next to the clock stops it.',
+    toEasy: 'New here? Start with Easy instead',
+    noNumbers: 'The keyboard shows no numbers here. The key shows them for one letter and costs 1 hint.',
     impTip: 'Tip: start with a short word. Guess one letter and you know the shift for all of them.',
     rotateTitle: 'Please turn your phone upright', rotateText: 'In landscape this screen is too small for the code and the keyboard. The clock is paused until you turn your phone back.',
     paused: 'Paused', pausedAt: t => `The clock is stopped at ${t}. The code stays hidden until you continue.`,
@@ -671,12 +688,14 @@ const STR = {
     keyEasy: on => on ? 'Hide numbers on the keyboard (free)' : 'Show numbers on the keyboard (free)',
     keyPaid: open => open ? 'Key open: the numbers apply to your next letter' : 'Key: show the numbers for one letter, costs 1 hint',
     keyForbidden: 'There is no key in Impossible',
+    keyShown: 'Numbers on the keyboard are back', keyHidden: 'Numbers hidden. Tap “Key” to bring them back.',
     keyExplain: 'The key shows the numbers on the keyboard until you type your next letter. It costs 1 hint and the word counts as 🟨 when you share.',
     keyYes: 'Use the key', cancel: 'Cancel',
     keyOpened: 'Key open: the numbers apply to your next letter.',
     revealQ: 'Show the answer? This puzzle will then not count as solved.', revealYes: 'Yes, reveal', revealNo: 'Keep going',
     kb: 'Keyboard', nextWord: 'Next word', backspace: 'Delete',
     coach: {
+      first: 'Type with the keyboard below. Correct words turn green.',
       fix: 'One letter wrong? Tap that box and type over it.',
       hint: 'Words you got help with turn yellow 🟨 when you share. They stay yellow even if you type over the letter later.'
     },
@@ -708,10 +727,11 @@ const STR = {
       intro: 'Show the quick start', done: 'Done' },
     shareDlg: { title: 'Share result', note: 'Automatic copying does not work here. The text is selected so you can copy it yourself.', done: 'Done' },
     intro: {
+      eyebrow: 'The daily number puzzle', free: 'Free, no sign-up, no ads.',
       title: 'Crack the code', lead: 'Each number is a letter: A = 1, B = 2, C\u00a0=\u00a03\u00a0…',
       task: 'Try it: what word is this? The small numbers on the keys will help you.', word: 'CAT', keys: [...'ABCOST'], wrong: c => `You are looking for ${c}. Check the small numbers.`,
-      won: 'Cracked! That is all there is to it.', wonMore: 'Every code hides a short, true fact. There are four each day: Easy, Hard, Mirror and Impossible.',
-      go: 'Play today’s puzzle', skip: 'Skip', rules: 'All rules', aria: n => `Practice code ${n}`
+      won: 'Cracked! That is all there is to it.', wonMore: 'There are four new codes every day, from Easy to Impossible. Each one hides a short, true fact.',
+      go: 'Play today’s puzzle', goTo: n => `Play puzzle #${n}`, skip: 'Skip', rules: 'All rules', aria: n => `Practice code ${n}`
     },
     help: {
       title: 'How to play',
@@ -721,19 +741,19 @@ const STR = {
         ['Typing and fixing', '<p>Tap a box and type with the keyboard. You can type over any box on its own. A full word that is wrong gets a red dashed outline. Correct words are highlighted in green. The arrow jumps to the next word.</p><p>On a computer: type letters, use the arrow keys, Enter for the next word and Backspace.</p>'],
         ['Hints, key, reveal', '<p>You get three hints per puzzle. A hint reveals the selected box. In Impossible it shows where the letters split within a word instead.</p><p>The <strong>key</strong> shows the numbers on the keyboard: free and switched on from the start in Easy (you can turn it off), for 1 hint until your next letter in Hard and Mirror. There is no key in Impossible.</p><p><strong>Reveal</strong> shows the whole answer. The puzzle then does not count as solved.</p>'],
         ['Green, yellow, red', '<p>In your result, each square stands for one word: 🟩 solved without help, 🟨 with a hint, key or split, 🟥 revealed. Once yellow, always yellow. A small dot on a green word shows you where you had help.</p><p>Only levels you actually cracked are shared. Sharing never gives away the answer.</p>'],
-        ['Time and pause', '<p>The clock starts when you press Start and only runs while the code is visible. It stops when you open a menu, switch tabs, leave the app or tap ⏸. The code is hidden while it is stopped. Continue picks up exactly where you left off. Each level has its own clock.</p>'],
+        ['Time and pause', '<p>The clock starts when you press Start and only runs while the code is visible. It stops when you open a menu, switch tabs, leave the app or tap the pause button. The code is hidden while it is stopped. Continue picks up exactly where you left off. Each level has its own clock.</p>'],
         ['Streak, archive, statistics', '<p>Your streak grows every day you solve at least one of that day’s puzzles. New codes arrive at midnight, your local time. You can replay older puzzles in the archive. They count towards your statistics but not your streak.</p>']
       ],
       replay: 'Quick start', go: 'Let’s go'
     },
     rules: {
-      easy: { short: 'A=1 … Z=26', text: 'Each number stands for a letter: A = 1, B = 2 … Z = 26.', ex: 'CAT → 3 · 1 · 20' },
-      hard: { short: 'A=1 … Z=26 · no separators', text: 'The same numbers as Easy, but with no separators. Where does a letter end? 1 1 could be K or AA. The number of boxes tells you how many letters there are.', ex: 'CAT → 3120' },
-      mirror: { short: 'A=26 … Z=1 · no separators', text: 'The alphabet runs backwards: A = 26, B = 25 … Z = 1. Also with no separators.', ex: 'CAT → 24267' },
-      impossible: { short: 'Secret shift · no separators', text: 'The alphabet is shifted by a secret number, with no separators. Hints here only show where the letters split within a word.', ex: null }
+      easy: { short: 'A = 1 … Z = 26', sub: null, text: 'Each number stands for a letter: A = 1, B = 2 … Z = 26.', ex: 'CAT → 3 · 1 · 20' },
+      hard: { short: 'A = 1 … Z = 26', sub: 'no separators', text: 'The same numbers as Easy, but with no separators. Where does a letter end? 1 1 could be K or AA. The number of boxes tells you how many letters there are.', ex: 'CAT → 3120' },
+      mirror: { short: 'A = 26 … Z = 1', sub: 'backwards, no separators', text: 'The alphabet runs backwards: A = 26, B = 25 … Z = 1. Also with no separators.', ex: 'CAT → 24267' },
+      impossible: { short: 'A = ? … Z = ?', sub: 'secret, no separators', text: 'The alphabet is shifted by a secret number, with no separators. Hints here only show where the letters split within a word.', ex: null }
     },
     ruleTitle: m => `Rule: ${m}`,
-    shiftShort: s => `Shift ${s}: A=${s + 1} … Z=${s}`,
+    shiftShort: s => [`A = ${s + 1} … Z = ${s}`, `shifted by ${s}`],
     shiftLong: (s, past) => `Today ${past ? 'it was' : 'it is'} shifted by ${s}: A = ${s + 1}, B = ${s + 2} … Z = ${s}`,
     umlauts: null,
     keyrows: [[...'QWERTYUIOP'], [...'ASDFGHJKL'], ['next', ...'ZXCVBNM', 'back']],
@@ -1008,20 +1028,21 @@ function renderTabs() {
 
 function renderTimer() {
   if (!day) return;
-  const s = ms(current), p = puz(), t = T();
+  const s = ms(current);
   const txt = fmtTime(elapsedOf(current));
   if ($('#timerText').textContent !== txt) $('#timerText').textContent = txt;
   $('#timer').classList.toggle('stopped', !clock);
-  const prog = s.status === 'solved' ? t.solved : s.status === 'revealed' ? t.revealed : s.status === 'open' ? t.words(p.words.length) : t.of(solvedCount(s, p), p.words.length);
-  if ($('#progress').textContent !== prog) $('#progress').textContent = prog;
   $('#pauseBtn').hidden = !(s.status === 'playing' && !paused);
 }
 
+// Fortschritt steht schon auf der Stufe (z. B. 1/7). Die Leiste zeigt deshalb nur die Regel, in zwei kurzen Zeilen.
 function renderBar() {
-  const s = ms(current);
-  let short = T().rules[current].short;
-  if (current === 'impossible' && (finished(s) || s.shiftShown)) short = T().shiftShort(day.shift);
-  $('#ruleShort').textContent = short;
+  const s = ms(current), t = T();
+  let r = [t.rules[current].short, t.rules[current].sub];
+  if (current === 'impossible' && (finished(s) || s.shiftShown)) r = t.shiftShort(day.shift);
+  const el = $('#ruleShort'), key = r.join('|');
+  if (el.dataset.k !== key) { el.dataset.k = key; el.innerHTML = `<b>${esc(r[0])}</b>` + (r[1] ? `<small>${esc(r[1])}</small>` : ''); }
+  $('#ruleBtn').setAttribute('aria-label', `${t.ruleAria}: ${r.filter(Boolean).join(', ')}`);
   renderTimer();
 }
 
@@ -1032,6 +1053,7 @@ function ruleHtml(withTip) {
   const um = /[äöüÄÖÜßẞ]/.test(p.fact.t);
   return `<p>${esc(r.text)}</p>` + (ex ? `<p class="ex">${esc(ex)}</p>` : '') +
     (withTip && current === 'impossible' && !finished(s) ? `<p class="tip">${esc(t.impTip)}</p>` : '') +
+    (withTip && (current === 'hard' || current === 'mirror') && !finished(s) ? `<p class="tip">${esc(t.noNumbers)}</p>` : '') +
     (t.umlauts && (um || current === 'easy') ? `<p class="note">${esc(t.umlauts(um))}</p>` : '');
 }
 
@@ -1041,6 +1063,8 @@ function renderStart() {
   $('#startCard').innerHTML =
     `<div class="sc-mode">${esc(modeName(current))}</div>` +
     `<div class="sc-meta">${esc(t.startMeta(p.words.length, letters))}</div>` +
+    // Wer über einen geteilten Link gleich bei Hard & Co. landet und noch nie gespielt hat: Easy anbieten
+    (current !== 'easy' && ms('easy').status === 'open' && !everPlayed() ? `<button class="btn link toeasy" type="button" data-act="toEasy" id="toEasy">${esc(t.toEasy)}${ICON.next}</button>` : '') +
     ruleHtml(true) +
     `<button class="btn primary big" type="button" data-act="start" id="startBtn">${ICON.play}${esc(t.start)}</button>` +
     `<p class="small">${esc(t.startNote)}</p>`;
@@ -1287,9 +1311,18 @@ function setLang(l, keepStore) {
   setView(day.key, archive, current);
 }
 
+// Hat diese Person in diesem Browser schon irgendein Rätsel angefangen?
+function everPlayed() {
+  return [store.days, store.daysEn].some(map => Object.keys(map || {}).some(k => {
+    const d = map[k];
+    return !!d && typeof d === 'object' && MODES.some(m => d[m.id] && typeof d[m.id] === 'object' && d[m.id].status && d[m.id].status !== 'open');
+  }));
+}
+
 function startMode() {
   const s = ms(current);
   if (s.status !== 'open') return;
+  const firstEver = !everPlayed();
   s.status = 'playing'; s.startedOn = realToday();
   paused = false;
   save();
@@ -1298,6 +1331,8 @@ function startMode() {
   startClock();
   renderTimer();
   buzz('tap');
+  // Allererstes Rätsel: einmal kurz sagen, wo man tippt
+  if (firstEver) coach('first'); else if (!store.coach.first) { store.coach.first = true; save(); }
   const first = wordEls[aw == null ? 0 : aw];
   if (first) { try { first.el.focus({ preventScroll: true }); } catch (e) { /* alt */ } }
 }
@@ -1363,6 +1398,7 @@ function afterEdit(wi, typed) {
   const s = ms(current), cells = cellsOf(s, wi), t = T();
   if (isSolvedW(wi, s)) {
     flash(wi); buzz('ok');
+    if (coachKind === 'first') { $('#coach').hidden = true; coachKind = null; }
     announce(t.sayWordOk(wi + 1, puz().words[wi].show.replace(/[.]+$/, '')));
     if (allSolved()) { save(); return complete('solved'); }
     const nx = nextUnsolved(wi);
@@ -1468,7 +1504,7 @@ function useHint() {
 function onKeyBtn() {
   const s = ms(current);
   if (s.status !== 'playing' || paused) return;
-  if (current === 'easy') { store.easyKey = !easyKeyOn(); save(); renderKeyboard(); renderTools(); buzz('tap'); return; }
+  if (current === 'easy') { store.easyKey = !easyKeyOn(); save(); renderKeyboard(); renderTools(); buzz('tap'); toast(easyKeyOn() ? T().keyShown : T().keyHidden); return; }
   if (keyForbidden(s) || s.keyOpen) return;
   if (!hintsLeft(s)) { toast(T().noTips); return; }
   if (!store.coach.key) { openConfirm('key'); return; }
@@ -1496,11 +1532,12 @@ function openConfirm(kind) {
 }
 function closeConfirm() { confirmKind = null; $('#confirm').hidden = true; $('#tools').hidden = false; }
 
+let coachKind = null;
 function coach(kind) {
   if (store.coach[kind]) return;
   store.coach[kind] = true; save();
   $('#coachText').textContent = T().coach[kind];
-  $('#coach').hidden = false;
+  $('#coach').hidden = false; coachKind = kind;
 }
 
 function complete(status) {
@@ -1737,18 +1774,19 @@ function renderIntro() {
   const t = T().intro, word = demoWord(), codes = demoCodes();
   const cells = word.map((L, i) => `<div class="dc"><b>${codes[i]}</b><span class="c${demo.bad === i ? ' no' : ''}">${esc(demo.typed[i] || '')}</span></div>`).join('');
   $('#introBody').innerHTML =
-    `<div class="dlg-head"><div><div class="eyebrow">${esc(CONFIG.tagline)}</div><h2 id="introTitle" tabindex="-1" autofocus>${esc(t.title)}</h2></div><button class="btn link" type="button" data-close>${esc(t.skip)}</button></div>` +
-    (demo.won ? '' : langSeg('introLang', true)) +
+    // Kein Knopf neben dem Titel: So passen Untertitel und Titel auch auf schmalen Handys in je eine Zeile. Überspringen steht unten.
+    `<div><div class="eyebrow keep">${esc(t.eyebrow)}</div><h2 id="introTitle" tabindex="-1" autofocus>${esc(t.title)}</h2></div>` +
+    (demo.won ? '' : `<p class="small free">${esc(t.free)}</p>` + langSeg('introLang', true)) +
     `<p class="lead">${esc(t.lead)}</p>` +
     (demo.won ? '' : `<p>${esc(t.task)}</p>`) +
     `<div class="demo2${demo.won ? ' won' : ''}" role="group" aria-label="${esc(t.aria(codes.join(', ')))}">${demo.won ? '<span class="hl" aria-hidden="true"></span>' : ''}${cells}</div>` +
     (demo.won
       ? `<div class="win" role="status"><strong>${esc(t.won)}</strong><p>${esc(t.wonMore)}</p></div>` +
-        `<div class="actions-row"><button class="btn primary big" type="button" data-close id="introGo">${esc(t.go)}</button><button class="btn link" type="button" data-act="introRules">${esc(t.rules)}</button></div>`
+        `<div class="actions-row"><button class="btn primary big" type="button" data-close id="introGo">${esc(archive && day ? t.goTo(day.number) : t.go)}</button><button class="btn link" type="button" data-act="introRules">${esc(t.rules)}</button></div>`
       : `<div class="demo-keys">${t.keys.map(k => `<button class="dk" type="button" data-demo="${k}" aria-label="${k}, ${letterCode(k, 'easy', 0)}"><b>${k}</b><i aria-hidden="true">${letterCode(k, 'easy', 0)}</i></button>`).join('')}` +
         `<button class="dk" type="button" data-demo="back" aria-label="${esc(T().backspace)}">${ICON.back}</button></div>` +
         `<p class="small demo-msg" id="demoMsg" aria-live="polite">${esc(demo.msg || '')}</p>` +
-        `<button class="btn link" type="button" data-act="introRules" style="align-self:flex-start;min-height:32px;padding:0">${esc(t.rules)}</button>`);
+        `<div class="intro-foot"><button class="btn link" type="button" data-act="introRules">${esc(t.rules)}</button><button class="btn link" type="button" data-close>${esc(t.skip)}</button></div>`);
 }
 function demoType(L) {
   if (demo.won) return;
@@ -1894,6 +1932,7 @@ document.addEventListener('click', e => {
   if (act === 'start') startMode();
   else if (act === 'resume') { resumeGame(); const w = wordEls[aw == null ? 0 : aw]; if (w) w.el.focus({ preventScroll: true }); }
   else if (act === 'next') { const m = nextOpenMode(current); if (m) setMode(m.id); }
+  else if (act === 'toEasy') { setMode('easy'); $('#tab-easy').focus(); }
   else if (act === 'share') doShare(b);
   else if (act === 'stats') { renderStats(); openDlg($('#statsDlg')); }
   else if (act === 'replayIntro') { const d = b.closest('dialog'); if (d) closeDlg(d); openIntro(); }

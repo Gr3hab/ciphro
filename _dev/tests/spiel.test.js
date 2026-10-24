@@ -46,6 +46,112 @@ test('Erster Besuch: Überspringen geht sofort, Englisch zeigt CAT', async () =>
   await p2.context().close();
 });
 
+test('Erster Besuch über einen geteilten Link (WhatsApp): sagt, was das ist, bietet Easy an, erklärt das Tippen einmal', async () => {
+  const page = await openPage(env, { store: null, url: '?n=4&m=hard', mobile: true, width: 360, height: 640 });
+  const intro = await page.textContent('#introBody');
+  assert.match(intro, /Das tägliche Zahlenrätsel/);
+  assert.match(intro, /Kostenlos, ohne Anmeldung, ohne Werbung/);
+  await page.click('#introBody [data-close]');            // Überspringen steht unten im Kurz-Einstieg
+  assert.equal(await page.getAttribute('#tab-hard', 'aria-selected'), 'true');
+  assert.match(await page.textContent('#startCard'), /Auf der Tastatur stehen hier keine Zahlen/);
+  assert.ok(await page.isVisible('#toEasy'), 'Wer neu ist und bei Hard landet, bekommt Easy angeboten');
+  await page.click('#toEasy');
+  assert.equal(await page.getAttribute('#tab-easy', 'aria-selected'), 'true');
+  assert.equal(await page.isVisible('#toEasy'), false);
+  await page.click('#startBtn');
+  assert.ok(await page.isVisible('#coach'), 'Allererstes Rätsel: kurzer Hinweis, wo man tippt');
+  assert.match(await page.textContent('#coachText'), /Schreib mit der Tastatur unten/);
+  // Tasten: Zahl gut lesbar unter dem Buchstaben, nicht winzig in der Ecke
+  const k = await page.evaluate(() => {
+    const b = document.querySelector('#kb .k[data-k="H"] b').getBoundingClientRect(), i = document.querySelector('#kb .k[data-k="H"] i');
+    return { below: i.getBoundingClientRect().top >= b.bottom - 1, size: parseFloat(getComputedStyle(i).fontSize), text: i.textContent };
+  });
+  assert.equal(k.text, '8');
+  assert.ok(k.below, 'Zahl steht unter dem Buchstaben');
+  assert.ok(k.size >= 11, `Zahl auf der Taste ist ${k.size}px groß`);
+  // Erstes Wort richtig: Hinweis verschwindet von selbst
+  await typeWord(page, solution(4, 'de', 'easy')[0]);
+  assert.equal(await page.isVisible('#coach'), false);
+  // Zahlen versehentlich ausgeblendet: kurze Erklärung, wie sie zurückkommen
+  await page.click('#keyBtn');
+  assert.match(await page.textContent('#toast'), /Zahlen ausgeblendet/);
+  await page.click('#keyBtn');
+  assert.match(await page.textContent('#toast'), /wieder da/);
+  // Wer schon gespielt hat, bekommt weder das Easy-Angebot noch den Hinweis noch einmal
+  await page.click('#tab-mirror');
+  assert.equal(await page.isVisible('#toEasy'), false);
+  await page.click('#startBtn');
+  assert.equal(await page.isVisible('#coach'), false);
+  noErrors(page);
+  await page.context().close();
+});
+
+test('Erster Besuch mit Link auf ein älteres Rätsel: der Knopf nennt genau dieses Rätsel', async () => {
+  const page = await openPage(env, { store: null, url: '?n=3&m=easy' });
+  for (const L of 'EIS') await page.click(`#introBody [data-demo="${L}"]`);
+  assert.equal((await page.textContent('#introGo')).trim(), 'Zum Rätsel #3');
+  await page.click('#introGo');
+  assert.equal(await issueNumber(page), 3);
+  assert.equal(await page.getAttribute('#tab-easy', 'aria-selected'), 'true');
+  await page.context().close();
+});
+
+test('Linkvorschau: Deutsch sagt klar, was das ist und dass es kostenlos ist; jede Sprache mit eigenem Text und Bild', () => {
+  const root = path.join(__dirname, '..', '..');
+  const meta = (f, prop) => {
+    const m = fs.readFileSync(path.join(root, f), 'utf8').match(new RegExp(`<meta (?:property|name)="${prop}" content="([^"]*)"`));
+    return m ? m[1] : '';
+  };
+  assert.match(meta('index.html', 'og:title'), /^NUMIGMA · Das tägliche Zahlenrätsel$/);
+  assert.match(meta('index.html', 'og:description'), /Jede Zahl ist ein Buchstabe.*Kostenlos, ohne Anmeldung, ohne Werbung\.$/);
+  assert.doesNotMatch(meta('index.html', 'og:description'), /\b(four|each|daily)\b/i, 'keine englischen Sätze in der deutschen Vorschau');
+  assert.equal(meta('index.html', 'og:locale'), 'de_AT');
+  assert.match(meta('en/index.html', 'og:description'), /each number is a letter.*Free, no sign-up, no ads\.$/);
+  assert.equal(meta('en/index.html', 'og:locale'), 'en_GB');
+  // Jede Sprache hat ihr eigenes Bild (deutscher bzw. englischer Slogan), beide 1200×630 und tatsächlich vorhanden
+  const base = 'https://gr3hab.github.io/numfact/';
+  assert.equal(meta('index.html', 'og:image'), base + 'og-de.png');
+  assert.equal(meta('en/index.html', 'og:image'), base + 'og-en.png');
+  assert.equal(meta('index.html', 'og:image:alt'), 'NUMIGMA: Knack den Code. Entdeck den Fakt.');
+  assert.equal(meta('en/index.html', 'og:image:alt'), 'NUMIGMA: Crack the code. Reveal the fact.');
+  for (const f of ['og-de.png', 'og-en.png']) {
+    const png = fs.readFileSync(path.join(root, f));
+    assert.equal(png.toString('latin1', 1, 4), 'PNG', f);
+    assert.deepEqual([png.readUInt32BE(16), png.readUInt32BE(20)], [1200, 630], f);
+    for (const file of ['index.html', 'en/index.html']) {
+      assert.equal(meta(file, 'og:image:width'), '1200'); assert.equal(meta(file, 'og:image:height'), '630');
+    }
+  }
+  assert.notDeepEqual(fs.readFileSync(path.join(root, 'og-de.png')), fs.readFileSync(path.join(root, 'og-en.png')));
+});
+
+test('Regelzeile: zwei kurze Zeilen statt abgeschnittenem Text, der Screenreader hört die ganze Regel', async () => {
+  const norm = x => x.replace(/\u00a0/g, ' ').trim();
+  const rule = async p => [norm(await p.textContent('#ruleShort b')), (await p.$('#ruleShort small')) ? norm(await p.textContent('#ruleShort small')) : null];
+  let page = await openPage(env);
+  assert.equal(await page.$('#progress'), null, 'Fortschritt steht nur noch auf der Stufe');
+  assert.deepEqual(await rule(page), ['A = 1 … Z = 26', null]);
+  await page.click('#tab-hard');
+  assert.deepEqual(await rule(page), ['A = 1 … Z = 26', 'ohne Trennung']);
+  assert.equal(norm(await page.getAttribute('#ruleBtn', 'aria-label')), 'Regel anzeigen: A = 1 … Z = 26, ohne Trennung');
+  await page.click('#tab-mirror');
+  assert.deepEqual(await rule(page), ['A = 26 … Z = 1', 'rückwärts, ohne Trennung']);
+  await page.click('#tab-impossible');
+  assert.deepEqual(await rule(page), ['A = ? … Z = ?', 'geheim, ohne Trennung']);
+  await page.click('#startBtn');
+  await page.click('#revealBtn');
+  await page.click('#confirmYes');
+  const sh = NF.buildDay(keyOf(4), 'de').shift;
+  assert.deepEqual(await rule(page), [`A = ${sh + 1} … Z = ${sh}`, `um ${sh} verschoben`]);
+  await page.context().close();
+  page = await openPage(env, { locale: 'en-GB' });
+  await page.click('#tab-mirror');
+  assert.deepEqual(await rule(page), ['A = 26 … Z = 1', 'backwards, no separators']);
+  await page.click('#tab-impossible');
+  assert.deepEqual(await rule(page), ['A = ? … Z = ?', 'secret, no separators']);
+  await page.context().close();
+});
+
 /* ------------------------------------------------------------ Links */
 test('Links: Nummer und Stufe führen genau zum Rätsel', async () => {
   let page = await openPage(env, { url: '?n=3&m=hard' });
