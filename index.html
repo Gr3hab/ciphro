@@ -1680,11 +1680,11 @@ async function doShare(btn) {
 
 /* ============================================================ Archiv, Einstellungen, Anleitung, Kurz-Einstieg */
 function renderArchive() {
-  const t = T().archive, tk = realToday(), n = Math.max(0, dayIndex(tk)), map = daysMap(), P = NF.plannedDays();
+  const t = T().archive, tk = realToday(), n = Math.max(0, dayIndex(tk)), map = daysMap();
   let html = dlgHead('archiveTitle', t.title) + `<p class="small">${esc(t.intro)}</p><div class="days" id="days">`;
   for (let i = n; i >= 0; i--) {
     const key = addDays(CONFIG.launchDate, i), d = map[key] || {};
-    const rep = P > 0 && i >= P ? (i % P) + 1 : null;
+    const so = NF.sourceOf(i), rep = so.repeat ? so.src + 1 : null;
     const marks = MODES.map(m => {
       const s = d[m.id], st = (s && s.status) || 'open';
       const cls = st === 'solved' ? 's' : st === 'revealed' ? 'v' : st === 'playing' ? 'p' : '';

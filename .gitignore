@@ -2,3 +2,4 @@ node_modules/
 _dev/node_modules/
 _dev/test-results/
 .DS_Store
+_dev/.cache/

@@ -5,7 +5,7 @@ const assert = require('node:assert/strict');
 const fs = require('fs');
 const path = require('path');
 const { execFileSync } = require('child_process');
-const { ROOT, loadNF, rawFacts, loadBase, latestLiveKey } = require('./helpers');
+const { ROOT, loadNF, rawFacts, loadBase, latestLiveKey, loadFromSources } = require('./helpers');
 
 const NF = loadNF();
 const F = rawFacts();
@@ -162,4 +162,22 @@ test('Datei fakten.js ist sauber kodiert (UTF-8, keine unsichtbaren Zeichen)', (
   const txt = src.toString('utf8');
   assert.ok(!txt.includes('�'), 'kaputtes Zeichen (�) gefunden');
   assert.doesNotMatch(txt, /[​-‍⁠­]/, 'unsichtbare Zeichen gefunden');
+});
+
+test('Nach einer Lücke angehängte Fakten verändern die Wiederholungstage nicht', () => {
+  const kern = fs.readFileSync(path.join(ROOT, 'kern.js'), 'utf8');
+  const mk = n => Array.from({ length: n }, (_, i) => ({ id: 'n' + String(i + 1).padStart(3, '0'), thema: 'tiere', de: ['Satz Nummer ' + (i + 1) + '.', 'Erklärung lang genug.'], en: ['Sentence ' + (i + 1) + '.', 'Explanation long enough.'], quellen: [] }))
+    .map(f => ({ ...f, de: [f.de[0].replace(/\d+/, n => 'x'.repeat(+n)), f.de[1]], en: [f.en[0].replace(/\d+/, n => 'y'.repeat(+n)), f.en[1]] }));
+  const load = (facts, gaps) => loadFromSources([['f.js', 'window.NUMIGMA_FACTS = ' + JSON.stringify(facts) + ';'], ['kern.js', kern.replace('repeatGaps: []', 'repeatGaps: ' + JSON.stringify(gaps))]]);
+  const before = load(mk(80), []);                      // 20 Tage Vorrat
+  const gapDays = [20, 21, 22].map(i => before.addDays(before.CONFIG.launchDate, i));
+  const sigs = nf => gapDays.map(k => MODES.map(m => nf.buildDay(k, 'de').puzzles[m].sig).join('|'));
+  const old = sigs(before);
+  assert.ok(gapDays.every(k => before.buildDay(k, 'de').repeatOf));
+  const after = load(mk(120), [[gapDays[0], gapDays[2]]]);   // 10 Tage nachgeliefert, Lücke eingetragen
+  assert.deepEqual(sigs(after), old, 'Wiederholungstage dürfen sich nicht ändern');
+  const next = after.buildDay(after.addDays(after.CONFIG.launchDate, 23), 'de');
+  assert.equal(next.repeatOf, null);
+  assert.equal(next.puzzles.easy.fact.id >= 'n081', true, 'erster Tag nach der Lücke bekommt neue Fakten');
+  assert.equal(after.lastPlannedDay(), after.addDays(after.CONFIG.launchDate, 32));
 });

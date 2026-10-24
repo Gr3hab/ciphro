@@ -13,7 +13,11 @@ const CONFIG = {
   hintsPerPuzzle: 3,
   maxCells: 18,               // so viele Kästchen passen auf kleinen Handys (360 px) in eine Zeile
   frozenDays: 16,             // #1–#16 behalten ihre ursprüngliche Zuordnung (nicht ändern)
-  warnDays: 14                // Warnung, wenn der Faktenvorrat für weniger Tage reicht
+  warnDays: 14,               // Warnung, wenn der Faktenvorrat für weniger Tage reicht
+  // Nur nötig, falls der Vorrat einmal ausgegangen ist: Zeiträume, in denen Wiederholungen liefen.
+  // Vor dem Anhängen neuer Fakten hier eintragen, z. B. [['2027-02-01', '2027-02-04']],
+  // damit diese Tage im Archiv unverändert bleiben. Die Tests melden, wenn das vergessen wurde.
+  repeatGaps: []
 };
 
 const MODES = [
@@ -96,7 +100,10 @@ function view(f, lang) {
 function facts(lang) { return list().map(f => view(f, lang)); }
 function byId(id) { return list().find(f => f.id === id); }
 function plannedDays() { return Math.floor(list().length / 4); }
-function lastPlannedDay() { return addDays(CONFIG.launchDate, plannedDays() - 1); }
+function lastPlannedDay() {
+  const gaps = (CONFIG.repeatGaps || []).reduce((n, [a, b]) => n + dayIndex(b) - dayIndex(a) + 1, 0);
+  return addDays(CONFIG.launchDate, plannedDays() - 1 + gaps);
+}
 
 /* ------------------------------------------------------------ Zuordnung zu Tagen und Stufen
    Tag #n nimmt die Fakten 4n-3 bis 4n der Liste.
@@ -123,11 +130,23 @@ function makePuzzle(fact, mode, shift) {
 }
 
 // Ist der Vorrat aufgebraucht, wird ein früherer Tag bewusst und sichtbar wiederholt (repeatOf).
+// Welcher Tag welche Fakten bekommt: Platz in der Liste = Tag minus frühere Wiederholungstage.
+function sourceOf(idx) {
+  const P = plannedDays();
+  let before = 0;
+  for (const [a, b] of CONFIG.repeatGaps || []) {
+    const ia = dayIndex(a), ib = dayIndex(b);
+    if (idx >= ia && idx <= ib) return { src: ia > 0 ? idx % ia : 0, repeat: true };   // damals war der Vorrat bei Tag ia zu Ende
+    if (idx > ib) before += ib - ia + 1;
+  }
+  const slot = idx - before;
+  if (slot >= P && P > 0) return { src: slot % P, repeat: true };
+  return { src: slot, repeat: false };
+}
 function buildDay(key, lang) {
   lang = lang === 'en' ? 'en' : 'de';
-  const idx = Math.max(0, dayIndex(key)), P = plannedDays();
-  let src = idx, repeatOf = null;
-  if (idx >= P && P > 0) { src = idx % P; repeatOf = src + 1; }
+  const idx = Math.max(0, dayIndex(key));
+  const so = sourceOf(idx), src = so.src, repeatOf = so.repeat ? src + 1 : null;
   const picks = assignment(src, lang);
   const shift = 3 + Math.floor(mulberry32(idx * 7919 + 101)() * 21); // 3 … 23
   const puzzles = {};
@@ -188,5 +207,5 @@ function checkFacts(today) {
 }
 
 window.NF = { CONFIG, MODES, TOPICS, ALPHABET, SPECIAL, DIGRAPH, FROZEN, symStr, letterCode, mulberry32, todayKey, parseKey, dayIndex, addDays, keyOfNumber,
-  list, facts, byId, plannedDays, lastPlannedDay, assignment, buildDay, wordUnits, checkFacts };
+  list, facts, byId, plannedDays, lastPlannedDay, sourceOf, assignment, buildDay, wordUnits, checkFacts };
 })();
