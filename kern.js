@@ -1,17 +1,23 @@
-/* NUMIGMA – Spiellogik für Spiel und Prüfseite.
-   Hier muss normalerweise niemand etwas ändern. Fakten stehen in fakten.js (Deutsch) und facts-en.js (Englisch). */
+/* NUMIGMA – Spiellogik für Spiel, Tests und Redaktion.
+   Hier muss normalerweise niemand etwas ändern. Die Fakten stehen in fakten.js. */
 (function () {
 'use strict';
 
 const CONFIG = {
-  name: 'NUMIGMA',            // Name auch in index.html (<title>, Vorschau-Tags), manifest.webmanifest und og.png
+  name: 'NUMIGMA',
   tagline: 'Crack the code. Reveal the fact.',
   languages: ['de', 'en'],
-  launchDate: '2026-10-21',   // Tag von Rätsel Nr. 1
+  launchDate: '2026-10-21',   // Tag von Rätsel #1
   siteUrl: '',                // leer = Adresse der Seite wird automatisch erkannt
-  storageKey: 'numfact.v2',
+  storageKey: 'numfact.v2',   // nicht ändern, sonst gehen Spielstände verloren
   hintsPerPuzzle: 3,
-  maxCells: 18                // so viele Kästchen passen auf kleinen Handys (360 px) in eine Zeile
+  maxCells: 18,               // so viele Kästchen passen auf kleinen Handys (360 px) in eine Zeile
+  frozenDays: 16,             // #1–#16 behalten ihre ursprüngliche Zuordnung (nicht ändern)
+  warnDays: 14,               // Warnung, wenn der Faktenvorrat für weniger Tage reicht
+  // Nur nötig, falls der Vorrat einmal ausgegangen ist: Zeiträume, in denen Wiederholungen liefen.
+  // Vor dem Anhängen neuer Fakten hier eintragen, z. B. [['2027-02-01', '2027-02-04']],
+  // damit diese Tage im Archiv unverändert bleiben. Die Tests melden, wenn das vergessen wurde.
+  repeatGaps: []
 };
 
 const MODES = [
@@ -20,6 +26,19 @@ const MODES = [
   { id: 'mirror', name: 'Mirror' },
   { id: 'impossible', name: 'Impossible' }
 ];
+
+const TOPICS = {
+  tiere: { de: 'Tiere', en: 'Animals' },
+  pflanzen: { de: 'Pflanzen & Essen', en: 'Plants & food' },
+  weltall: { de: 'Weltall', en: 'Space' },
+  wissenschaft: { de: 'Wissenschaft', en: 'Science' },
+  koerper: { de: 'Menschlicher Körper', en: 'Human body' },
+  geschichte: { de: 'Geschichte', en: 'History' },
+  geografie: { de: 'Geografie', en: 'Geography' },
+  technik: { de: 'Technik', en: 'Technology' },
+  kultur: { de: 'Kultur & Sprache', en: 'Culture & language' },
+  oesterreich: { de: 'Österreich', en: 'Austria' }
+};
 
 // Alphabet: A–Z plus Ä, Ö, Ü, ß mit festen Zahlen 27–30 (in jeder Stufe gleich)
 const ALPHABET = [...'ABCDEFGHIJKLMNOPQRSTUVWXYZÄÖÜß'];
@@ -69,25 +88,39 @@ function addDays(key, n) {
   const [y, m, d] = parseKey(key);
   return new Date(Date.UTC(y, m - 1, d + n)).toISOString().slice(0, 10);
 }
+const keyOfNumber = n => addDays(CONFIG.launchDate, n - 1);
 
-function facts(lang) {
-  const F = lang === 'en' ? window.FACTS_EN : window.FAKTEN;
-  return Array.isArray(F) ? F : [];
+/* ------------------------------------------------------------ Fakten */
+function list() { return Array.isArray(window.NUMIGMA_FACTS) ? window.NUMIGMA_FACTS : []; }
+function view(f, lang) {
+  const v = f[lang === 'en' ? 'en' : 'de'] || ['', ''];
+  return { id: f.id, topic: f.thema, t: v[0], m: v[1], src: f.quellen || [] };
+}
+// Liste in einer Sprache (auch von älteren Seitenständen genutzt)
+function facts(lang) { return list().map(f => view(f, lang)); }
+function byId(id) { return list().find(f => f.id === id); }
+function plannedDays() { return Math.floor(list().length / 4); }
+function lastPlannedDay() {
+  const gaps = (CONFIG.repeatGaps || []).reduce((n, [a, b]) => n + dayIndex(b) - dayIndex(a) + 1, 0);
+  return addDays(CONFIG.launchDate, plannedDays() - 1 + gaps);
 }
 
-// Reihenfolge: Runde 0 ist die Liste selbst (Fahrplan), danach gemischte Wiederholungen
-const seqCaches = { de: [], en: [] };
-function sequence(round, lang) {
-  const F = facts(lang), n = F.length, seqCache = seqCaches[lang === 'en' ? 'en' : 'de'];
-  if (!seqCache[0]) seqCache[0] = F.map((_, i) => i);
-  for (let k = seqCache.length; k <= round; k++) {
-    const rnd = mulberry32(0x4E554D46 + k * 977);
-    const a = F.map((_, i) => i);
-    for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(rnd() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; }
-    const late = new Set(seqCache[k - 1].slice(Math.floor(n / 2)));
-    seqCache[k] = a.filter(i => !late.has(i)).concat(a.filter(i => late.has(i)));
-  }
-  return seqCache[round];
+/* ------------------------------------------------------------ Zuordnung zu Tagen und Stufen
+   Tag #n nimmt die Fakten 4n-3 bis 4n der Liste.
+   #1–#16: Zuordnung exakt wie bei der ersten Veröffentlichung, je Sprache (eingefroren).
+   Ab #17: in beiden Sprachen gleich, nach gemeinsamer Länge (Deutsch + Englisch):
+           kürzester Satz → Impossible, zweitkürzester → Easy, drittkürzester → Mirror, längster → Hard. */
+const FROZEN = {
+  de: [["n001","n002","n003","n004"],["n005","n006","n007","n008"],["n012","n009","n011","n010"],["n014","n013","n015","n016"],["n018","n017","n020","n019"],["n021","n023","n022","n024"],["n025","n026","n027","n028"],["n029","n032","n031","n030"],["n036","n033","n035","n034"],["n039","n038","n037","n040"],["n044","n042","n041","n043"],["n046","n045","n048","n047"],["n051","n052","n049","n050"],["n055","n053","n056","n054"],["n058","n057","n060","n059"],["n061","n063","n062","n064"]],
+  en: [["n001","n002","n003","n004"],["n005","n006","n007","n008"],["n009","n011","n012","n010"],["n014","n013","n015","n016"],["n018","n017","n020","n019"],["n021","n023","n022","n024"],["n025","n026","n027","n028"],["n029","n032","n031","n030"],["n035","n033","n036","n034"],["n039","n040","n037","n038"],["n041","n042","n044","n043"],["n046","n045","n047","n048"],["n051","n052","n049","n050"],["n055","n056","n053","n054"],["n058","n057","n060","n059"],["n061","n063","n062","n064"]]
+};
+const sentLen = f => [...symStr(f.de[0])].length + [...symStr(f.en[0])].length;
+function assignment(dayIdx, lang) {
+  const L = list();
+  const frozen = dayIdx < CONFIG.frozenDays && FROZEN[lang] && FROZEN[lang][dayIdx];
+  if (frozen) return frozen.map(id => L.find(f => f.id === id));
+  const s = L.slice(dayIdx * 4, dayIdx * 4 + 4).sort((a, b) => sentLen(a) - sentLen(b) || (a.id < b.id ? -1 : 1));
+  return [s[1], s[3], s[2], s[0]];   // easy, hard, mirror, impossible
 }
 
 function makePuzzle(fact, mode, shift) {
@@ -96,58 +129,83 @@ function makePuzzle(fact, mode, shift) {
   return { fact, mode, words, sig: words.map(w => w.plain).join(' ') };
 }
 
+// Ist der Vorrat aufgebraucht, wird ein früherer Tag bewusst und sichtbar wiederholt (repeatOf).
+// Welcher Tag welche Fakten bekommt: Platz in der Liste = Tag minus frühere Wiederholungstage.
+function sourceOf(idx) {
+  const P = plannedDays();
+  let before = 0;
+  for (const [a, b] of CONFIG.repeatGaps || []) {
+    const ia = dayIndex(a), ib = dayIndex(b);
+    if (idx >= ia && idx <= ib) return { src: ia > 0 ? idx % ia : 0, repeat: true };   // damals war der Vorrat bei Tag ia zu Ende
+    if (idx > ib) before += ib - ia + 1;
+  }
+  const slot = idx - before;
+  if (slot >= P && P > 0) return { src: slot % P, repeat: true };
+  return { src: slot, repeat: false };
+}
 function buildDay(key, lang) {
   lang = lang === 'en' ? 'en' : 'de';
-  const F = facts(lang);
   const idx = Math.max(0, dayIndex(key));
-  const n = F.length, picks = [];
-  for (let k = idx * 4; picks.length < Math.min(4, n) && k < idx * 4 + 64; k++) {
-    const f = sequence(Math.floor(k / n), lang)[k % n];
-    if (!picks.includes(f)) picks.push(f);
-  }
-  picks.sort((a, b) => [...symStr(F[b].t)].length - [...symStr(F[a].t)].length);
+  const so = sourceOf(idx), src = so.src, repeatOf = so.repeat ? src + 1 : null;
+  const picks = assignment(src, lang);
   const shift = 3 + Math.floor(mulberry32(idx * 7919 + 101)() * 21); // 3 … 23
   const puzzles = {};
-  MODES.forEach((m, i) => { puzzles[m.id] = makePuzzle(F[picks[i % picks.length]], m.id, shift); });
-  return { key, lang, number: idx + 1, shift, puzzles };
+  MODES.forEach((m, i) => { puzzles[m.id] = makePuzzle(view(picks[i], lang), m.id, shift); });
+  return { key, lang, number: idx + 1, shift, puzzles, repeatOf };
 }
 
-// Breite eines Worts in Kästchen. Easy: eine Zahl pro Buchstaben-Kästchen.
-// Sonst: zwei Ziffern pro Kästchen über den Buchstaben.
+// Breite eines Worts in Kästchen. Easy: eine Zahl pro Buchstaben-Kästchen. Sonst: zwei Ziffern pro Kästchen.
 function wordUnits(w, mode) {
   const letters = [...w.plain].length;
   return mode === 'easy' ? letters : Math.max(Math.ceil(w.codes.join('').length / 2), letters);
 }
 
-function lastPlannedDay(lang) { return addDays(CONFIG.launchDate, Math.ceil(facts(lang).length / 4) - 1); }
-
-// Prüft eine Fakten-Liste. Liefert Probleme pro Fakt.
-function checkFacts(lang) {
-  lang = lang === 'en' ? 'en' : 'de';
-  const F = facts(lang), out = [], seen = new Map();
-  F.forEach((f, i) => {
-    const add = (level, msg) => out.push({ i, level, msg });
-    if (!f || typeof f.t !== 'string' || !f.t.trim()) { add('fehler', 'Satz fehlt'); return; }
-    const bad = f.t.replace(lang === 'en' ? /[A-Za-z ]/g : /[A-Za-zÄÖÜäöüß ]/g, '').replace(/\.$/, '');
-    if (bad) add('fehler', `Zeichen, die im Code verschwinden: „${bad}“ (keine Ziffern, Kommas, Bindestriche oder Apostrophe${lang === 'en' ? ', keine Umlaute' : ''})`);
-    if (!/\.$/.test(f.t)) add('hinweis', 'Satz endet nicht mit Punkt');
-    if (!f.m || f.m.trim().length < 15) add('fehler', 'Erklärung fehlt oder ist sehr kurz');
-    const k = symStr(f.t);
-    if (seen.has(k)) add('fehler', `Doppelt (gleich wie Fakt ${seen.get(k) + 1})`);
-    seen.set(k, i);
-    f.t.split(/\s+/).forEach(word => {
-      const p = symStr(word);
-      if (!p) return;
-      const w = { plain: p, codes: [] };
-      let worst = [...p].length;
-      ['hard', 'mirror'].forEach(m => { w.codes = [...p].map(c => letterCode(c, m, 0)); worst = Math.max(worst, wordUnits(w, m)); });
-      for (let s = 3; s <= 23; s++) { w.codes = [...p].map(c => letterCode(c, 'impossible', s)); worst = Math.max(worst, wordUnits(w, 'impossible')); }
-      if (worst > CONFIG.maxCells) add('hinweis', `„${word.replace(/\.$/, '')}“ ist sehr lang und kann auf kleinen Handys umbrechen (${worst} Kästchen, Ziel höchstens ${CONFIG.maxCells})`);
+/* ------------------------------------------------------------ Prüfungen für Redaktion und Tests */
+function worstUnits(word) {
+  const p = symStr(word), w = { plain: p, codes: [] };
+  let worst = [...p].length;
+  ['hard', 'mirror'].forEach(m => { w.codes = [...p].map(c => letterCode(c, m, 0)); worst = Math.max(worst, wordUnits(w, m)); });
+  for (let s = 3; s <= 23; s++) { w.codes = [...p].map(c => letterCode(c, 'impossible', s)); worst = Math.max(worst, wordUnits(w, 'impossible')); }
+  return worst;
+}
+function checkFacts(today) {
+  const L = list(), out = [], seen = { de: new Map(), en: new Map() }, ids = new Set();
+  L.forEach((f, i) => {
+    const add = (level, msg) => out.push({ i, id: f && f.id, level, msg });
+    if (!f || !/^n\d{3,}$/.test(f.id || '')) { add('fehler', 'ID fehlt oder hat das falsche Format (z. B. n165)'); return; }
+    if (ids.has(f.id)) add('fehler', `ID ${f.id} kommt doppelt vor`);
+    ids.add(f.id);
+    if (!TOPICS[f.thema]) add('fehler', `Unbekanntes Thema „${f.thema}“ (erlaubt: ${Object.keys(TOPICS).join(', ')})`);
+    if (!Array.isArray(f.quellen) || !f.quellen.length) add('hinweis', 'Keine Quelle angegeben');
+    ['de', 'en'].forEach(lang => {
+      const v = f[lang];
+      if (!Array.isArray(v) || typeof v[0] !== 'string' || !v[0].trim()) { add('fehler', `${lang.toUpperCase()}: Satz fehlt`); return; }
+      const bad = v[0].replace(lang === 'en' ? /[A-Za-z ]/g : /[A-Za-zÄÖÜäöüß ]/g, '').replace(/\.$/, '');
+      if (bad) add('fehler', `${lang.toUpperCase()}: Zeichen, die im Code verschwinden: „${bad}“ (keine Ziffern, Kommas, Bindestriche oder Apostrophe${lang === 'en' ? ', keine Umlaute' : ''})`);
+      if (!/\.$/.test(v[0])) add('hinweis', `${lang.toUpperCase()}: Satz endet nicht mit Punkt`);
+      if (typeof v[1] !== 'string' || v[1].trim().length < 15) add('fehler', `${lang.toUpperCase()}: Erklärung fehlt oder ist sehr kurz`);
+      const k = symStr(v[0]);
+      if (seen[lang].has(k)) add('fehler', `${lang.toUpperCase()}: gleicher Satz wie ${seen[lang].get(k)}`);
+      seen[lang].set(k, f.id);
+      v[0].split(/\s+/).forEach(word => {
+        if (!symStr(word)) return;
+        const u = worstUnits(word);
+        if (u > CONFIG.maxCells) add('hinweis', `${lang.toUpperCase()}: „${word.replace(/\.$/, '')}“ kann auf kleinen Handys umbrechen (${u} Kästchen, Ziel höchstens ${CONFIG.maxCells})`);
+      });
     });
   });
-  if (lang === 'en' && F.length < facts('de').length) out.push({ i: F.length, level: 'hinweis', msg: `Die englische Liste hat ${facts('de').length - F.length} Fakten weniger als die deutsche. Ab hier gibt es auf Englisch Wiederholungen.` });
+  // Ab #17 kein Thema doppelt am selben Tag
+  for (let d = CONFIG.frozenDays; d < plannedDays(); d++) {
+    const four = L.slice(d * 4, d * 4 + 4), topics = four.map(f => f && f.thema);
+    topics.forEach((t, j) => { if (topics.indexOf(t) !== j) out.push({ i: d * 4 + j, id: four[j].id, level: 'hinweis', msg: `#${d + 1}: Thema „${t}“ kommt an diesem Tag mehrfach vor` }); });
+  }
+  if (today) {
+    const left = dayIndex(lastPlannedDay()) - dayIndex(today) + 1;
+    if (left < CONFIG.warnDays) out.push({ i: -1, id: null, level: left < 1 ? 'fehler' : 'hinweis', msg: left < 1 ? 'Der Faktenvorrat ist aufgebraucht. Es laufen Wiederholungen.' : `Der Faktenvorrat reicht nur noch ${left} Tage (bis ${lastPlannedDay()}).` });
+  }
   return out;
 }
 
-window.NF = { CONFIG, MODES, ALPHABET, SPECIAL, DIGRAPH, symStr, letterCode, mulberry32, todayKey, parseKey, dayIndex, addDays, facts, buildDay, wordUnits, lastPlannedDay, checkFacts };
+window.NF = { CONFIG, MODES, TOPICS, ALPHABET, SPECIAL, DIGRAPH, FROZEN, symStr, letterCode, mulberry32, todayKey, parseKey, dayIndex, addDays, keyOfNumber,
+  list, facts, byId, plannedDays, lastPlannedDay, sourceOf, assignment, buildDay, wordUnits, checkFacts };
 })();
