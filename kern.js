@@ -1,10 +1,12 @@
-/* NumFact – Spiellogik für Spiel und Prüfseite.
-   Hier muss normalerweise niemand etwas ändern. Fakten stehen in fakten.js. */
+/* NUMIGMA – Spiellogik für Spiel und Prüfseite.
+   Hier muss normalerweise niemand etwas ändern. Fakten stehen in fakten.js (Deutsch) und facts-en.js (Englisch). */
 (function () {
 'use strict';
 
 const CONFIG = {
-  name: 'NumFact',            // Platzhalter – neuer Name hier, in index.html (<title>, Vorschau-Tags) und manifest.webmanifest
+  name: 'NUMIGMA',            // Name auch in index.html (<title>, Vorschau-Tags), manifest.webmanifest und og.png
+  tagline: 'Crack the code. Reveal the fact.',
+  languages: ['de', 'en'],
   launchDate: '2026-10-21',   // Tag von Rätsel Nr. 1
   siteUrl: '',                // leer = Adresse der Seite wird automatisch erkannt
   storageKey: 'numfact.v2',
@@ -68,12 +70,15 @@ function addDays(key, n) {
   return new Date(Date.UTC(y, m - 1, d + n)).toISOString().slice(0, 10);
 }
 
-function facts() { return Array.isArray(window.FAKTEN) ? window.FAKTEN : []; }
+function facts(lang) {
+  const F = lang === 'en' ? window.FACTS_EN : window.FAKTEN;
+  return Array.isArray(F) ? F : [];
+}
 
 // Reihenfolge: Runde 0 ist die Liste selbst (Fahrplan), danach gemischte Wiederholungen
-const seqCache = [];
-function sequence(round) {
-  const F = facts(), n = F.length;
+const seqCaches = { de: [], en: [] };
+function sequence(round, lang) {
+  const F = facts(lang), n = F.length, seqCache = seqCaches[lang === 'en' ? 'en' : 'de'];
   if (!seqCache[0]) seqCache[0] = F.map((_, i) => i);
   for (let k = seqCache.length; k <= round; k++) {
     const rnd = mulberry32(0x4E554D46 + k * 977);
@@ -91,19 +96,20 @@ function makePuzzle(fact, mode, shift) {
   return { fact, mode, words, sig: words.map(w => w.plain).join(' ') };
 }
 
-function buildDay(key) {
-  const F = facts();
+function buildDay(key, lang) {
+  lang = lang === 'en' ? 'en' : 'de';
+  const F = facts(lang);
   const idx = Math.max(0, dayIndex(key));
   const n = F.length, picks = [];
   for (let k = idx * 4; picks.length < Math.min(4, n) && k < idx * 4 + 64; k++) {
-    const f = sequence(Math.floor(k / n))[k % n];
+    const f = sequence(Math.floor(k / n), lang)[k % n];
     if (!picks.includes(f)) picks.push(f);
   }
   picks.sort((a, b) => [...symStr(F[b].t)].length - [...symStr(F[a].t)].length);
   const shift = 3 + Math.floor(mulberry32(idx * 7919 + 101)() * 21); // 3 … 23
   const puzzles = {};
   MODES.forEach((m, i) => { puzzles[m.id] = makePuzzle(F[picks[i % picks.length]], m.id, shift); });
-  return { key, number: idx + 1, shift, puzzles };
+  return { key, lang, number: idx + 1, shift, puzzles };
 }
 
 // Breite eines Worts in Kästchen. Easy: eine Zahl pro Buchstaben-Kästchen.
@@ -113,16 +119,17 @@ function wordUnits(w, mode) {
   return mode === 'easy' ? letters : Math.max(Math.ceil(w.codes.join('').length / 2), letters);
 }
 
-function lastPlannedDay() { return addDays(CONFIG.launchDate, Math.ceil(facts().length / 4) - 1); }
+function lastPlannedDay(lang) { return addDays(CONFIG.launchDate, Math.ceil(facts(lang).length / 4) - 1); }
 
-// Prüft die Fakten-Liste. Liefert Probleme pro Fakt.
-function checkFacts() {
-  const F = facts(), out = [], seen = new Map();
+// Prüft eine Fakten-Liste. Liefert Probleme pro Fakt.
+function checkFacts(lang) {
+  lang = lang === 'en' ? 'en' : 'de';
+  const F = facts(lang), out = [], seen = new Map();
   F.forEach((f, i) => {
     const add = (level, msg) => out.push({ i, level, msg });
     if (!f || typeof f.t !== 'string' || !f.t.trim()) { add('fehler', 'Satz fehlt'); return; }
-    const bad = f.t.replace(/[A-Za-zÄÖÜäöüß ]/g, '').replace(/\.$/, '');
-    if (bad) add('fehler', `Zeichen, die im Code verschwinden: „${bad}“ (keine Ziffern, Kommas oder Bindestriche)`);
+    const bad = f.t.replace(lang === 'en' ? /[A-Za-z ]/g : /[A-Za-zÄÖÜäöüß ]/g, '').replace(/\.$/, '');
+    if (bad) add('fehler', `Zeichen, die im Code verschwinden: „${bad}“ (keine Ziffern, Kommas, Bindestriche oder Apostrophe${lang === 'en' ? ', keine Umlaute' : ''})`);
     if (!/\.$/.test(f.t)) add('hinweis', 'Satz endet nicht mit Punkt');
     if (!f.m || f.m.trim().length < 15) add('fehler', 'Erklärung fehlt oder ist sehr kurz');
     const k = symStr(f.t);
@@ -138,6 +145,7 @@ function checkFacts() {
       if (worst > CONFIG.maxCells) add('hinweis', `„${word.replace(/\.$/, '')}“ ist sehr lang und kann auf kleinen Handys umbrechen (${worst} Kästchen, Ziel höchstens ${CONFIG.maxCells})`);
     });
   });
+  if (lang === 'en' && F.length < facts('de').length) out.push({ i: F.length, level: 'hinweis', msg: `Die englische Liste hat ${facts('de').length - F.length} Fakten weniger als die deutsche. Ab hier gibt es auf Englisch Wiederholungen.` });
   return out;
 }
 

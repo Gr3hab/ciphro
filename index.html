@@ -3,21 +3,23 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>NumFact</title>
-<meta name="description" content="Jeden Tag vier Zahlencodes. Hinter jedem steckt ein überraschender, wahrer Fakt.">
-<meta property="og:title" content="NumFact – das tägliche Zahlenrätsel">
-<meta property="og:description" content="Jeden Tag vier Zahlencodes. Hinter jedem steckt ein überraschender, wahrer Fakt. Knackst du sie?">
+<title>NUMIGMA</title>
+<meta name="description" content="Crack the code. Reveal the fact. Jeden Tag vier Zahlencodes, hinter jedem ein wahrer Fakt. Four daily number codes, each hiding a true fact.">
+<meta property="og:site_name" content="NUMIGMA">
+<meta property="og:title" content="NUMIGMA · Crack the code. Reveal the fact.">
+<meta property="og:description" content="Jeden Tag vier Zahlencodes, hinter jedem ein wahrer Fakt. Four daily number codes, each hiding a true fact.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://gr3hab.github.io/numfact/">
 <meta property="og:image" content="https://gr3hab.github.io/numfact/og.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="NUMIGMA: Crack the code. Reveal the fact.">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="theme-color" content="#f2f4f7" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#111715" media="(prefers-color-scheme: dark)">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="NumFact">
+<meta name="apple-mobile-web-app-title" content="NUMIGMA">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon.png">
@@ -29,7 +31,7 @@
   try { var t = (JSON.parse(localStorage.getItem('numfact.v2') || '{}') || {}).theme; if (t === 'light' || t === 'dark') document.documentElement.setAttribute('data-theme', t); } catch (e) {}
 </script>
 <style>
-/* Layout: App-Bildschirm in einer Spalte. Oben Kopf, Stufen und Uhr, in der Mitte das Rätselblatt (scrollt),
+/* NUMIGMA. Layout: App-Bildschirm in einer Spalte. Oben Kopf, Stufen und Uhr, in der Mitte das Rätselblatt (scrollt),
    unten Tipps und eigene Tastatur. Karopapier mit Ziffern in Königsblau, gelöste Wörter mit grünem Textmarker,
    Fehler in Rotstift, Tipps in Bleistift. */
 :root{
@@ -106,6 +108,7 @@ button{font:inherit;color:inherit}
 .timer.stopped{color:var(--muted)}
 
 /* Bühne: Startkarte, Rätselblatt, Ergebnis */
+.stage:focus-visible{outline-offset:-2px}
 .stage{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;display:flex;flex-direction:column;gap:14px;padding-bottom:12px;overscroll-behavior:contain}
 .sheet{
   --cell:24px;
@@ -272,6 +275,10 @@ textarea{width:100%;font:inherit;font-size:.95rem;padding:10px;border:1px solid 
 
 @media (min-width:640px){ .modes .mode .n{font-size:.95rem} }
 @media (prefers-reduced-motion: reduce){ .w.shake,.w.flash::before{animation:none} .w.ok .c,.w.ok .d{transition:none} }
+
+.legend{font-size:.84rem;color:var(--muted);margin-top:-4px}
+.eyebrow{font-family:var(--display);font-size:.68rem;font-weight:700;letter-spacing:.09em;color:var(--ink);margin-bottom:4px}
+.seg.two{grid-template-columns:repeat(2, minmax(0,1fr))}
 </style>
 </head>
 <body>
@@ -279,35 +286,35 @@ textarea{width:100%;font:inherit;font-size:.95rem;padding:10px;border:1px solid 
 
   <header class="top">
     <div class="brand">
-      <h1 id="brandName"><span class="a">NUM</span>FACT</h1>
+      <h1 id="brandName"><span class="a">NUM</span>IGMA</h1>
       <p class="issue" id="issue"></p>
     </div>
-    <nav class="icons" aria-label="Menü">
-      <button class="ib" id="archiveBtn" type="button" aria-label="Archiv" title="Archiv">
+    <nav class="icons" id="menu">
+      <button class="ib" id="archiveBtn" type="button">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg>
       </button>
-      <button class="ib" id="statsBtn" type="button" aria-label="Statistik" title="Statistik">
+      <button class="ib" id="statsBtn" type="button">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M5 20V12M12 20V5M19 20v-9"/></svg>
       </button>
-      <button class="ib" id="settingsBtn" type="button" aria-label="Einstellungen" title="Einstellungen">
+      <button class="ib" id="settingsBtn" type="button">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>
       </button>
-      <button class="ib" id="helpBtn" type="button" aria-label="Anleitung" title="Anleitung">
+      <button class="ib" id="helpBtn" type="button">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.6 9.3a2.5 2.5 0 1 1 3.4 2.3c-.6.3-1 .8-1 1.5v.6"/><path d="M12 17h.01"/></svg>
       </button>
     </nav>
   </header>
 
   <div class="banner" id="newday" hidden>
-    <span>Ein neues Rätsel ist da.</span>
-    <button class="btn primary" id="newdayBtn" type="button">Jetzt spielen</button>
+    <span id="newdayText"></span>
+    <button class="btn primary" id="newdayBtn" type="button"></button>
   </div>
   <div class="banner archive" id="archiveBar" hidden>
     <span id="archiveText"></span>
-    <button class="btn" id="backToday" type="button">Zurück zu heute</button>
+    <button class="btn" id="backToday" type="button"></button>
   </div>
 
-  <nav class="modes" role="tablist" aria-label="Schwierigkeit">
+  <nav class="modes" role="tablist" id="modes">
     <button class="mode" id="tab-easy" data-mode="easy" type="button" role="tab" aria-selected="false"><span class="n">Easy</span><span class="st"></span></button>
     <button class="mode" id="tab-hard" data-mode="hard" type="button" role="tab" aria-selected="false"><span class="n">Hard</span><span class="st"></span></button>
     <button class="mode" id="tab-mirror" data-mode="mirror" type="button" role="tab" aria-selected="false"><span class="n">Mirror</span><span class="st"></span></button>
@@ -315,24 +322,24 @@ textarea{width:100%;font:inherit;font-size:.95rem;padding:10px;border:1px solid 
   </nav>
 
   <div class="bar">
-    <button class="rulechip" id="ruleBtn" type="button" aria-label="Regel anzeigen">
+    <button class="rulechip" id="ruleBtn" type="button">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5h.01"/></svg>
       <span id="ruleShort"></span>
     </button>
     <span class="progress" id="progress"></span>
-    <span class="timer" id="timer" title="Zeit für dieses Rätsel">
+    <span class="timer" id="timer">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="13.5" r="7.5"/><path d="M12 13.5V9.5M10 2.5h4M18.2 6.8l1.3-1.3"/></svg>
-      <span class="sr">Zeit</span><span id="timerText">0:00</span>
+      <span class="sr" id="timerSr"></span><span id="timerText">0:00</span>
     </span>
   </div>
 
-  <main class="stage" id="stage" tabindex="-1" aria-label="Rätsel">
+  <main class="stage" id="stage" tabindex="0">
     <section class="startcard" id="startCard" hidden></section>
-    <section class="sheet" id="board" aria-label="Zahlencode">
+    <section class="sheet" id="board">
       <div class="nojs" id="nojs">
-        <strong>Hier fehlt das Rätsel?</strong>
-        <p>Du siehst gerade nur die Vorschau der Datei. Die zeigt die Seite an, startet aber das Spiel nicht. Das passiert am iPhone, wenn man die Datei aus WhatsApp, Mail oder der Dateien-App öffnet.</p>
-        <p>Öffne das Spiel stattdessen über den Link im Browser.</p>
+        <strong>Hier fehlt das Rätsel? · Puzzle missing?</strong>
+        <p>Du siehst nur die Vorschau der Datei. Die startet das Spiel nicht. Öffne NUMIGMA über den Link im Browser.</p>
+        <p lang="en">You are looking at a file preview, which cannot run the game. Open NUMIGMA from the link in your browser.</p>
       </div>
     </section>
     <section class="result" id="result" hidden aria-live="polite"></section>
@@ -342,115 +349,34 @@ textarea{width:100%;font:inherit;font-size:.95rem;padding:10px;border:1px solid 
     <div class="tools" id="tools">
       <button class="tool" id="hintBtn" type="button">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-3.6 10.8c.6.5 1 1.2 1 2V16h5.2v-.2c0-.8.4-1.5 1-2A6 6 0 0 0 12 3z"/></svg>
-        <span id="hintLabel">Tipp</span><span class="pips" id="pips" aria-hidden="true"></span>
+        <span id="hintLabel"></span><span class="pips" id="pips" aria-hidden="true"></span>
       </button>
       <button class="tool" id="keyBtn" type="button" aria-pressed="false">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8" cy="15" r="4"/><path d="M10.8 12.2 20 3M17 6l2 2M15 8l2 2"/></svg>
-        <span id="keyLabel">Schlüssel</span><sup id="keyCost"></sup>
+        <span id="keyLabel"></span><sup id="keyCost"></sup>
       </button>
-      <button class="tool ghost" id="revealBtn" type="button">Auflösen</button>
+      <button class="tool ghost" id="revealBtn" type="button"></button>
     </div>
     <div class="confirm" id="revealConfirm" hidden>
-      <span>Lösung anzeigen? Dann zählt dieses Rätsel nicht als gelöst.</span>
-      <button class="btn danger" id="revealYes" type="button">Ja, auflösen</button>
-      <button class="btn" id="revealNo" type="button">Weiter rätseln</button>
+      <span id="revealQ"></span>
+      <button class="btn danger" id="revealYes" type="button"></button>
+      <button class="btn" id="revealNo" type="button"></button>
     </div>
-    <div class="kb" id="kb" role="group" aria-label="Tastatur"></div>
+    <div class="kb" id="kb" role="group"></div>
   </div>
 </div>
 
-<dialog id="helpDlg" aria-labelledby="helpTitle">
-  <div class="dlg">
-    <div class="dlg-head">
-      <h2 id="helpTitle">So funktioniert’s</h2>
-      <button class="ib" type="button" data-close aria-label="Schließen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
-    </div>
-    <p>Hinter jedem Zahlencode steckt ein kurzer, wahrer Fakt. Jeden Tag gibt es vier neue, von Easy bis Impossible.</p>
-    <div class="demo" aria-label="Beispiel: 8, 21, 14, 4 ergibt HUND">
-      <div><b>8</b><span>H</span></div><div><b>21</b><span>U</span></div><div><b>14</b><span>N</span></div><div><b>4</b><span>D</span></div>
-    </div>
-    <ul class="howto">
-      <li><strong>Start drücken:</strong> Erst dann erscheint der Code und die Uhr läuft.</li>
-      <li><strong>Kästchen antippen</strong> und mit der Tastatur unten schreiben. Jedes Kästchen lässt sich einzeln ändern.</li>
-      <li><strong>Grün heißt richtig.</strong> Rot heißt: Das Wort ist voll, aber stimmt noch nicht.</li>
-      <li><strong>Drei Tipps pro Rätsel.</strong> Ein Tipp deckt das gewählte Kästchen auf. Bei Impossible zeigt er stattdessen, wo in einem Wort die Buchstaben getrennt sind.</li>
-      <li><strong>Schlüssel:</strong> Zeigt die Zahlen auf der Tastatur, bis du den nächsten Buchstaben tippst. Bei Easy gratis, bei Hard und Mirror kostet er einen Tipp, bei Impossible gibt es ihn nicht.</li>
-      <li><strong>Ä, Ö, Ü und ß</strong> haben eigene Zahlen von 27 bis 30.</li>
-    </ul>
-    <p class="small">Deine Serie wächst mit jedem Tag, an dem du mindestens ein Rätsel am selben Tag löst. Rätsel aus dem Archiv zählen nicht für die Serie.</p>
-    <button class="btn primary" type="button" data-close>Los geht’s</button>
-  </div>
-</dialog>
-
-<dialog id="ruleDlg" aria-labelledby="ruleTitle">
-  <div class="dlg">
-    <div class="dlg-head">
-      <h2 id="ruleTitle">Regel</h2>
-      <button class="ib" type="button" data-close aria-label="Schließen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
-    </div>
-    <div id="ruleBody" class="dlg" style="padding:0"></div>
-  </div>
-</dialog>
-
-<dialog id="statsDlg" aria-labelledby="statsTitle">
-  <div class="dlg">
-    <div class="dlg-head">
-      <h2 id="statsTitle">Statistik</h2>
-      <button class="ib" type="button" data-close aria-label="Schließen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
-    </div>
-    <div id="statsBody" class="dlg" style="padding:0"></div>
-  </div>
-</dialog>
-
-<dialog id="settingsDlg" aria-labelledby="settingsTitle">
-  <div class="dlg">
-    <div class="dlg-head">
-      <h2 id="settingsTitle">Einstellungen</h2>
-      <button class="ib" type="button" data-close aria-label="Schließen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
-    </div>
-    <div>
-      <h3 id="themeLabel">Design</h3>
-      <div class="seg" role="radiogroup" aria-labelledby="themeLabel">
-        <label><input type="radio" name="theme" id="theme-system" value="system"><span>System</span></label>
-        <label><input type="radio" name="theme" id="theme-light" value="light"><span>Hell</span></label>
-        <label><input type="radio" name="theme" id="theme-dark" value="dark"><span>Dunkel</span></label>
-      </div>
-    </div>
-    <div class="row">
-      <label for="hapticsToggle"><strong>Haptisches Feedback</strong><br><span class="small">Am Handy bei jedem Tastendruck. Auf Android zusätzlich bei richtigen und falschen Wörtern.</span></label>
-      <input type="checkbox" switch id="hapticsToggle">
-    </div>
-    <p class="small">Dein Fortschritt bleibt in diesem Browser gespeichert. Auf einem anderen Gerät oder als App am Home-Bildschirm beginnt die Statistik neu.</p>
-    <button class="btn primary" type="button" data-close>Fertig</button>
-  </div>
-</dialog>
-
-<dialog id="archiveDlg" aria-labelledby="archiveTitle">
-  <div class="dlg">
-    <div class="dlg-head">
-      <h2 id="archiveTitle">Archiv</h2>
-      <button class="ib" type="button" data-close aria-label="Schließen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
-    </div>
-    <p class="small">Alle bisherigen Rätsel zum Nachspielen. Sie zählen für die Statistik, aber nicht für deine Serie.</p>
-    <div class="days" id="days"></div>
-  </div>
-</dialog>
-
-<dialog id="shareDlg" aria-labelledby="shareTitle">
-  <div class="dlg">
-    <div class="dlg-head">
-      <h2 id="shareTitle">Ergebnis teilen</h2>
-      <button class="ib" type="button" data-close aria-label="Schließen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
-    </div>
-    <p class="small">Automatisches Kopieren klappt hier nicht. Der Text ist markiert, du kannst ihn selbst kopieren.</p>
-    <textarea id="shareText" rows="8" readonly></textarea>
-    <button class="btn primary" type="button" data-close>Fertig</button>
-  </div>
-</dialog>
+<dialog id="helpDlg" aria-labelledby="helpTitle"><div class="dlg" id="helpBody"></div></dialog>
+<dialog id="ruleDlg" aria-labelledby="ruleTitle"><div class="dlg" id="ruleBody"></div></dialog>
+<dialog id="statsDlg" aria-labelledby="statsTitle"><div class="dlg" id="statsBody"></div></dialog>
+<dialog id="settingsDlg" aria-labelledby="settingsTitle"><div class="dlg" id="settingsBody"></div></dialog>
+<dialog id="archiveDlg" aria-labelledby="archiveTitle"><div class="dlg" id="archiveBody"></div></dialog>
+<dialog id="shareDlg" aria-labelledby="shareTitle"><div class="dlg" id="shareBody"></div></dialog>
 
 <div class="toast" id="toast" role="status" hidden></div>
 
 <script src="fakten.js"></script>
+<script src="facts-en.js"></script>
 <script src="kern.js"></script>
 <script>
 (function () {
@@ -458,21 +384,138 @@ textarea{width:100%;font:inherit;font-size:.95rem;padding:10px;border:1px solid 
 
 const $ = (sel, root) => (root || document).querySelector(sel);
 const NF = window.NF;
-if (!NF || !NF.facts().length) {
-  $('#board').innerHTML = '<div class="nojs"><strong>Die Rätsel konnten nicht geladen werden.</strong><p>Prüfe, ob fakten.js und kern.js neben index.html liegen, und lade die Seite neu.</p></div>';
+if (!NF || !NF.facts('de').length) {
+  $('#board').innerHTML = '<div class="nojs"><strong>Die Rätsel konnten nicht geladen werden. · The puzzles could not be loaded.</strong><p>fakten.js, facts-en.js und kern.js müssen neben index.html liegen.</p></div>';
   return;
 }
 const { CONFIG, MODES, DIGRAPH, symStr, letterCode, todayKey, parseKey, dayIndex, addDays, buildDay, wordUnits } = NF;
-
-const RULES = {
-  easy: { short: 'A=1 … Z=26', text: 'Jede Zahl steht für einen Buchstaben: A = 1, B = 2 … Z = 26.', ex: 'HUND → 8 · 21 · 14 · 4' },
-  hard: { short: 'A=1 … Z=26 · ohne Trennung', text: 'Dieselben Zahlen wie bei Easy, aber ohne Trennung. Wo endet ein Buchstabe? 1 1 kann K sein oder AA. Die Anzahl der Kästchen verrät, wie viele Buchstaben es sind.', ex: 'HUND → 821144' },
-  mirror: { short: 'A=26 … Z=1 · ohne Trennung', text: 'Das Alphabet läuft rückwärts: A = 26, B = 25 … Z = 1. Ebenfalls ohne Trennung.', ex: 'HUND → 1961323' },
-  impossible: { short: 'Geheime Verschiebung · ohne Trennung', text: 'Das Alphabet ist um eine geheime Zahl verschoben, ohne Trennung. Knack die Verschiebung an einem kurzen Wort. Tipps zeigen hier nur, wo in einem Wort die Buchstaben getrennt sind.', ex: null }
-};
-const UMLAUTS = 'Ä = 27, Ö = 28, Ü = 29, ß = 30, in jeder Stufe gleich.';
-const KEYROWS = [[...'QWERTZUIOPÜ'], [...'ASDFGHJKLÖÄ'], ['next', ...'YXCVBNMß', 'back']];
 const IOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+const X = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>';
+
+/* ============================================================ Texte */
+const STR = {
+  de: {
+    locale: 'de-AT',
+    issue: (n, d) => `#${n} · ${d}`,
+    archiveBar: (n, d) => `Archiv: #${n} vom ${d}. Zählt nicht für die Serie.`,
+    backToday: 'Zurück zu heute', newday: 'Ein neues Rätsel ist da.', newdayBtn: 'Jetzt spielen',
+    menu: { archive: 'Archiv', stats: 'Statistik', settings: 'Einstellungen', help: 'Anleitung' }, close: 'Schließen',
+    modesAria: 'Schwierigkeit', ruleAria: 'Regel anzeigen', timer: 'Zeit für dieses Rätsel', timerSr: 'Zeit', board: 'Zahlencode', stage: 'Rätsel',
+    words: n => n === 1 ? '1 Wort' : `${n} Wörter`, revealedShort: 'aufgelöst', of: (c, n) => `${c} von ${n}`,
+    solved: 'Gelöst', revealed: 'Aufgelöst',
+    startMeta: (w, l) => `${w === 1 ? '1 Wort' : w + ' Wörter'} · ${l} Buchstaben`, start: 'Start',
+    startNote: 'Der Code erscheint und die Uhr läuft ab Start. Wechselst du die Stufe, pausiert sie.',
+    hint: 'Tipp', cut: 'Trennung', key: 'Schlüssel', reveal: 'Auflösen',
+    hintTitle: 'Deckt das gewählte Kästchen auf (1 Tipp)', cutTitle: 'Zeigt bei einem Wort, wo die Buchstaben getrennt sind (1 Tipp)',
+    hintAria: (cut, l, m) => `${cut ? 'Trennung zeigen' : 'Buchstabe aufdecken'}, ${l} von ${m} Tipps übrig`,
+    keyFree: 'Zahlen auf der Tastatur bis zum nächsten Buchstaben', keyCostTitle: 'Zahlen auf der Tastatur bis zum nächsten Buchstaben (1 Tipp)', keyForbidden: 'Bei Impossible gibt es keinen Schlüssel',
+    revealQ: 'Lösung anzeigen? Dann zählt dieses Rätsel nicht als gelöst.', revealYes: 'Ja, auflösen', revealNo: 'Weiter rätseln',
+    kb: 'Tastatur', nextWord: 'Nächstes Wort', backspace: 'Löschen',
+    tips: n => n === 1 ? '1 Tipp' : `${n} Tipps`,
+    cracked: (t, h) => `Geknackt in ${t} · ${h ? (h === 1 ? '1 Tipp' : h + ' Tipps') : 'ohne Tipp'}`,
+    legend: '🟩 ohne Tipp · 🟨 mit Tipp · 🟥 aufgelöst',
+    share: 'Ergebnis teilen', next: m => `Weiter mit ${m} →`, statsBtn: 'Statistik',
+    dayDone: 'Alle vier Codes für heute erledigt. Die nächsten kommen in',
+    noTips: 'Keine Tipps mehr für dieses Rätsel', allCut: 'Alle Wörter sind schon getrennt', cutDone: n => `Wort ${n}: Trennung eingezeichnet`,
+    keyShown: 'Die Zahlen stehen auf der Tastatur, bis du den nächsten Buchstaben tippst',
+    copied: 'Ergebnis kopiert. Jetzt in WhatsApp & Co. einfügen', copiedBtn: 'Kopiert ✓',
+    stats: { title: 'Statistik', played: 'Tage gespielt', streak: 'Aktuelle Serie', best: 'Beste Serie', cracked: 'Codes geknackt', byMode: 'Nach Stufe', solved: 'Gelöst', bestTime: 'Bestzeit',
+      note: 'Die Serie wächst mit jedem Tag, an dem du mindestens einen Code am selben Tag knackst. Nächste Codes in' },
+    archive: { title: 'Archiv', intro: 'Alle bisherigen Rätsel zum Nachspielen. Sie zählen für die Statistik, aber nicht für deine Serie.', today: 'Heute',
+      st: { solved: 'gelöst', revealed: 'aufgelöst', playing: 'angefangen', open: 'offen' } },
+    settings: { title: 'Einstellungen', theme: 'Design', system: 'System', light: 'Hell', dark: 'Dunkel', language: 'Sprache',
+      haptics: 'Haptisches Feedback', hapticsNote: 'Am Handy bei jedem Tastendruck. Auf Android zusätzlich bei richtigen und falschen Wörtern.',
+      storage: 'Dein Fortschritt bleibt in diesem Browser gespeichert. Auf einem anderen Gerät oder als App am Home-Bildschirm beginnt die Statistik neu.', done: 'Fertig' },
+    shareDlg: { title: 'Ergebnis teilen', note: 'Automatisches Kopieren klappt hier nicht. Der Text ist markiert, du kannst ihn selbst kopieren.', done: 'Fertig' },
+    help: {
+      title: 'So funktioniert’s', intro: 'Hinter jedem Zahlencode steckt ein kurzer, wahrer Fakt. Jeden Tag gibt es vier neue, von Easy bis Impossible.',
+      demo: ['HUND', [8, 21, 14, 4]], demoAria: 'Beispiel: 8, 21, 14, 4 ergibt HUND',
+      items: [
+        '<strong>Start drücken:</strong> Erst dann erscheint der Code und die Uhr läuft.',
+        '<strong>Kästchen antippen</strong> und mit der Tastatur unten schreiben. Jedes Kästchen lässt sich einzeln ändern.',
+        '<strong>Grün heißt richtig.</strong> Rot heißt: Das Wort ist voll, aber stimmt noch nicht.',
+        '<strong>Drei Tipps pro Rätsel.</strong> Ein Tipp deckt das gewählte Kästchen auf. Bei Impossible zeigt er stattdessen, wo in einem Wort die Buchstaben getrennt sind.',
+        '<strong>Schlüssel:</strong> Zeigt die Zahlen auf der Tastatur, bis du den nächsten Buchstaben tippst. Bei Easy gratis, bei Hard und Mirror kostet er einen Tipp, bei Impossible gibt es ihn nicht.',
+        '<strong>Teilen:</strong> Jedes Kästchen steht für ein Wort. 🟩 ohne Tipp gelöst, 🟨 mit Tipp, 🟥 aufgelöst. Die Lösung wird nie verraten.',
+        '<strong>Ä, Ö, Ü und ß</strong> haben eigene Zahlen von 27 bis 30.'
+      ],
+      streak: 'Deine Serie wächst mit jedem Tag, an dem du mindestens ein Rätsel am selben Tag löst. Rätsel aus dem Archiv zählen nicht.', go: 'Los geht’s'
+    },
+    rules: {
+      easy: { short: 'A=1 … Z=26', text: 'Jede Zahl steht für einen Buchstaben: A = 1, B = 2 … Z = 26.', ex: 'HUND → 8 · 21 · 14 · 4' },
+      hard: { short: 'A=1 … Z=26 · ohne Trennung', text: 'Dieselben Zahlen wie bei Easy, aber ohne Trennung. Wo endet ein Buchstabe? 1 1 kann K sein oder AA. Die Anzahl der Kästchen verrät, wie viele Buchstaben es sind.', ex: 'HUND → 821144' },
+      mirror: { short: 'A=26 … Z=1 · ohne Trennung', text: 'Das Alphabet läuft rückwärts: A = 26, B = 25 … Z = 1. Ebenfalls ohne Trennung.', ex: 'HUND → 1961323' },
+      impossible: { short: 'Geheime Verschiebung · ohne Trennung', text: 'Das Alphabet ist um eine geheime Zahl verschoben, ohne Trennung. Knack die Verschiebung an einem kurzen Wort. Tipps zeigen hier nur, wo in einem Wort die Buchstaben getrennt sind.', ex: null }
+    },
+    ruleTitle: m => `Regel: ${m}`,
+    shiftShort: s => `Verschiebung ${s}: A=${s + 1} … Z=${s}`,
+    shiftLong: (s, past) => `Heute ${past ? 'war es' : 'ist es'} um ${s} verschoben: A = ${s + 1}, B = ${s + 2} … Z = ${s}`,
+    umlauts: (used) => `${used ? 'In diesem Satz stecken Umlaute oder ß: ' : 'Umlaute und ß: '}Ä = 27, Ö = 28, Ü = 29, ß = 30, in jeder Stufe gleich.`,
+    keyrows: [[...'QWERTZUIOPÜ'], [...'ASDFGHJKLÖÄ'], ['next', ...'YXCVBNMß', 'back']],
+    shareHead: (n, a) => `${CONFIG.name} #${n}${a ? ' (Archiv)' : ''}`,
+    beatOne: 'Schlägst du meine Zeit?', beatMany: 'Schlägst du meine Zeiten?', crackIt: 'Knackst du es?', revealedWord: 'aufgelöst', nothing: 'Heute noch nichts geknackt.'
+  },
+  en: {
+    locale: 'en-GB',
+    issue: (n, d) => `#${n} · ${d}`,
+    archiveBar: (n, d) => `Archive: #${n} from ${d}. Does not count towards your streak.`,
+    backToday: 'Back to today', newday: 'A new puzzle is out.', newdayBtn: 'Play now',
+    menu: { archive: 'Archive', stats: 'Statistics', settings: 'Settings', help: 'How to play' }, close: 'Close',
+    modesAria: 'Difficulty', ruleAria: 'Show rule', timer: 'Time for this puzzle', timerSr: 'Time', board: 'Number code', stage: 'Puzzle',
+    words: n => n === 1 ? '1 word' : `${n} words`, revealedShort: 'revealed', of: (c, n) => `${c} of ${n}`,
+    solved: 'Solved', revealed: 'Revealed',
+    startMeta: (w, l) => `${w === 1 ? '1 word' : w + ' words'} · ${l} letters`, start: 'Start',
+    startNote: 'The code appears and the clock starts when you press Start. Switching levels pauses it.',
+    hint: 'Hint', cut: 'Split', key: 'Key', reveal: 'Reveal',
+    hintTitle: 'Reveals the selected box (1 hint)', cutTitle: 'Shows where the letters split within one word (1 hint)',
+    hintAria: (cut, l, m) => `${cut ? 'Show split' : 'Reveal letter'}, ${l} of ${m} hints left`,
+    keyFree: 'Numbers on the keyboard until your next letter', keyCostTitle: 'Numbers on the keyboard until your next letter (1 hint)', keyForbidden: 'There is no key in Impossible',
+    revealQ: 'Show the answer? This puzzle will then not count as solved.', revealYes: 'Yes, reveal', revealNo: 'Keep going',
+    kb: 'Keyboard', nextWord: 'Next word', backspace: 'Delete',
+    tips: n => n === 1 ? '1 hint' : `${n} hints`,
+    cracked: (t, h) => `Cracked in ${t} · ${h ? (h === 1 ? '1 hint' : h + ' hints') : 'no hints'}`,
+    legend: '🟩 no hint · 🟨 hint used · 🟥 revealed',
+    share: 'Share result', next: m => `Next: ${m} →`, statsBtn: 'Statistics',
+    dayDone: 'All four codes done for today. The next ones arrive in',
+    noTips: 'No hints left for this puzzle', allCut: 'All words are already split', cutDone: n => `Word ${n}: split shown`,
+    keyShown: 'The numbers are on the keyboard until you type your next letter',
+    copied: 'Result copied. Paste it into WhatsApp or anywhere', copiedBtn: 'Copied ✓',
+    stats: { title: 'Statistics', played: 'Days played', streak: 'Current streak', best: 'Best streak', cracked: 'Codes cracked', byMode: 'By level', solved: 'Solved', bestTime: 'Best time',
+      note: 'Your streak grows every day you crack at least one code on the same day. Next codes in' },
+    archive: { title: 'Archive', intro: 'Every puzzle so far, ready to replay. They count towards your statistics but not your streak.', today: 'Today',
+      st: { solved: 'solved', revealed: 'revealed', playing: 'started', open: 'open' } },
+    settings: { title: 'Settings', theme: 'Theme', system: 'System', light: 'Light', dark: 'Dark', language: 'Language',
+      haptics: 'Haptic feedback', hapticsNote: 'On phones with every key press. On Android also for right and wrong words.',
+      storage: 'Your progress is saved in this browser. On another device or as a home screen app, your statistics start fresh.', done: 'Done' },
+    shareDlg: { title: 'Share result', note: 'Automatic copying does not work here. The text is selected so you can copy it yourself.', done: 'Done' },
+    help: {
+      title: 'How to play', intro: 'Behind every number code is a short, true fact. There are four new ones every day, from Easy to Impossible.',
+      demo: ['DOG', [4, 15, 7]], demoAria: 'Example: 4, 15, 7 spells DOG',
+      items: [
+        '<strong>Press Start.</strong> Only then does the code appear and the clock start.',
+        '<strong>Tap a box</strong> and type with the keyboard below. You can change any box on its own.',
+        '<strong>Green means right.</strong> Red means the word is full but not correct yet.',
+        '<strong>Three hints per puzzle.</strong> A hint reveals the selected box. In Impossible it shows where the letters split within a word instead.',
+        '<strong>Key:</strong> Shows the numbers on the keyboard until you type your next letter. Free in Easy, costs one hint in Hard and Mirror, not available in Impossible.',
+        '<strong>Sharing:</strong> Each square stands for one word. 🟩 solved without a hint, 🟨 with a hint, 🟥 revealed. The answer is never shown.'
+      ],
+      streak: 'Your streak grows every day you solve at least one puzzle on the same day. Archive puzzles do not count.', go: 'Let’s go'
+    },
+    rules: {
+      easy: { short: 'A=1 … Z=26', text: 'Each number stands for a letter: A = 1, B = 2 … Z = 26.', ex: 'DOG → 4 · 15 · 7' },
+      hard: { short: 'A=1 … Z=26 · no separators', text: 'The same numbers as Easy, but with no separators. Where does a letter end? 1 1 could be K or AA. The number of boxes tells you how many letters there are.', ex: 'DOG → 4157' },
+      mirror: { short: 'A=26 … Z=1 · no separators', text: 'The alphabet runs backwards: A = 26, B = 25 … Z = 1. Also with no separators.', ex: 'DOG → 231220' },
+      impossible: { short: 'Secret shift · no separators', text: 'The alphabet is shifted by a secret number, with no separators. Crack the shift using a short word. Hints here only show where the letters split within a word.', ex: null }
+    },
+    ruleTitle: m => `Rule: ${m}`,
+    shiftShort: s => `Shift ${s}: A=${s + 1} … Z=${s}`,
+    shiftLong: (s, past) => `Today ${past ? 'it was' : 'it is'} shifted by ${s}: A = ${s + 1}, B = ${s + 2} … Z = ${s}`,
+    umlauts: null,
+    keyrows: [[...'QWERTYUIOP'], [...'ASDFGHJKL'], ['next', ...'ZXCVBNM', 'back']],
+    shareHead: (n, a) => `${CONFIG.name} #${n}${a ? ' (archive)' : ''}`,
+    beatOne: 'Can you beat my time?', beatMany: 'Can you beat my times?', crackIt: 'Can you crack it?', revealedWord: 'revealed', nothing: 'Nothing cracked yet today.'
+  }
+};
 
 /* ============================================================ Hilfen */
 const mq = q => !!(window.matchMedia && window.matchMedia(q).matches);
@@ -483,10 +526,9 @@ function fmtTime(ms) {
   return h ? `${h}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}` : `${m}:${String(s).padStart(2, '0')}`;
 }
 function fmtHMS(ms) { const t = Math.max(0, Math.floor(ms / 1000)); return [Math.floor(t / 3600), Math.floor(t % 3600 / 60), t % 60].map(v => String(v).padStart(2, '0')).join(':'); }
-const tipText = n => n === 1 ? '1 Tipp' : `${n} Tipps`;
 function dateLabel(key, long) {
   const [y, m, d] = parseKey(key);
-  try { return new Date(y, m - 1, d).toLocaleDateString('de-AT', long ? { weekday: 'long', day: 'numeric', month: 'long' } : { weekday: 'short', day: 'numeric', month: 'short' }); }
+  try { return new Date(y, m - 1, d).toLocaleDateString(T().locale, long ? { weekday: 'long', day: 'numeric', month: 'long' } : { weekday: 'short', day: 'numeric', month: 'short' }); }
   catch (e) { return key; }
 }
 
@@ -496,9 +538,26 @@ function loadStore() {
   return { v: 2, seenHelp: false, days: {} };
 }
 let store = loadStore();
-function fixStore() { if (store.haptics === undefined) store.haptics = true; if (!store.theme) store.theme = 'system'; }
+function fixStore() {
+  if (store.haptics === undefined) store.haptics = true;
+  if (!store.theme) store.theme = 'system';
+  if (!store.daysEn) store.daysEn = {};
+}
 fixStore();
 function save() { try { localStorage.setItem(CONFIG.storageKey, JSON.stringify(store)); } catch (e) { /* ignorieren */ } }
+
+/* ============================================================ Sprache */
+function pickLang() {
+  let q = null;
+  try { q = new URLSearchParams(location.search).get('lang'); } catch (e) { /* alte Browser */ }
+  if (q === 'de' || q === 'en') { store.lang = q; save(); return q; }
+  if (store.lang === 'de' || store.lang === 'en') return store.lang;
+  const nav = ((navigator.languages && navigator.languages[0]) || navigator.language || 'de').toLowerCase();
+  return nav.startsWith('de') ? 'de' : 'en';
+}
+let lang = pickLang();
+const T = () => STR[lang];
+const daysMap = l => (l || lang) === 'en' ? store.daysEn : store.days;
 
 /* ============================================================ Zustand */
 const realToday = () => todayKey();
@@ -508,7 +567,7 @@ let aw = null, cur = 0, lastIn = null, justAdvanced = false, keyShown = false;
 let clock = null, wordEls = [];
 
 const puz = () => day.puzzles[current];
-function dayState(key) { return store.days[key] || (store.days[key] = {}); }
+function dayState(key) { const map = daysMap(); return map[key] || (map[key] = {}); }
 function msFor(key, id, p) {
   const st = dayState(key);
   let s = st[id];
@@ -525,6 +584,7 @@ const finished = s => s.status === 'solved' || s.status === 'revealed';
 const hintsLeft = s => Math.max(0, CONFIG.hintsPerPuzzle - (s.hintCount || 0));
 const keyForbidden = s => current === 'impossible' && !s.shiftShown;
 const keyCost = () => current === 'easy' ? 0 : 1;
+const modeName = id => MODES.find(m => m.id === id).name;
 
 function lettersOf(wi) { return [...puz().words[wi].plain]; }
 function cellsOf(s, wi) {
@@ -551,7 +611,7 @@ function nextOpenMode(from) {
 const canRun = () => !document.hidden && !document.querySelector('dialog[open]');
 function stopClock() {
   if (!clock) return;
-  const st = store.days[clock.key] && store.days[clock.key][clock.mode];
+  const map = daysMap(clock.lang), st = map[clock.key] && map[clock.key][clock.mode];
   if (st && st.status === 'playing') st.elapsed = (st.elapsed || 0) + (Date.now() - clock.start);
   clock = null;
   save();
@@ -559,12 +619,12 @@ function stopClock() {
 function startClock() {
   stopClock();
   if (ms(current).status !== 'playing' || !canRun()) return;
-  clock = { mode: current, key: day.key, start: Date.now() };
+  clock = { mode: current, key: day.key, lang, start: Date.now() };
 }
 function resumeClock() { if (day && !clock && ms(current).status === 'playing' && canRun()) startClock(); renderTimer(); }
 function elapsedOf(id) {
   const s = ms(id);
-  return (s.elapsed || 0) + (clock && clock.mode === id && clock.key === day.key ? Date.now() - clock.start : 0);
+  return (s.elapsed || 0) + (clock && clock.mode === id && clock.key === day.key && clock.lang === lang ? Date.now() - clock.start : 0);
 }
 
 /* ============================================================ Haptik */
@@ -584,25 +644,40 @@ function addHapticSwitch(el) {
 function applyHaptics() { document.documentElement.classList.toggle('no-haptics', !store.haptics); }
 
 /* ============================================================ Darstellung */
+function renderStatic() {
+  const t = T();
+  document.documentElement.lang = lang;
+  [['archiveBtn', t.menu.archive], ['statsBtn', t.menu.stats], ['settingsBtn', t.menu.settings], ['helpBtn', t.menu.help]].forEach(([id, l]) => { const b = $('#' + id); b.setAttribute('aria-label', l); b.title = l; });
+  $('#menu').setAttribute('aria-label', lang === 'en' ? 'Menu' : 'Menü');
+  $('#modes').setAttribute('aria-label', t.modesAria);
+  $('#ruleBtn').setAttribute('aria-label', t.ruleAria);
+  $('#timer').title = t.timer; $('#timerSr').textContent = t.timerSr;
+  $('#board').setAttribute('aria-label', t.board); $('#stage').setAttribute('aria-label', t.stage);
+  $('#newdayText').textContent = t.newday; $('#newdayBtn').textContent = t.newdayBtn; $('#backToday').textContent = t.backToday;
+  $('#revealBtn').textContent = t.reveal; $('#revealQ').textContent = t.revealQ; $('#revealYes').textContent = t.revealYes; $('#revealNo').textContent = t.revealNo;
+  $('#kb').setAttribute('aria-label', t.kb);
+}
+
 function renderHeader() {
-  const name = CONFIG.name, cut = Math.ceil(name.length / 2);
-  $('#brandName').innerHTML = `<span class="a">${esc(name.slice(0, cut).toUpperCase())}</span>${esc(name.slice(cut).toUpperCase())}`;
-  $('#issue').textContent = `Nr. ${day.number} · ${dateLabel(day.key)}`;
+  const name = CONFIG.name;
+  $('#brandName').innerHTML = `<span class="a">${esc(name.slice(0, 3))}</span>${esc(name.slice(3))}`;
+  $('#issue').textContent = T().issue(day.number, dateLabel(day.key));
   $('#archiveBar').hidden = !archive;
-  if (archive) $('#archiveText').textContent = `Archiv: Nr. ${day.number} vom ${dateLabel(day.key)}. Zählt nicht für die Serie.`;
-  document.title = archive ? `${name} Nr. ${day.number} (Archiv)` : name;
+  if (archive) $('#archiveText').textContent = T().archiveBar(day.number, dateLabel(day.key));
+  document.title = archive ? `${name} #${day.number}` : `${name} · ${CONFIG.tagline}`;
 }
 
 function renderTabs() {
+  const t = T();
   MODES.forEach(m => {
     const b = $('#tab-' + m.id), s = ms(m.id), p = day.puzzles[m.id];
     b.setAttribute('aria-selected', String(m.id === current));
     b.classList.toggle('done', s.status === 'solved');
     let st;
     if (s.status === 'solved') st = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>${fmtTime(s.elapsed)}`;
-    else if (s.status === 'revealed') st = 'aufgelöst';
+    else if (s.status === 'revealed') st = t.revealedShort;
     else if (s.status === 'playing') st = `${p.words.filter((w, i) => s.typed[i] === w.plain).length}/${p.words.length}`;
-    else st = `${p.words.length} Wörter`;
+    else st = t.words(p.words.length);
     const el = b.querySelector('.st');
     if (el.innerHTML !== st) el.innerHTML = st;
   });
@@ -610,46 +685,45 @@ function renderTabs() {
 
 function renderTimer() {
   if (!day) return;
-  const s = ms(current), p = puz();
+  const s = ms(current), p = puz(), t = T();
   const txt = fmtTime(elapsedOf(current));
   if ($('#timerText').textContent !== txt) $('#timerText').textContent = txt;
   $('#timer').classList.toggle('stopped', !clock);
   const c = p.words.filter((w, i) => s.typed[i] === w.plain).length;
-  const prog = s.status === 'solved' ? 'Gelöst' : s.status === 'revealed' ? 'Aufgelöst' : s.status === 'open' ? `${p.words.length} Wörter` : `${c} von ${p.words.length}`;
+  const prog = s.status === 'solved' ? t.solved : s.status === 'revealed' ? t.revealed : s.status === 'open' ? t.words(p.words.length) : t.of(c, p.words.length);
   if ($('#progress').textContent !== prog) $('#progress').textContent = prog;
 }
 
 function renderBar() {
   const s = ms(current);
-  let short = RULES[current].short;
-  if (current === 'impossible' && (finished(s) || s.shiftShown)) short = `Verschiebung ${day.shift}: A=${day.shift + 1} … Z=${day.shift}`;
+  let short = T().rules[current].short;
+  if (current === 'impossible' && (finished(s) || s.shiftShown)) short = T().shiftShort(day.shift);
   $('#ruleShort').textContent = short;
   renderTimer();
 }
 
 function ruleHtml() {
-  const r = RULES[current], s = ms(current), p = puz();
+  const t = T(), r = t.rules[current], s = ms(current), p = puz();
   let ex = r.ex;
-  if (current === 'impossible' && (finished(s) || s.shiftShown)) ex = `Heute ${finished(s) ? 'war es' : 'ist es'} um ${day.shift} verschoben: A = ${day.shift + 1}, B = ${day.shift + 2} … Z = ${day.shift}`;
+  if (current === 'impossible' && (finished(s) || s.shiftShown)) ex = t.shiftLong(day.shift, finished(s));
   const um = /[äöüÄÖÜßẞ]/.test(p.fact.t);
-  return `<p>${esc(r.text)}</p>` + (ex ? `<p class="ex">${esc(ex)}</p>` : '') +
-    `<p class="note">${um ? 'In diesem Satz stecken Umlaute oder ß: ' : 'Umlaute und ß: '}${esc(UMLAUTS)}</p>`;
+  return `<p>${esc(r.text)}</p>` + (ex ? `<p class="ex">${esc(ex)}</p>` : '') + (t.umlauts ? `<p class="note">${esc(t.umlauts(um))}</p>` : '');
 }
 
 function renderStart() {
-  const p = puz(), m = MODES.find(x => x.id === current);
+  const p = puz(), t = T();
   const letters = p.words.reduce((n, w) => n + [...w.plain].length, 0);
   $('#startCard').innerHTML =
-    `<div class="sc-mode">${esc(m.name)}</div>` +
-    `<div class="sc-meta">${p.words.length} Wörter · ${letters} Buchstaben</div>` +
+    `<div class="sc-mode">${esc(modeName(current))}</div>` +
+    `<div class="sc-meta">${esc(t.startMeta(p.words.length, letters))}</div>` +
     ruleHtml() +
     `<button class="btn primary big" type="button" data-act="start" id="startBtn">` +
-      '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5.5v13a1 1 0 0 0 1.5.9l10.4-6.5a1 1 0 0 0 0-1.8L9.5 4.6A1 1 0 0 0 8 5.5z"/></svg>Start</button>' +
-    '<p class="small">Der Code erscheint und die Uhr läuft ab Start. Wechselst du die Stufe, pausiert sie.</p>';
+      `<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5.5v13a1 1 0 0 0 1.5.9l10.4-6.5a1 1 0 0 0 0-1.8L9.5 4.6A1 1 0 0 0 8 5.5z"/></svg>${esc(t.start)}</button>` +
+    `<p class="small">${esc(t.startNote)}</p>`;
 }
 
 function buildBoard() {
-  const p = puz(), s = ms(current), easy = current === 'easy', board = $('#board');
+  const p = puz(), s = ms(current), easy = current === 'easy', board = $('#board'), t = T();
   board.classList.toggle('easy', easy);
   let html = '<div class="words">';
   p.words.forEach((w, wi) => {
@@ -662,7 +736,8 @@ function buildBoard() {
       dr = parts.join('');
     }
     const cells = [...w.plain].map((_, i) => `<span class="c" data-w="${wi}" data-i="${i}"></span>`).join('');
-    const label = `Wort ${wi + 1} von ${p.words.length}, ${[...w.plain].length} Buchstaben, Code ${easy || cut ? w.codes.join(', ') : w.codes.join('')}`;
+    const code = easy || cut ? w.codes.join(', ') : w.codes.join(''), L = [...w.plain].length;
+    const label = lang === 'en' ? `Word ${wi + 1} of ${p.words.length}, ${L} letters, code ${code}` : `Wort ${wi + 1} von ${p.words.length}, ${L} Buchstaben, Code ${code}`;
     html += `<div class="w" data-w="${wi}" style="--u:${u}" role="group" aria-label="${esc(label)}"><div class="dr" aria-hidden="true">${dr}</div><div class="lr">${cells}</div></div>`;
   });
   board.innerHTML = html + '</div>';
@@ -703,20 +778,20 @@ function updateWord(wi) {
 }
 
 function buildKeyboard() {
-  const kb = $('#kb');
-  kb.innerHTML = KEYROWS.map(row => '<div class="kr">' + row.map(k => {
-    if (k === 'next') return '<span class="k wide" role="button" data-k="next" aria-label="Nächstes Wort"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6"/></svg></span>';
-    if (k === 'back') return '<span class="k wide" role="button" data-k="back" aria-label="Löschen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 6H9l-6 6 6 6h12z"/><path d="M17 9.5l-5 5M12 9.5l5 5"/></svg></span>';
+  const t = T();
+  $('#kb').innerHTML = t.keyrows.map(row => '<div class="kr">' + row.map(k => {
+    if (k === 'next') return `<span class="k wide" role="button" data-k="next" aria-label="${esc(t.nextWord)}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6"/></svg></span>`;
+    if (k === 'back') return `<span class="k wide" role="button" data-k="back" aria-label="${esc(t.backspace)}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 6H9l-6 6 6 6h12z"/><path d="M17 9.5l-5 5M12 9.5l5 5"/></svg></span>`;
     return `<span class="k" role="button" data-k="${k}" aria-label="${k}"><b>${k}</b><i></i></span>`;
   }).join('') + '</div>').join('');
-  kb.querySelectorAll('.k').forEach(addHapticSwitch);
+  $('#kb').querySelectorAll('.k').forEach(addHapticSwitch);
 }
 function renderKeyboard() {
   const s = ms(current);
   $('#kb').querySelectorAll('.k[data-k]').forEach(k => {
-    const L = k.dataset.k, i = k.querySelector('i');
+    const i = k.querySelector('i');
     if (!i) return;
-    const v = keyShown ? String(letterCode(L, current, day.shift)) : '';
+    const v = keyShown ? String(letterCode(k.dataset.k, current, day.shift)) : '';
     if (i.textContent !== v) i.textContent = v;
   });
   $('#kb').classList.toggle('off', s.status !== 'playing');
@@ -731,17 +806,18 @@ function cutTarget(s) {
 }
 
 function renderTools() {
-  const s = ms(current), left = hintsLeft(s), max = CONFIG.hintsPerPuzzle;
+  const s = ms(current), t = T(), left = hintsLeft(s), max = CONFIG.hintsPerPuzzle;
   const cutMode = current === 'impossible' && !s.shiftShown;
-  $('#hintLabel').textContent = cutMode ? 'Trennung' : 'Tipp';
+  $('#hintLabel').textContent = cutMode ? t.cut : t.hint;
   $('#hintBtn').disabled = !left || (cutMode && cutTarget(s) < 0);
-  $('#hintBtn').title = cutMode ? 'Zeigt bei einem Wort, wo die Buchstaben getrennt sind (1 Tipp)' : 'Deckt das gewählte Kästchen auf (1 Tipp)';
-  $('#hintBtn').setAttribute('aria-label', `${cutMode ? 'Trennung zeigen' : 'Buchstabe aufdecken'}, ${left} von ${max} Tipps übrig`);
+  $('#hintBtn').title = cutMode ? t.cutTitle : t.hintTitle;
+  $('#hintBtn').setAttribute('aria-label', t.hintAria(cutMode, left, max));
   $('#pips').innerHTML = Array.from({ length: max }, (_, i) => `<i class="${i < left ? 'on' : ''}"></i>`).join('');
   const forbidden = keyForbidden(s);
+  $('#keyLabel').textContent = t.key;
   $('#keyBtn').disabled = forbidden || (!keyShown && keyCost() > 0 && !left);
   $('#keyBtn').setAttribute('aria-pressed', String(keyShown));
-  $('#keyBtn').title = forbidden ? 'Bei Impossible gibt es keinen Schlüssel' : keyCost() ? 'Zahlen auf der Tastatur bis zum nächsten Buchstaben (1 Tipp)' : 'Zahlen auf der Tastatur bis zum nächsten Buchstaben';
+  $('#keyBtn').title = forbidden ? t.keyForbidden : keyCost() ? t.keyCostTitle : t.keyFree;
   $('#keyCost').textContent = !forbidden && keyCost() && !keyShown ? '−1' : '';
   $('#revealConfirm').hidden = true;
   $('#tools').hidden = false;
@@ -753,22 +829,23 @@ function squaresOf(id) {
 }
 
 function renderResult() {
-  const s = ms(current), p = puz(), box = $('#result');
+  const s = ms(current), p = puz(), box = $('#result'), t = T();
   if (!finished(s)) { box.hidden = true; box.innerHTML = ''; return; }
-  const label = s.status === 'solved' ? `Geknackt in ${fmtTime(s.elapsed)} · ${s.hintCount ? tipText(s.hintCount) : 'ohne Tipp'}` : 'Aufgelöst';
+  const label = s.status === 'solved' ? t.cracked(fmtTime(s.elapsed), s.hintCount) : t.revealed;
   const next = nextOpenMode(current);
   const allDone = MODES.every(m => finished(ms(m.id)));
   const shareIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15V3M7.5 7.5 12 3l4.5 4.5"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg>';
   box.innerHTML =
     `<div class="label">${esc(label)}</div>` +
     `<div class="squares" aria-hidden="true">${squaresOf(current)}</div>` +
+    `<div class="legend">${esc(t.legend)}</div>` +
     `<p class="fact">${esc(p.fact.t)}</p>` +
     `<p class="more">${esc(p.fact.m)}</p>` +
-    (allDone && !archive ? '<p class="daydone">Alle vier Codes für heute erledigt. Die nächsten kommen in <span class="countdown" data-countdown></span>.</p>' : '') +
+    (allDone && !archive ? `<p class="daydone">${esc(t.dayDone)} <span class="countdown" data-countdown></span>.</p>` : '') +
     '<div class="actions">' +
-      `<button class="btn primary" type="button" data-act="share">${shareIcon}Ergebnis teilen</button>` +
-      (next ? `<button class="btn" type="button" data-act="next">Weiter mit ${esc(next.name)} →</button>` : '') +
-      (allDone ? '<button class="btn" type="button" data-act="stats">Statistik</button>' : '') +
+      `<button class="btn primary" type="button" data-act="share">${shareIcon}${esc(t.share)}</button>` +
+      (next ? `<button class="btn" type="button" data-act="next">${esc(t.next(next.name))}</button>` : '') +
+      (allDone ? `<button class="btn" type="button" data-act="stats">${esc(t.statsBtn)}</button>` : '') +
     '</div>';
   box.hidden = false;
   tick();
@@ -807,11 +884,20 @@ function setMode(id) {
   if (ms(current).status === 'playing') { ensureActive(); resumeClock(); }
 }
 
-function setView(key, isArchive) {
+function setView(key, isArchive, keepMode) {
   stopClock();
-  day = buildDay(key); archive = !!isArchive;
+  day = buildDay(key, lang); archive = !!isArchive;
+  if (keepMode && day.puzzles[keepMode]) return setMode(keepMode);
   const first = MODES.find(m => !finished(ms(m.id)));
   setMode(first ? first.id : 'easy');
+}
+
+function setLang(l) {
+  if (l !== 'de' && l !== 'en' || l === lang) return;
+  stopClock();
+  lang = l; store.lang = l; save();
+  renderStatic(); buildKeyboard();
+  setView(day.key, archive, current);
 }
 
 function startMode() {
@@ -929,18 +1015,35 @@ function nextWord(fromSpace) {
   if (nx >= 0) select(nx, null);
 }
 
-function useHint() {
+// Mehrere Wörter einfügen: Wort 1 → Wort 1 usw. Ein Wort: ab dem gewählten Kästchen.
+function pasteText(text) {
+  const parts = text.normalize('NFC').split(/\s+/).filter(x => symStr(x));
+  if (!parts.length) return;
+  if (parts.length === 1) { [...symStr(parts[0])].forEach(typeLetter); return; }
   const s = ms(current);
+  puz().words.forEach((w, wi) => {
+    if (ms(current).status !== 'playing' || !parts[wi] || isSolvedW(wi, s)) return;
+    setCells(s, wi, lettersOf(wi).map(() => ''));
+    if (s.hints[wi]) s.hints[wi] = [];
+    aw = wi; cur = 0; lastIn = null;
+    [...symStr(parts[wi])].forEach(L => { if (aw === wi) typeLetter(L); });
+    updateWord(wi);
+  });
+  if (ms(current).status === 'playing') { const nx = nextUnsolved(-1); aw = null; if (nx >= 0) select(nx, null); }
+}
+
+function useHint() {
+  const s = ms(current), t = T();
   if (s.status !== 'playing') return;
-  if (!hintsLeft(s)) { toast('Keine Tipps mehr für dieses Rätsel'); return; }
+  if (!hintsLeft(s)) { toast(t.noTips); return; }
   ensureActive();
   if (aw == null) return;
   if (current === 'impossible' && !s.shiftShown) {
     const wi = cutTarget(s);
-    if (wi < 0) { toast('Alle Wörter sind schon getrennt'); return; }
+    if (wi < 0) { toast(t.allCut); return; }
     s.cuts.push(wi); s.hintCount++;
     save(); buildBoard(); select(wi, null); renderTools(); renderTabs();
-    toast(`Wort ${wi + 1}: Trennung eingezeichnet`);
+    toast(t.cutDone(wi + 1));
     buzz('tap');
     return;
   }
@@ -964,11 +1067,11 @@ function onKeyBtn() {
   const s = ms(current);
   if (s.status !== 'playing' || keyForbidden(s)) return;
   if (keyShown) { keyShown = false; renderKeyboard(); renderTools(); return; }
-  if (keyCost() && !hintsLeft(s)) { toast('Keine Tipps mehr für dieses Rätsel'); return; }
+  if (keyCost() && !hintsLeft(s)) { toast(T().noTips); return; }
   if (keyCost()) { s.hintCount++; save(); }
   keyShown = true;
   renderKeyboard(); renderTools();
-  toast('Die Zahlen stehen auf der Tastatur, bis du den nächsten Buchstaben tippst');
+  toast(T().keyShown);
 }
 
 function complete(status) {
@@ -1034,80 +1137,87 @@ function burst() {
 function computeStats() {
   const perMode = {}, bestTime = {};
   MODES.forEach(m => { perMode[m.id] = 0; bestTime[m.id] = null; });
-  const onDay = new Set();
-  let played = 0, solvedTotal = 0;
-  Object.keys(store.days).forEach(k => {
-    const d = store.days[k];
-    let any = false;
+  const onDay = new Set(), playedDays = new Set();
+  let solvedTotal = 0;
+  [store.days, store.daysEn].forEach(map => Object.keys(map || {}).forEach(k => {
+    const d = map[k];
     MODES.forEach(m => {
       const s = d[m.id];
       if (!s || !finished(s)) return;
       const same = !s.doneOn || s.doneOn === k;
-      if (same) any = true;
+      if (same) playedDays.add(k);
       if (s.status === 'solved') {
         solvedTotal++; perMode[m.id]++;
         if (bestTime[m.id] == null || s.elapsed < bestTime[m.id]) bestTime[m.id] = s.elapsed;
         if (same) onDay.add(k);
       }
     });
-    if (any) played++;
-  });
+  }));
   let streak = 0, k = realToday();
   if (!onDay.has(k)) k = addDays(k, -1);
   while (onDay.has(k)) { streak++; k = addDays(k, -1); }
   let best = 0, run = 0, prev = null;
   [...onDay].sort().forEach(d => { run = prev && addDays(prev, 1) === d ? run + 1 : 1; best = Math.max(best, run); prev = d; });
-  return { played, solvedTotal, perMode, bestTime, streak, best };
+  return { played: playedDays.size, solvedTotal, perMode, bestTime, streak, best };
 }
 
+function dlgHead(id, title) { return `<div class="dlg-head"><h2 id="${id}">${esc(title)}</h2><button class="ib" type="button" data-close aria-label="${esc(T().close)}">${X}</button></div>`; }
+
 function renderStats() {
-  const st = computeStats(), max = Math.max(1, ...Object.values(st.perMode));
-  $('#statsBody').innerHTML =
+  const st = computeStats(), max = Math.max(1, ...Object.values(st.perMode)), t = T().stats;
+  $('#statsBody').innerHTML = dlgHead('statsTitle', t.title) +
     '<div class="stats">' +
-      `<div><div class="n">${st.played}</div><div class="l">Tage gespielt</div></div>` +
-      `<div><div class="n">${st.streak}</div><div class="l">Aktuelle Serie</div></div>` +
-      `<div><div class="n">${st.best}</div><div class="l">Beste Serie</div></div>` +
-      `<div><div class="n">${st.solvedTotal}</div><div class="l">Codes geknackt</div></div>` +
+      `<div><div class="n">${st.played}</div><div class="l">${esc(t.played)}</div></div>` +
+      `<div><div class="n">${st.streak}</div><div class="l">${esc(t.streak)}</div></div>` +
+      `<div><div class="n">${st.best}</div><div class="l">${esc(t.best)}</div></div>` +
+      `<div><div class="n">${st.solvedTotal}</div><div class="l">${esc(t.cracked)}</div></div>` +
     '</div>' +
-    '<div><h3>Nach Stufe</h3><div class="table">' +
-      '<span class="h"></span><span class="h"></span><span class="h r">Gelöst</span><span class="h r">Bestzeit</span>' +
+    `<div><h3>${esc(t.byMode)}</h3><div class="table">` +
+      `<span class="h"></span><span class="h"></span><span class="h r">${esc(t.solved)}</span><span class="h r">${esc(t.bestTime)}</span>` +
       MODES.map(m => `<span>${m.name}</span><span class="track"><span class="fill" style="width:${(st.perMode[m.id] / max * 100).toFixed(1)}%"></span></span><span class="r">${st.perMode[m.id]}</span><span class="r">${st.bestTime[m.id] == null ? '–' : fmtTime(st.bestTime[m.id])}</span>`).join('') +
     '</div></div>' +
-    '<p class="small">Die Serie wächst mit jedem Tag, an dem du mindestens einen Code am selben Tag knackst. Nächste Codes in <span class="countdown" data-countdown></span>.</p>' +
-    '<button class="btn primary" type="button" data-act="share">Ergebnis teilen</button>';
+    `<p class="small">${esc(t.note)} <span class="countdown" data-countdown></span>.</p>` +
+    `<button class="btn primary" type="button" data-act="share">${esc(T().share)}</button>`;
   tick();
 }
 
 function siteUrl() {
-  return CONFIG.siteUrl || (/^https?:$/.test(location.protocol) && !/claude/.test(location.hostname) ? location.origin + location.pathname.replace(/index\.html$/, '') : '');
+  const base = CONFIG.siteUrl || (/^https?:$/.test(location.protocol) && !/claude/.test(location.hostname) ? location.origin + location.pathname.replace(/index\.html$/, '') : '');
+  return base && lang === 'en' ? base + '?lang=en' : base;
 }
+// Teilen-Text: verrät nie die Lösung, nur Kästchen pro Wort, Stufe und Zeit
 function shareText() {
-  const lines = [`${CONFIG.name} Nr. ${day.number}${archive ? ' (Archiv)' : ''}`];
-  MODES.forEach(m => {
-    const s = ms(m.id);
-    if (!finished(s)) return;
-    const sq = squaresOf(m.id);
-    lines.push(s.status === 'solved' ? `${m.name} ${sq} ⏱${fmtTime(s.elapsed)}` : `${m.name} ${sq} aufgelöst`);
-  });
-  if (lines.length === 1) lines.push('Heute noch nichts geknackt. Du zuerst?');
-  const st = computeStats();
-  if (!archive && st.streak > 1) lines.push(`🔥 ${st.streak} Tage in Folge`);
+  const t = T(), done = MODES.filter(m => finished(ms(m.id)));
   const url = siteUrl();
-  lines.push(`Knackst du’s schneller?${url ? ' ' + url : ''}`);
+  const line = m => { const s = ms(m.id); return s.status === 'solved' ? `${m.name} ⏱ ${fmtTime(s.elapsed)}` : `${m.name} · ${t.revealedWord}`; };
+  const lines = [];
+  if (done.length === 1) {
+    lines.push(`${t.shareHead(day.number, archive)} · ${line(done[0])}`, squaresOf(done[0].id));
+  } else {
+    lines.push(t.shareHead(day.number, archive));
+    if (!done.length) lines.push(t.nothing);
+    done.forEach(m => lines.push(line(m), squaresOf(m.id)));
+  }
+  const solvedN = done.filter(m => ms(m.id).status === 'solved').length;
+  const call = solvedN > 1 ? t.beatMany : solvedN === 1 ? t.beatOne : t.crackIt;
+  lines.push(url ? `${call} ${url}` : call);
   return lines.join('\n');
 }
 
 async function doShare(btn) {
-  const text = shareText();
+  const text = shareText(), t = T();
   if (navigator.share && mq('(pointer: coarse)')) {
     try { await navigator.share({ text }); return; }
     catch (e) { if (e && e.name === 'AbortError') return; }
   }
   try {
     await navigator.clipboard.writeText(text);
-    toast('Ergebnis kopiert. Jetzt in WhatsApp & Co. einfügen');
-    if (btn) { const old = btn.innerHTML; btn.textContent = 'Kopiert ✓'; setTimeout(() => { btn.innerHTML = old; }, 1800); }
+    toast(t.copied);
+    if (btn) { const old = btn.innerHTML; btn.textContent = t.copiedBtn; setTimeout(() => { btn.innerHTML = old; }, 1800); }
   } catch (e) {
+    $('#shareBody').innerHTML = dlgHead('shareTitle', t.shareDlg.title) +
+      `<p class="small">${esc(t.shareDlg.note)}</p><textarea id="shareText" rows="8" readonly></textarea>` +
+      `<button class="btn primary" type="button" data-close>${esc(t.shareDlg.done)}</button>`;
     const ta = $('#shareText');
     ta.value = text;
     openDlg($('#shareDlg'));
@@ -1116,19 +1226,53 @@ async function doShare(btn) {
 }
 
 function renderArchive() {
-  const tk = realToday(), n = Math.max(0, dayIndex(tk));
-  let html = '';
+  const t = T().archive, tk = realToday(), n = Math.max(0, dayIndex(tk)), map = daysMap();
+  let html = dlgHead('archiveTitle', t.title) + `<p class="small">${esc(t.intro)}</p><div class="days" id="days">`;
   for (let i = n; i >= 0; i--) {
-    const key = addDays(CONFIG.launchDate, i), d = store.days[key] || {};
+    const key = addDays(CONFIG.launchDate, i), d = map[key] || {};
     const marks = MODES.map(m => {
-      const s = d[m.id], st = s && s.status;
+      const s = d[m.id], st = (s && s.status) || 'open';
       const cls = st === 'solved' ? 's' : st === 'revealed' ? 'v' : st === 'playing' ? 'p' : '';
       const sym = st === 'solved' ? '✓' : st === 'revealed' ? '×' : m.name[0];
-      return `<span class="${cls}" title="${m.name}: ${st === 'solved' ? 'gelöst' : st === 'revealed' ? 'aufgelöst' : st === 'playing' ? 'angefangen' : 'offen'}">${sym}</span>`;
+      return `<span class="${cls}" title="${m.name}: ${t.st[st] || t.st.open}">${sym}</span>`;
     }).join('');
-    html += `<button class="day" type="button" data-day="${key}"><span class="t">${i === n ? 'Heute' : 'Nr. ' + (i + 1)}<small>${i === n ? 'Nr. ' + (i + 1) + ' · ' : ''}${esc(dateLabel(key, true))}</small></span><span class="marks">${marks}</span></button>`;
+    html += `<button class="day" type="button" data-day="${key}"><span class="t">${i === n ? esc(t.today) : '#' + (i + 1)}<small>${i === n ? '#' + (i + 1) + ' · ' : ''}${esc(dateLabel(key, true))}</small></span><span class="marks">${marks}</span></button>`;
   }
-  $('#days').innerHTML = html;
+  $('#archiveBody').innerHTML = html + '</div>';
+}
+
+function langSeg(name) {
+  return `<div class="seg two" role="radiogroup" aria-label="${esc(T().settings.language)}">` +
+    [['de', 'Deutsch'], ['en', 'English']].map(([v, l]) => `<label><input type="radio" name="${name}" value="${v}" data-lang="${v}"${lang === v ? ' checked' : ''}><span lang="${v}">${l}</span></label>`).join('') + '</div>';
+}
+
+function renderHelp() {
+  const h = T().help, [word, codes] = h.demo;
+  $('#helpBody').innerHTML =
+    '<div class="dlg-head"><div><div class="eyebrow">' + esc(CONFIG.tagline.toUpperCase()) + `</div><h2 id="helpTitle">${esc(h.title)}</h2></div><button class="ib" type="button" data-close aria-label="${esc(T().close)}">${X}</button></div>` +
+    langSeg('helpLang') +
+    `<p>${esc(h.intro)}</p>` +
+    `<div class="demo" aria-label="${esc(h.demoAria)}">` + [...word].map((L, i) => `<div><b>${codes[i]}</b><span>${L}</span></div>`).join('') + '</div>' +
+    '<ul class="howto">' + h.items.map(x => `<li>${x}</li>`).join('') + '</ul>' +
+    `<p class="small">${esc(h.streak)}</p>` +
+    `<button class="btn primary" type="button" data-close>${esc(h.go)}</button>`;
+}
+
+function renderSettings() {
+  const t = T().settings;
+  $('#settingsBody').innerHTML = dlgHead('settingsTitle', t.title) +
+    `<div><h3>${esc(t.language)}</h3>${langSeg('settingsLang')}</div>` +
+    `<div><h3 id="themeLabel">${esc(t.theme)}</h3><div class="seg" role="radiogroup" aria-labelledby="themeLabel">` +
+      [['system', t.system], ['light', t.light], ['dark', t.dark]].map(([v, l]) => `<label><input type="radio" name="theme" id="theme-${v}" value="${v}"${(store.theme || 'system') === v ? ' checked' : ''}><span>${esc(l)}</span></label>`).join('') +
+    '</div></div>' +
+    `<div class="row"><label for="hapticsToggle"><strong>${esc(t.haptics)}</strong><br><span class="small">${esc(t.hapticsNote)}</span></label><input type="checkbox" switch id="hapticsToggle"${store.haptics ? ' checked' : ''}></div>` +
+    `<p class="small">${esc(t.storage)}</p>` +
+    `<button class="btn primary" type="button" data-close>${esc(t.done)}</button>`;
+}
+
+function openRule() {
+  $('#ruleBody').innerHTML = dlgHead('ruleTitle', T().ruleTitle(modeName(current))) + ruleHtml();
+  openDlg($('#ruleDlg'));
 }
 
 let toastTimer;
@@ -1139,16 +1283,10 @@ function toast(msg) {
   toastTimer = setTimeout(() => { t.hidden = true; }, 2600);
 }
 
-/* ============================================================ Einstellungen */
 function applyTheme() {
   const t = store.theme;
   if (t === 'light' || t === 'dark') document.documentElement.setAttribute('data-theme', t);
   else document.documentElement.removeAttribute('data-theme');
-}
-function renderSettings() {
-  const r = $('#theme-' + (store.theme || 'system'));
-  if (r) r.checked = true;
-  $('#hapticsToggle').checked = !!store.haptics;
 }
 
 /* ============================================================ Countdown, Tageswechsel, Dialoge */
@@ -1170,24 +1308,28 @@ $('#revealBtn').addEventListener('click', () => { $('#revealConfirm').hidden = f
 $('#revealNo').addEventListener('click', () => { $('#revealConfirm').hidden = true; $('#tools').hidden = false; });
 $('#revealYes').addEventListener('click', () => complete('revealed'));
 $('#statsBtn').addEventListener('click', () => { renderStats(); openDlg($('#statsDlg')); });
-$('#helpBtn').addEventListener('click', () => openDlg($('#helpDlg')));
+$('#helpBtn').addEventListener('click', () => { renderHelp(); openDlg($('#helpDlg')); });
 $('#settingsBtn').addEventListener('click', () => { renderSettings(); openDlg($('#settingsDlg')); });
 $('#archiveBtn').addEventListener('click', () => { renderArchive(); openDlg($('#archiveDlg')); });
-$('#ruleBtn').addEventListener('click', () => {
-  $('#ruleTitle').textContent = 'Regel: ' + MODES.find(m => m.id === current).name;
-  $('#ruleBody').innerHTML = ruleHtml();
-  openDlg($('#ruleDlg'));
-});
+$('#ruleBtn').addEventListener('click', openRule);
 $('#newdayBtn').addEventListener('click', () => { openedOn = realToday(); $('#newday').hidden = true; setView(openedOn, false); });
 $('#backToday').addEventListener('click', () => setView(realToday(), false));
-$('#days').addEventListener('click', e => {
+$('#archiveDlg').addEventListener('click', e => {
   const b = e.target.closest('[data-day]');
   if (!b) return;
   closeDlg($('#archiveDlg'));
   setView(b.dataset.day, b.dataset.day !== realToday());
 });
-document.querySelectorAll('input[name="theme"]').forEach(r => r.addEventListener('change', () => { store.theme = r.value; save(); applyTheme(); }));
-$('#hapticsToggle').addEventListener('change', e => { store.haptics = e.target.checked; save(); applyHaptics(); if (store.haptics) buzz('ok'); });
+document.addEventListener('change', e => {
+  const el = e.target;
+  if (el.dataset && el.dataset.lang) {
+    const dlg = el.closest('dialog');
+    setLang(el.dataset.lang);
+    if (dlg && dlg.id === 'helpDlg') renderHelp();
+    if (dlg && dlg.id === 'settingsDlg') renderSettings();
+  } else if (el.name === 'theme') { store.theme = el.value; save(); applyTheme(); }
+  else if (el.id === 'hapticsToggle') { store.haptics = el.checked; save(); applyHaptics(); if (store.haptics) buzz('ok'); }
+});
 
 $('#kb').addEventListener('click', e => {
   const k = e.target.closest('.k');
@@ -1247,22 +1389,6 @@ document.addEventListener('paste', e => {
   e.preventDefault();
   pasteText(text);
 });
-// Mehrere Wörter: Wort 1 → Wort 1 usw. Ein Wort: ab dem gewählten Kästchen.
-function pasteText(text) {
-  const parts = text.normalize('NFC').split(/\s+/).filter(x => symStr(x));
-  if (!parts.length) return;
-  if (parts.length === 1) { [...symStr(parts[0])].forEach(typeLetter); return; }
-  const s = ms(current);
-  puz().words.forEach((w, wi) => {
-    if (ms(current).status !== 'playing' || !parts[wi] || isSolvedW(wi, s)) return;
-    setCells(s, wi, lettersOf(wi).map(() => ''));
-    if (s.hints[wi]) s.hints[wi] = [];
-    aw = wi; cur = 0; lastIn = null;
-    [...symStr(parts[wi])].forEach(L => { if (aw === wi) typeLetter(L); });
-    updateWord(wi);
-  });
-  if (ms(current).status === 'playing') { const nx = nextUnsolved(-1); aw = null; if (nx >= 0) select(nx, null); }
-}
 
 // Spielt jemand in einem zweiten Tab, übernimmt dieser Tab dessen Stand, statt ihn zu überschreiben
 window.addEventListener('storage', e => {
@@ -1279,8 +1405,8 @@ setInterval(tick, 500);
 
 /* Start */
 applyTheme(); applyHaptics();
-buildKeyboard();
-if (!store.seenHelp) openDlg($('#helpDlg'));
+renderStatic(); buildKeyboard();
+if (!store.seenHelp) { renderHelp(); openDlg($('#helpDlg')); }
 setView(realToday(), false);
 tick();
 })();

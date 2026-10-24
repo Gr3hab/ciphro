@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex, nofollow">
-<title>Fakten prüfen</title>
+<title>NUMIGMA Fakten prüfen</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Martian+Mono:wght@500;800&display=swap">
@@ -48,14 +48,19 @@ tr.today td{background:var(--okbg)}
 tr.repeat td{color:var(--muted)}
 .m{display:block;font-size:.75rem;color:var(--muted);font-weight:700}
 .flag{color:var(--warn);font-weight:700}
+.langs{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--sheet)}
+.langs button{font:inherit;font-weight:700;border:0;background:none;color:var(--text);padding:8px 16px;cursor:pointer}
+.langs button[aria-pressed="true"]{background:var(--ink);color:var(--sheet)}
+.langs button:focus-visible{outline:2px solid var(--ink);outline-offset:-3px}
 </style>
 </head>
 <body>
 <div class="wrap">
   <header>
-    <h1>Fakten prüfen</h1>
-    <p class="lead">Diese Seite liest fakten.js und zeigt, ob alles passt und welche Rätsel in den nächsten Tagen kommen. Sie ist nicht verlinkt, enthält aber die Lösungen. Nicht weitergeben.</p>
+    <h1>NUMIGMA · Fakten prüfen</h1>
+    <p class="lead">Diese Seite liest fakten.js (Deutsch) und facts-en.js (Englisch) und zeigt, ob alles passt und welche Rätsel in den nächsten Tagen kommen. Sie ist nicht verlinkt, enthält aber die Lösungen. Nicht weitergeben.</p>
   </header>
+  <div class="langs" role="group" aria-label="Sprache"><button type="button" data-l="de" aria-pressed="true">Deutsch</button><button type="button" data-l="en" aria-pressed="false">English</button></div>
   <section class="tiles" id="tiles"></section>
   <section>
     <h2>Probleme in der Liste</h2>
@@ -67,36 +72,44 @@ tr.repeat td{color:var(--muted)}
   </section>
 </div>
 <script src="fakten.js"></script>
+<script src="facts-en.js"></script>
 <script src="kern.js"></script>
 <script>
 (function () {
   const NF = window.NF, $ = s => document.querySelector(s);
   const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-  if (!NF || !NF.facts().length) { $('#tiles').innerHTML = '<div class="tile bad"><div class="n">Fehler</div><div class="l">fakten.js oder kern.js konnte nicht geladen werden. Oft fehlt ein Komma oder ein Anführungszeichen.</div></div>'; return; }
-  const F = NF.facts(), today = NF.todayKey(), last = NF.lastPlannedDay();
-  const fmt = k => { const [y, m, d] = NF.parseKey(k); return new Date(y, m - 1, d).toLocaleDateString('de-AT', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' }); };
-  const daysLeft = Math.round((Date.UTC(...NF.parseKey(last).map((v, i) => i === 1 ? v - 1 : v)) - Date.UTC(...NF.parseKey(today).map((v, i) => i === 1 ? v - 1 : v))) / 864e5);
-  const probs = NF.checkFacts(), errs = probs.filter(p => p.level === 'fehler');
-  $('#tiles').innerHTML =
-    `<div class="tile"><div class="n">${F.length}</div><div class="l">Fakten in der Liste</div></div>` +
-    `<div class="tile ${daysLeft < 0 ? 'bad' : daysLeft < 7 ? 'warn' : 'good'}"><div class="n">${esc(fmt(last))}</div><div class="l">${daysLeft < 0 ? 'Liste aufgebraucht, alte Fakten wiederholen sich' : `reichen noch ${daysLeft + 1} Tage ohne Wiederholung`}</div></div>` +
-    `<div class="tile ${errs.length ? 'bad' : 'good'}"><div class="n">${errs.length}</div><div class="l">Fehler (müssen behoben werden)</div></div>` +
-    `<div class="tile ${probs.length - errs.length ? 'warn' : 'good'}"><div class="n">${probs.length - errs.length}</div><div class="l">Hinweise</div></div>`;
-  $('#problems').innerHTML = probs.length
-    ? '<ul class="list">' + probs.map(p => `<li class="${p.level}"><b>Fakt ${p.i + 1}</b> (Nr. ${Math.floor(p.i / 4) + 1}): ${esc(p.msg)}<br><span class="m">${esc(F[p.i] && F[p.i].t || '')}</span></li>`).join('') + '</ul>'
-    : '<p class="empty">Alles in Ordnung.</p>';
-  const start = Math.max(0, NF.dayIndex(today)), end = Math.max(start + 21, NF.dayIndex(last) + 3);
-  let rows = '';
-  for (let i = start; i <= end; i++) {
-    const key = NF.addDays(NF.CONFIG.launchDate, i), d = NF.buildDay(key), repeat = key > last;
-    rows += `<tr class="${key === today ? 'today' : ''}${repeat ? ' repeat' : ''}"><td class="nr">Nr. ${d.number}<span class="m">${esc(fmt(key))}${key === today ? ' · heute' : ''}${repeat ? ' · Wiederholung' : ''}</span></td>` +
-      NF.MODES.map(m => {
-        const p = d.puzzles[m.id], units = Math.max(...p.words.map(w => NF.wordUnits(w, m.id)));
-        const flag = units > NF.CONFIG.maxCells ? `<span class="flag"> · ${units} Kästchen, bricht am Handy um</span>` : '';
-        return `<td>${esc(p.fact.t)}<span class="m">${p.words.length} Wörter${m.id === 'impossible' ? ' · Verschiebung ' + d.shift : ''}${flag}</span></td>`;
-      }).join('') + '</tr>';
+  if (!NF || !NF.facts('de').length) { $('#tiles').innerHTML = '<div class="tile bad"><div class="n">Fehler</div><div class="l">fakten.js, facts-en.js oder kern.js konnte nicht geladen werden. Oft fehlt ein Komma oder ein Anführungszeichen.</div></div>'; return; }
+  const today = NF.todayKey();
+  const fmt = (k, l) => { const [y, m, d] = NF.parseKey(k); return new Date(y, m - 1, d).toLocaleDateString(l === 'en' ? 'en-GB' : 'de-AT', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' }); };
+  const utc = k => { const [y, m, d] = NF.parseKey(k); return Date.UTC(y, m - 1, d); };
+  function render(lang) {
+    document.querySelectorAll('.langs button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.l === lang)));
+    const F = NF.facts(lang), last = NF.lastPlannedDay(lang);
+    const daysLeft = Math.round((utc(last) - utc(today)) / 864e5);
+    const probs = NF.checkFacts(lang), errs = probs.filter(p => p.level === 'fehler');
+    $('#tiles').innerHTML =
+      `<div class="tile"><div class="n">${F.length}</div><div class="l">Fakten in der Liste (${lang === 'en' ? 'Englisch' : 'Deutsch'})</div></div>` +
+      `<div class="tile ${daysLeft < 0 ? 'bad' : daysLeft < 7 ? 'warn' : 'good'}"><div class="n">${esc(fmt(last, 'de'))}</div><div class="l">${daysLeft < 0 ? 'Liste aufgebraucht, alte Fakten wiederholen sich' : `reichen noch ${daysLeft + 1} Tage ohne Wiederholung`}</div></div>` +
+      `<div class="tile ${errs.length ? 'bad' : 'good'}"><div class="n">${errs.length}</div><div class="l">Fehler (müssen behoben werden)</div></div>` +
+      `<div class="tile ${probs.length - errs.length ? 'warn' : 'good'}"><div class="n">${probs.length - errs.length}</div><div class="l">Hinweise</div></div>`;
+    $('#problems').innerHTML = probs.length
+      ? '<ul class="list">' + probs.map(p => `<li class="${p.level}"><b>Fakt ${p.i + 1}</b> (#${Math.floor(p.i / 4) + 1}): ${esc(p.msg)}<br><span class="m">${esc(F[p.i] && F[p.i].t || '')}</span></li>`).join('') + '</ul>'
+      : '<p class="empty">Alles in Ordnung.</p>';
+    const start = Math.max(0, NF.dayIndex(today)), end = Math.max(start + 21, NF.dayIndex(last) + 3);
+    let rows = '';
+    for (let i = start; i <= end; i++) {
+      const key = NF.addDays(NF.CONFIG.launchDate, i), d = NF.buildDay(key, lang), repeat = key > last;
+      rows += `<tr class="${key === today ? 'today' : ''}${repeat ? ' repeat' : ''}"><td class="nr">#${d.number}<span class="m">${esc(fmt(key, lang))}${key === today ? ' · heute' : ''}${repeat ? ' · Wiederholung' : ''}</span></td>` +
+        NF.MODES.map(m => {
+          const p = d.puzzles[m.id], units = Math.max(...p.words.map(w => NF.wordUnits(w, m.id)));
+          const flag = units > NF.CONFIG.maxCells ? `<span class="flag"> · ${units} Kästchen, bricht am Handy um</span>` : '';
+          return `<td>${esc(p.fact.t)}<span class="m">${p.words.length} Wörter${m.id === 'impossible' ? ' · Verschiebung ' + d.shift : ''}${flag}</span></td>`;
+        }).join('') + '</tr>';
+    }
+    $('#plan').innerHTML = rows;
   }
-  $('#plan').innerHTML = rows;
+  document.querySelector('.langs').addEventListener('click', e => { const b = e.target.closest('[data-l]'); if (b) render(b.dataset.l); });
+  render('de');
 })();
 </script>
 </body>
