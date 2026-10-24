@@ -18,6 +18,7 @@ Jeder Tag braucht vier Fakten. Sie stehen alle in `fakten.js` im Hauptordner, in
 
 ## Regeln für den Satz (das, was entschlüsselt wird)
 
+- **Ohne Erklärung verständlich.** Laut vorlesen: Versteht jemand den Satz sofort? Gegenbeispiel aus #4: „Ein Zuckerwürfel Neutronenstern wiegt eine Milliarde Tonnen.“ Testspieler haben ihn nicht verstanden. Besser wäre gewesen: „Neutronensterne sind unglaublich schwer.“
 - Nur Buchstaben und Leerzeichen, am Ende ein Punkt.
 - Keine Ziffern, Kommas, Bindestriche, Apostrophe. Zahlen ausschreiben („vierzig“). Sätze mit Nebensatz so umbauen, dass kein Komma nötig ist.
 - Ä, Ö, Ü und ß nur im Deutschen. Im Englischen auch kein „it's“ oder „Earth's“ („of the Earth“ schreiben).
