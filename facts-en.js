@@ -30,7 +30,7 @@ window.FACTS_EN = [
 
   // #4 · Saturday, 2026-10-24
   { t: 'A heart can keep beating outside the body.', m: 'It generates its own electrical impulses. As long as it gets oxygen, it keeps beating. Doctors use this in transplants.' },
-  { t: 'A sugar cube of neutron star would weigh a billion tons.', m: 'In neutron stars, matter is packed as densely as in an atomic nucleus. A whole star is only about the size of a city.' },
+  { t: 'A sugar cube of neutron star would weigh a billion tons.', m: 'Meaning a piece of neutron star the size of a sugar cube. In neutron stars, matter is packed as densely as in an atomic nucleus. A whole star is only about the size of a city.' },
   { t: 'Sea otters hold hands while they sleep.', m: 'That way they do not drift apart. Some also wrap themselves in kelp.' },
   { t: 'Peanuts are not nuts at all.', m: 'Botanically they are legumes, related to peas and beans. Their pods ripen underground.' },
 

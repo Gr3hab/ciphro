@@ -40,7 +40,7 @@ window.FAKTEN = [
 
   // #4 · Samstag, 24.10.2026
   { t: 'Ein Herz kann außerhalb des Körpers weiterschlagen.', m: 'Es erzeugt seine elektrischen Impulse selbst. Solange es Sauerstoff bekommt, schlägt es weiter. Das nutzt man bei Transplantationen.' },
-  { t: 'Ein Zuckerwürfel Neutronenstern wiegt eine Milliarde Tonnen.', m: 'In Neutronensternen ist Materie so dicht gepackt wie in einem Atomkern. Ein ganzer Stern ist dort nur so groß wie eine Stadt.' },
+  { t: 'Ein Zuckerwürfel Neutronenstern wiegt eine Milliarde Tonnen.', m: 'Gemeint ist ein Stück Neutronenstern, so groß wie ein Zuckerwürfel. In Neutronensternen ist Materie so dicht gepackt wie in einem Atomkern. Ein ganzer Stern ist nur so groß wie eine Stadt.' },
   { t: 'Seeotter halten sich beim Schlafen an den Pfoten.', m: 'So treiben sie nicht auseinander. Manche wickeln sich zusätzlich in Seetang ein.' },
   { t: 'Erdnüsse sind gar keine Nüsse.', m: 'Botanisch gehören sie zu den Hülsenfrüchten und sind mit Erbsen und Bohnen verwandt. Ihre Früchte reifen unter der Erde.' },
 
@@ -246,7 +246,7 @@ window.FAKTEN = [
   { t: 'Wanderfalken sind die schnellsten Tiere der Welt.', m: 'Im Sturzflug erreichen sie über 300 Kilometer pro Stunde. Kein anderes Tier ist so schnell.' },
   { t: 'Schokolade war früher ein Getränk.', m: 'Maya und Azteken tranken Kakao bitter und gewürzt. Feste Schokolade gibt es erst seit dem neunzehnten Jahrhundert.' },
   { t: 'Orcas gehören zu den Delfinen.', m: 'Schwertwale sind die größten Mitglieder der Delfinfamilie. Männchen werden bis zu neun Meter lang.' },
-  { t: 'Auf dem Mond wiegt man nur ein Sechstel.', m: 'Die Schwerkraft dort ist etwa sechsmal schwächer als auf der Erde. 60 Kilogramm fühlen sich an wie zehn.' },
+  { t: 'Auf dem Mond wiegt man nur ein Sechstel so viel.', m: 'Die Schwerkraft dort ist etwa sechsmal schwächer als auf der Erde. 60 Kilogramm fühlen sich an wie zehn.' },
 
   // #39 · Samstag, 28.11.2026
   { t: 'Schlangen riechen mit ihrer Zunge.', m: 'Die gespaltene Zunge sammelt Duftteilchen und bringt sie zu einem Sinnesorgan im Gaumen.' },
@@ -256,7 +256,7 @@ window.FAKTEN = [
 
   // #40 · Sonntag, 29.11.2026
   { t: 'Pferde können im Stehen dösen.', m: 'Ein Sperrmechanismus in den Beinen hält sie ohne Muskelkraft aufrecht. Für den Tiefschlaf legen sie sich aber hin.' },
-  { t: 'Licht umrundet die Erde in einer Sekunde siebenmal.', m: 'Mit fast 300.000 Kilometern pro Sekunde ist Licht das Schnellste im Universum.' },
+  { t: 'Licht könnte die Erde in einer Sekunde siebenmal umrunden.', m: 'Mit fast 300.000 Kilometern pro Sekunde ist Licht das Schnellste im Universum.' },
   { t: 'Europäische Aale laichen in der Sargassosee.', m: 'Dafür schwimmen sie über 5.000 Kilometer quer durch den Atlantik. Beim Laichen beobachtet hat sie noch niemand.' },
   { t: 'Das erste Foto der Welt ist rund zweihundert Jahre alt.', m: 'Joseph Nicéphore Niépce machte es um 1826 aus seinem Fenster. Die Belichtung dauerte viele Stunden.' },
 
