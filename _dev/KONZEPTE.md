@@ -37,6 +37,9 @@ Die Prüfseite mit allen Lösungen liegt jetzt in `_dev/` und wird nicht mehr ve
 
 ## Entscheidungen und offene Punkte
 
+- **Name NUMIGMA (festgelegt am 24. Oktober 2026):** kurz, international, unterscheidbar, verbindet Zahlen und Rätsel. Die Adresse bleibt `…/numfact/`.
+- **Impossible bleibt unverändert (24. Oktober 2026):** Kurze Wörter erraten und so die Verschiebung finden ist der gewollte Lösungsweg; das Spiel sagt das auch im Tipp.
+- **Teilen nur mit gelösten Stufen (24. Oktober 2026):** Aufgelöste und nicht gespielte Stufen werden nicht geteilt, ohne gelöste Stufe gibt es eine kurze Herausforderung ohne Kästchen. Die Ergebnisanzeige im Spiel bleibt vollständig.
 - **Easy-Zahlen standardmäßig an (entschieden am 24. Oktober 2026):** Wer den Link zum ersten Mal bekommt, kann sofort loslegen, ohne das Alphabet durchzuzählen. Die Zahlen sind bei Easy kostenlos, zählen nicht als Hilfe und lassen sich abschalten; das bleibt gespeichert. Mehr Herausforderung bieten Hard, Mirror und Impossible.
 - **Englische Tage #1–#16:** Die Zuordnung von Fakt zu Stufe weicht an sechs dieser Tage zwischen Deutsch und Englisch ab, weil sie so veröffentlicht wurde. Ab #17 ist sie in beiden Sprachen gleich.
 - **Name des Repositorys:** Die Adresse lautet weiter `…/numfact/`. Eine Umbenennung in `numigma` würde alle bisherigen Links brechen (GitHub leitet Pages-Adressen nicht weiter).

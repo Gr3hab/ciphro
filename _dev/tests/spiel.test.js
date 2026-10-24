@@ -196,11 +196,12 @@ test('Farben: Trennung bei Impossible ist gelb, Auflösen ist rot', async () => 
   assert.equal(s.status, 'revealed');
   const exp = '🟩🟨' + '🟥'.repeat(sol.length - 2);
   assert.ok((await page.textContent('#result')).includes(exp));
+  // Im Spiel bleibt das Ergebnis vollständig (oben), geteilt wird eine aufgelöste Stufe aber nicht
   await page.click('#result [data-act="share"]');
   const text = await page.evaluate(() => navigator.clipboard.readText());
-  assert.equal(text.split('\n')[0], 'NUMIGMA #4 · Impossible · aufgelöst');
-  assert.equal(text.split('\n')[1], exp);
-  assert.match(text.split('\n')[2], /^Knackst du es\? http:\/\/127\.0\.0\.1:\d+\/\?n=4&m=impossible$/);
+  assert.deepEqual(text.split('\n').slice(0, 2), ['NUMIGMA #4', 'Heute nicht geknackt 😅']);
+  assert.ok(!text.includes(exp) && !/[🟩🟨🟥]/u.test(text));
+  assert.match(text.split('\n')[2], /^Schaffst du's\? http:\/\/127\.0\.0\.1:\d+\/\?n=4$/);
   await page.context().close();
 });
 
@@ -348,9 +349,14 @@ test('Zeit: Ergebnis, Stufen-Reiter, Teilen und Statistik zeigen dieselbe Zeit',
 });
 
 /* ------------------------------------------------------------ Teilen */
-test('Teilen: drei Zeilen mit direktem Link, mehrere Stufen, Archiv, Englisch, nie die Lösung', async () => {
+test('Teilen: nur gelöste Stufen, drei Zeilen bei einer, eine Zeile je Stufe bei mehreren, Archiv, Englisch, nie die Lösung', async () => {
   const page = await openPage(env, { clipboard: true });
   const read = async () => { await page.click('#result [data-act="share"]'); return page.evaluate(() => navigator.clipboard.readText()); };
+  const noSolution = (text, n) => {
+    const words = Object.values(NF.MODES).flatMap(m => solution(n, 'de', m.id)).filter(w => w.length >= 4);
+    const upper = ' ' + text.toUpperCase().replace(/[^A-ZÄÖÜß]+/g, ' ') + ' ';
+    words.forEach(w => assert.ok(!upper.includes(` ${w} `), `Lösung im Teilen-Text: ${w}`));
+  };
   await page.click('#startBtn');
   for (const w of solution(4, 'de', 'easy')) await typeWord(page, w);
   let text = await read();
@@ -359,19 +365,30 @@ test('Teilen: drei Zeilen mit direktem Link, mehrere Stufen, Archiv, Englisch, n
   assert.match(lines[0], /^NUMIGMA #4 · Easy ⏱ \d+:\d\d$/);
   assert.match(lines[1], /^(🟩|🟨|🟥)+$/u);
   assert.match(lines[2], /^Schlägst du meine Zeit\? http:\/\/127\.0\.0\.1:\d+\/\?n=4&m=easy$/);
-  const words = Object.values(NF.MODES).flatMap(m => solution(4, 'de', m.id)).filter(w => w.length >= 4);
-  const upper = ' ' + text.toUpperCase().replace(/[^A-ZÄÖÜß]+/g, ' ') + ' ';
-  words.forEach(w => assert.ok(!upper.includes(` ${w} `), `Lösung im Teilen-Text: ${w}`));
-  // zweite Stufe
+  noSolution(text, 4);
+  // zweite Stufe gelöst: eine Zeile je Stufe mit Zeit und Kästchen
   await page.click('#result [data-act="next"]');
   await page.click('#startBtn');
   for (const w of solution(4, 'de', 'hard')) await typeWord(page, w);
   text = await read();
   lines = text.split('\n');
+  assert.equal(lines.length, 4, text);
   assert.equal(lines[0], 'NUMIGMA #4');
-  assert.match(lines[1], /^Easy ⏱/); assert.match(lines[3], /^Hard ⏱/);
-  assert.match(lines[5], /^Schlägst du meine Zeiten\? http:\/\/127\.0\.0\.1:\d+\/\?n=4$/);
-  // Archiv
+  assert.match(lines[1], /^Easy ⏱ \d+:\d\d (🟩|🟨|🟥)+$/u);
+  assert.match(lines[2], /^Hard ⏱ \d+:\d\d (🟩|🟨|🟥)+$/u);
+  assert.match(lines[3], /^Schlägst du meine Zeiten\? http:\/\/127\.0\.0\.1:\d+\/\?n=4$/);
+  const twoSolved = text;
+  // dritte Stufe aufgelöst: taucht im geteilten Text gar nicht auf, das Ergebnis im Spiel zeigt sie aber
+  await page.click('#result [data-act="next"]');
+  await page.click('#startBtn');
+  await page.click('#revealBtn');
+  await page.click('#confirmYes');
+  assert.ok(await page.isVisible('#result'));
+  text = await read();
+  assert.equal(text, twoSolved, 'aufgelöste Stufe darf nicht geteilt werden');
+  assert.ok(!/Mirror|aufgelöst|🟥🟥🟥/.test(text));
+  noSolution(text, 4);
+  // Archiv, eine Stufe
   await page.goto(env.srv.url + '?n=2&m=mirror');
   await page.click('#startBtn');
   for (const w of solution(2, 'de', 'mirror')) await typeWord(page, w);
@@ -379,7 +396,31 @@ test('Teilen: drei Zeilen mit direktem Link, mehrere Stufen, Archiv, Englisch, n
   assert.match(text.split('\n')[0], /^NUMIGMA #2 \(Archiv\) · Mirror ⏱/);
   assert.match(text, /\?n=2&m=mirror$/);
   await page.context().close();
-  // Englisch
+  // nichts gelöst: kurze Herausforderung ohne Kästchen; danach eine gelöste Stufe neben einer aufgelösten: drei Zeilen
+  const p2 = await openPage(env, { clipboard: true });
+  await p2.click('#startBtn');
+  await p2.click('#revealBtn');
+  await p2.click('#confirmYes');
+  await p2.click('#result [data-act="share"]');
+  text = await p2.evaluate(() => navigator.clipboard.readText());
+  lines = text.split('\n');
+  assert.equal(lines.length, 3, text);
+  assert.equal(lines[0], 'NUMIGMA #4');
+  assert.equal(lines[1], 'Heute nicht geknackt 😅');
+  assert.match(lines[2], /^Schaffst du's\? http:\/\/127\.0\.0\.1:\d+\/\?n=4$/);
+  assert.ok(!/[🟩🟨🟥]/u.test(text));
+  noSolution(text, 4);
+  await p2.click('#result [data-act="next"]');
+  await p2.click('#startBtn');
+  for (const w of solution(4, 'de', 'hard')) await typeWord(p2, w);
+  await p2.click('#result [data-act="share"]');
+  text = await p2.evaluate(() => navigator.clipboard.readText());
+  lines = text.split('\n');
+  assert.equal(lines.length, 3, text);
+  assert.match(lines[0], /^NUMIGMA #4 · Hard ⏱ \d+:\d\d$/);
+  assert.match(lines[2], /\?n=4&m=hard$/);
+  await p2.context().close();
+  // Englisch: eine Stufe und nichts gelöst
   const en = await openPage(env, { clipboard: true, locale: 'en-GB' });
   await en.click('#startBtn');
   for (const w of solution(4, 'en', 'easy')) await typeWord(en, w);
@@ -387,6 +428,15 @@ test('Teilen: drei Zeilen mit direktem Link, mehrere Stufen, Archiv, Englisch, n
   const t2 = await en.evaluate(() => navigator.clipboard.readText());
   assert.match(t2.split('\n')[2], /^Can you beat my time\? http:\/\/127\.0\.0\.1:\d+\/en\/\?n=4&m=easy$/);
   await en.context().close();
+  const en2 = await openPage(env, { clipboard: true, locale: 'en-GB' });
+  await en2.click('#startBtn');
+  await en2.click('#revealBtn');
+  await en2.click('#confirmYes');
+  await en2.click('#result [data-act="share"]');
+  const t3 = (await en2.evaluate(() => navigator.clipboard.readText())).split('\n');
+  assert.deepEqual(t3.slice(0, 2), ['NUMIGMA #4', 'Not cracked today 😅']);
+  assert.match(t3[2], /^Can you crack it\? http:\/\/127\.0\.0\.1:\d+\/en\/\?n=4$/);
+  await en2.context().close();
 });
 
 test('Teilen: am Handy über das Teilen-Menü des Geräts', async () => {

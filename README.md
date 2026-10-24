@@ -38,9 +38,31 @@ GitHub Pages veröffentlicht Ordner, die mit `_` beginnen, nicht. Die Prüfseite
 - Jede Stufe und jede Sprache hat ihre eigene Uhr. Die Zeit wird alle 5 Sekunden und beim Verlassen gespeichert.
 - Ergebnis, Stufen-Reiter, Teilen-Text und Statistik zeigen dieselbe, auf ganze Sekunden gerundete Zeit.
 
-## Farben beim Teilen
+## Farben und Teilen
 
-🟩 ohne Hilfe gelöst · 🟨 mit Tipp, Schlüssel oder Trennung · 🟥 aufgelöst. Einmal gelb bleibt gelb, auch wenn der aufgedeckte Buchstabe später überschrieben wird. Der Schlüssel bei Hard und Mirror kostet einen Tipp und gilt für genau den nächsten getippten Buchstaben; dessen Wort wird gelb. Die Zahlen bei Easy sind gratis und zählen nicht als Hilfe.
+Im Ergebnis: 🟩 ohne Hilfe gelöst · 🟨 mit Tipp, Schlüssel oder Trennung · 🟥 aufgelöst. Einmal gelb bleibt gelb, auch wenn der aufgedeckte Buchstabe später überschrieben wird. Der Schlüssel bei Hard und Mirror kostet einen Tipp und gilt für genau den nächsten getippten Buchstaben; dessen Wort wird gelb. Die Zahlen bei Easy sind gratis und zählen nicht als Hilfe.
+
+Geteilt werden nur Stufen, die tatsächlich gelöst wurden; aufgelöste und nicht gespielte fehlen. Die Ergebnisanzeige im Spiel bleibt vollständig.
+
+Eine gelöste Stufe:
+```
+NUMIGMA #4 · Easy ⏱ 4:04
+🟩🟩🟩🟩🟩🟩🟩
+Schlägst du meine Zeit? https://gr3hab.github.io/numfact/?n=4&m=easy
+```
+Mehrere gelöste Stufen:
+```
+NUMIGMA #4
+Easy ⏱ 4:04 🟩🟩🟩🟩🟩🟩🟩
+Hard ⏱ 6:12 🟩🟨🟩🟩🟩
+Schlägst du meine Zeiten? https://gr3hab.github.io/numfact/?n=4
+```
+Keine gelöst:
+```
+NUMIGMA #4
+Heute nicht geknackt 😅
+Schaffst du's? https://gr3hab.github.io/numfact/?n=4
+```
 
 ## Neue Fakten hinzufügen
 

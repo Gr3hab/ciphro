@@ -626,7 +626,7 @@ const STR = {
         ['Die vier Stufen', '<ul><li><strong>Easy:</strong> A&nbsp;=&nbsp;1 … Z&nbsp;=&nbsp;26. Jede Zahl hat ihr eigenes Kästchen.</li><li><strong>Hard:</strong> dieselben Zahlen, aber ohne Trennung. 1 1 kann K sein oder AA.</li><li><strong>Mirror:</strong> rückwärts, A&nbsp;=&nbsp;26 … Z&nbsp;=&nbsp;1, ohne Trennung.</li><li><strong>Impossible:</strong> Das Alphabet ist um eine geheime Zahl verschoben, ohne Trennung.</li></ul><p>Die Kästchen verraten immer, wie viele Buchstaben ein Wort hat. Ä&nbsp;=&nbsp;27, Ö&nbsp;=&nbsp;28, Ü&nbsp;=&nbsp;29, ß&nbsp;=&nbsp;30, in jeder Stufe gleich. Du kannst auch ae, oe, ue oder ss tippen.</p>'],
         ['Tippen und korrigieren', '<p>Tipp auf ein Kästchen und schreib mit der Tastatur. Jedes Kästchen lässt sich einzeln überschreiben. Ein volles, aber falsches Wort wird rot und gestrichelt umrandet. Richtige Wörter werden grün markiert. Der Pfeil springt zum nächsten Wort.</p><p>Am Computer: Buchstaben tippen, Pfeiltasten, Enter für das nächste Wort, Rücktaste.</p>'],
         ['Tipps, Schlüssel, Auflösen', '<p>Pro Rätsel hast du drei Tipps. Ein Tipp deckt das gewählte Kästchen auf. Bei Impossible zeigt er stattdessen, wo in einem Wort die Buchstaben getrennt sind.</p><p>Der <strong>Schlüssel</strong> blendet die Zahlen auf der Tastatur ein: bei Easy gratis und von Anfang an eingeschaltet (du kannst ihn ausschalten), bei Hard und Mirror für 1 Tipp bis zum nächsten Buchstaben. Bei Impossible gibt es keinen.</p><p><strong>Auflösen</strong> zeigt die ganze Lösung. Dann zählt das Rätsel nicht als gelöst.</p>'],
-        ['Grün, Gelb, Rot', '<p>Beim Teilen steht jedes Kästchen für ein Wort: 🟩 ohne Hilfe gelöst, 🟨 mit Tipp, Schlüssel oder Trennung, 🟥 aufgelöst. Einmal gelb bleibt gelb. Ein kleiner Punkt am grünen Wort zeigt dir schon im Rätsel, wo du Hilfe hattest. Die Lösung wird beim Teilen nie verraten.</p>'],
+        ['Grün, Gelb, Rot', '<p>Im Ergebnis steht jedes Kästchen für ein Wort: 🟩 ohne Hilfe gelöst, 🟨 mit Tipp, Schlüssel oder Trennung, 🟥 aufgelöst. Einmal gelb bleibt gelb. Ein kleiner Punkt am grünen Wort zeigt dir schon im Rätsel, wo du Hilfe hattest.</p><p>Geteilt werden nur Stufen, die du selbst geknackt hast. Die Lösung wird dabei nie verraten.</p>'],
         ['Zeit und Pause', '<p>Die Uhr startet mit Start und läuft nur, solange der Code zu sehen ist. Sie hält an, wenn du ein Menü öffnest, den Tab wechselst, die App verlässt oder auf ⏸ tippst. Dann ist der Code verdeckt. Mit Weiter geht es genau dort weiter. Jede Stufe hat ihre eigene Uhr.</p>'],
         ['Serie, Archiv, Statistik', '<p>Deine Serie wächst mit jedem Tag, an dem du mindestens ein Rätsel des Tages löst. Neue Codes gibt es um Mitternacht nach deiner Uhrzeit. Ältere Rätsel kannst du im Archiv nachspielen. Sie zählen für die Statistik, nicht für die Serie.</p>']
       ],
@@ -644,7 +644,7 @@ const STR = {
     umlauts: used => `${used ? 'In diesem Satz stecken Umlaute oder ß: ' : 'Umlaute und ß: '}Ä = 27, Ö = 28, Ü = 29, ß = 30, in jeder Stufe gleich.`,
     keyrows: [[...'QWERTZUIOPÜ'], [...'ASDFGHJKLÖÄ'], ['next', ...'YXCVBNMß', 'back']],
     shareHead: (n, a) => `${CONFIG.name} #${n}${a ? ' (Archiv)' : ''}`,
-    beatOne: 'Schlägst du meine Zeit?', beatMany: 'Schlägst du meine Zeiten?', crackIt: 'Knackst du es?', revealedWord: 'aufgelöst', nothing: 'Heute noch nichts geknackt.'
+    beatOne: 'Schlägst du meine Zeit?', beatMany: 'Schlägst du meine Zeiten?', crackIt: "Schaffst du's?", notCracked: a => a ? 'Nicht geknackt 😅' : 'Heute nicht geknackt 😅'
   },
   en: {
     locale: 'en-GB',
@@ -720,7 +720,7 @@ const STR = {
         ['The four levels', '<ul><li><strong>Easy:</strong> A&nbsp;=&nbsp;1 … Z&nbsp;=&nbsp;26. Each number has its own box.</li><li><strong>Hard:</strong> the same numbers, but with no separators. 1 1 could be K or AA.</li><li><strong>Mirror:</strong> backwards, A&nbsp;=&nbsp;26 … Z&nbsp;=&nbsp;1, no separators.</li><li><strong>Impossible:</strong> the alphabet is shifted by a secret number, no separators.</li></ul><p>The boxes always tell you how many letters a word has.</p>'],
         ['Typing and fixing', '<p>Tap a box and type with the keyboard. You can type over any box on its own. A full word that is wrong gets a red dashed outline. Correct words are highlighted in green. The arrow jumps to the next word.</p><p>On a computer: type letters, use the arrow keys, Enter for the next word and Backspace.</p>'],
         ['Hints, key, reveal', '<p>You get three hints per puzzle. A hint reveals the selected box. In Impossible it shows where the letters split within a word instead.</p><p>The <strong>key</strong> shows the numbers on the keyboard: free and switched on from the start in Easy (you can turn it off), for 1 hint until your next letter in Hard and Mirror. There is no key in Impossible.</p><p><strong>Reveal</strong> shows the whole answer. The puzzle then does not count as solved.</p>'],
-        ['Green, yellow, red', '<p>When you share, each square stands for one word: 🟩 solved without help, 🟨 with a hint, key or split, 🟥 revealed. Once yellow, always yellow. A small dot on a green word shows you where you had help. Sharing never gives away the answer.</p>'],
+        ['Green, yellow, red', '<p>In your result, each square stands for one word: 🟩 solved without help, 🟨 with a hint, key or split, 🟥 revealed. Once yellow, always yellow. A small dot on a green word shows you where you had help.</p><p>Only levels you actually cracked are shared. Sharing never gives away the answer.</p>'],
         ['Time and pause', '<p>The clock starts when you press Start and only runs while the code is visible. It stops when you open a menu, switch tabs, leave the app or tap ⏸. The code is hidden while it is stopped. Continue picks up exactly where you left off. Each level has its own clock.</p>'],
         ['Streak, archive, statistics', '<p>Your streak grows every day you solve at least one of that day’s puzzles. New codes arrive at midnight, your local time. You can replay older puzzles in the archive. They count towards your statistics but not your streak.</p>']
       ],
@@ -738,7 +738,7 @@ const STR = {
     umlauts: null,
     keyrows: [[...'QWERTYUIOP'], [...'ASDFGHJKL'], ['next', ...'ZXCVBNM', 'back']],
     shareHead: (n, a) => `${CONFIG.name} #${n}${a ? ' (archive)' : ''}`,
-    beatOne: 'Can you beat my time?', beatMany: 'Can you beat my times?', crackIt: 'Can you crack it?', revealedWord: 'revealed', nothing: 'Nothing cracked yet today.'
+    beatOne: 'Can you beat my time?', beatMany: 'Can you beat my times?', crackIt: 'Can you crack it?', notCracked: a => a ? 'Not cracked 😅' : 'Not cracked today 😅'
   }
 };
 
@@ -1639,20 +1639,20 @@ function shareUrl(mode) {
   if (!base) return '';
   return base + (lang === 'en' ? 'en/' : '') + `?n=${day.number}` + (mode ? `&m=${mode}` : '');
 }
+// Geteilt werden nur tatsächlich gelöste Stufen. Aufgelöste und nicht gespielte fehlen, das Ergebnis im Spiel bleibt vollständig.
+// Eine gelöste Stufe: drei Zeilen. Mehrere: eine Zeile je Stufe mit Zeit und Kästchen. Keine: kurze Herausforderung ohne Kästchen.
 function shareText() {
-  const t = T(), done = MODES.filter(m => finished(ms(m.id)));
-  const line = m => { const s = ms(m.id); return s.status === 'solved' ? `${m.name} ⏱ ${fmtTime(s.elapsed)}` : `${m.name} · ${t.revealedWord}`; };
+  const t = T(), won = MODES.filter(m => ms(m.id).status === 'solved');
+  const head = t.shareHead(day.number, archive), time = m => `${m.name} ⏱ ${fmtTime(ms(m.id).elapsed)}`;
   const lines = [];
-  if (done.length === 1) {
-    lines.push(`${t.shareHead(day.number, archive)} · ${line(done[0])}`, squaresOf(done[0].id));
-  } else {
-    lines.push(t.shareHead(day.number, archive));
-    if (!done.length) lines.push(t.nothing);
-    done.forEach(m => lines.push(line(m), squaresOf(m.id)));
+  if (won.length === 1) lines.push(`${head} · ${time(won[0])}`, squaresOf(won[0].id));
+  else {
+    lines.push(head);
+    if (!won.length) lines.push(t.notCracked(archive));
+    won.forEach(m => lines.push(`${time(m)} ${squaresOf(m.id)}`));
   }
-  const solvedN = done.filter(m => ms(m.id).status === 'solved').length;
-  const call = solvedN > 1 ? t.beatMany : solvedN === 1 ? t.beatOne : t.crackIt;
-  const url = shareUrl(done.length === 1 ? done[0].id : null);
+  const call = won.length > 1 ? t.beatMany : won.length === 1 ? t.beatOne : t.crackIt;
+  const url = shareUrl(won.length === 1 ? won[0].id : null);
   lines.push(url ? `${call} ${url}` : call);
   return lines.join('\n');
 }
