@@ -5,9 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex, nofollow">
 <title>NUMIGMA Fakten prüfen</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Martian+Mono:wght@500;800&display=swap">
 <style>
 /* Layout: Arbeitsseite für die Pflege. Oben Zusammenfassung, dann Probleme, dann der Fahrplan der nächsten Tage. */
 :root{
@@ -58,12 +55,12 @@ tr.repeat td{color:var(--muted)}
 <div class="wrap">
   <header>
     <h1>NUMIGMA · Fakten prüfen</h1>
-    <p class="lead">Diese Seite liest fakten.js (Deutsch) und facts-en.js (Englisch) und zeigt, ob alles passt und welche Rätsel in den nächsten Tagen kommen. Sie ist nicht verlinkt, enthält aber die Lösungen. Nicht weitergeben.</p>
+    <p class="lead">Arbeitsseite für die Redaktion. Liest <code>fakten.js</code> und <code>kern.js</code> aus dem Hauptordner und zeigt, ob alles passt, wie lange der Vorrat reicht und welche Rätsel kommen. Sie liegt in <code>_dev/</code> und wird deshalb <strong>nicht veröffentlicht</strong>. Öffnen: Datei im Browser doppelklicken oder <code>npm run pruefen</code> im Ordner <code>_dev</code>. Enthält die Lösungen.</p>
   </header>
   <div class="langs" role="group" aria-label="Sprache"><button type="button" data-l="de" aria-pressed="true">Deutsch</button><button type="button" data-l="en" aria-pressed="false">English</button></div>
   <section class="tiles" id="tiles"></section>
   <section>
-    <h2>Probleme in der Liste</h2>
+    <h2>Prüfergebnis</h2>
     <div id="problems"></div>
   </section>
   <section>
@@ -71,39 +68,40 @@ tr.repeat td{color:var(--muted)}
     <div class="tablewrap"><table><thead><tr><th>Nr. / Datum</th><th>Easy</th><th>Hard</th><th>Mirror</th><th>Impossible</th></tr></thead><tbody id="plan"></tbody></table></div>
   </section>
 </div>
-<script src="fakten.js"></script>
-<script src="facts-en.js"></script>
-<script src="kern.js"></script>
+<script src="../../fakten.js"></script>
+<script src="../../kern.js"></script>
 <script>
 (function () {
   const NF = window.NF, $ = s => document.querySelector(s);
   const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-  if (!NF || !NF.facts('de').length) { $('#tiles').innerHTML = '<div class="tile bad"><div class="n">Fehler</div><div class="l">fakten.js, facts-en.js oder kern.js konnte nicht geladen werden. Oft fehlt ein Komma oder ein Anführungszeichen.</div></div>'; return; }
-  const today = NF.todayKey();
+  if (!NF || typeof NF.list !== 'function' || !NF.list().length) { $('#tiles').innerHTML = '<div class="tile bad"><div class="n">Fehler</div><div class="l">fakten.js oder kern.js konnte nicht geladen werden. Oft fehlt ein Komma, eine Klammer oder ein Anführungszeichen.</div></div>'; return; }
+  const today = NF.todayKey(), L = NF.list();
   const fmt = (k, l) => { const [y, m, d] = NF.parseKey(k); return new Date(y, m - 1, d).toLocaleDateString(l === 'en' ? 'en-GB' : 'de-AT', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' }); };
-  const utc = k => { const [y, m, d] = NF.parseKey(k); return Date.UTC(y, m - 1, d); };
   function render(lang) {
     document.querySelectorAll('.langs button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.l === lang)));
-    const F = NF.facts(lang), last = NF.lastPlannedDay(lang);
-    const daysLeft = Math.round((utc(last) - utc(today)) / 864e5);
-    const probs = NF.checkFacts(lang), errs = probs.filter(p => p.level === 'fehler');
+    const last = NF.lastPlannedDay();
+    const daysLeft = NF.dayIndex(last) - NF.dayIndex(today);
+    const probs = NF.checkFacts(today), errs = probs.filter(p => p.level === 'fehler');
+    const withSrc = L.filter(f => Array.isArray(f.quellen) && f.quellen.length).length;
     $('#tiles').innerHTML =
-      `<div class="tile"><div class="n">${F.length}</div><div class="l">Fakten in der Liste (${lang === 'en' ? 'Englisch' : 'Deutsch'})</div></div>` +
-      `<div class="tile ${daysLeft < 0 ? 'bad' : daysLeft < 7 ? 'warn' : 'good'}"><div class="n">${esc(fmt(last, 'de'))}</div><div class="l">${daysLeft < 0 ? 'Liste aufgebraucht, alte Fakten wiederholen sich' : `reichen noch ${daysLeft + 1} Tage ohne Wiederholung`}</div></div>` +
+      `<div class="tile"><div class="n">${L.length}</div><div class="l">Fakten (je Deutsch und Englisch) = ${NF.plannedDays()} Tage</div></div>` +
+      `<div class="tile ${daysLeft < 0 ? 'bad' : daysLeft < NF.CONFIG.warnDays ? 'warn' : 'good'}"><div class="n">${esc(fmt(last, 'de'))}</div><div class="l">${daysLeft < 0 ? 'Vorrat aufgebraucht, frühere Tage werden sichtbar wiederholt' : `reicht noch ${daysLeft + 1} Tage ohne Wiederholung`}</div></div>` +
       `<div class="tile ${errs.length ? 'bad' : 'good'}"><div class="n">${errs.length}</div><div class="l">Fehler (müssen behoben werden)</div></div>` +
-      `<div class="tile ${probs.length - errs.length ? 'warn' : 'good'}"><div class="n">${probs.length - errs.length}</div><div class="l">Hinweise</div></div>`;
+      `<div class="tile ${probs.length - errs.length ? 'warn' : 'good'}"><div class="n">${probs.length - errs.length}</div><div class="l">Hinweise</div></div>` +
+      `<div class="tile ${withSrc < L.length ? 'warn' : 'good'}"><div class="n">${withSrc}/${L.length}</div><div class="l">Fakten mit Quelle</div></div>`;
     $('#problems').innerHTML = probs.length
-      ? '<ul class="list">' + probs.map(p => `<li class="${p.level}"><b>Fakt ${p.i + 1}</b> (#${Math.floor(p.i / 4) + 1}): ${esc(p.msg)}<br><span class="m">${esc(F[p.i] && F[p.i].t || '')}</span></li>`).join('') + '</ul>'
+      ? '<ul class="list">' + probs.map(p => { const f = p.i >= 0 && L[p.i]; return `<li class="${p.level}"><b>${esc(p.id || 'Vorrat')}</b>${p.i >= 0 ? ` (#${Math.floor(p.i / 4) + 1})` : ''}: ${esc(p.msg)}${f && f[lang] ? `<br><span class="m">${esc(f[lang][0])}</span>` : ''}</li>`; }).join('') + '</ul>'
       : '<p class="empty">Alles in Ordnung.</p>';
     const start = Math.max(0, NF.dayIndex(today)), end = Math.max(start + 21, NF.dayIndex(last) + 3);
     let rows = '';
     for (let i = start; i <= end; i++) {
-      const key = NF.addDays(NF.CONFIG.launchDate, i), d = NF.buildDay(key, lang), repeat = key > last;
-      rows += `<tr class="${key === today ? 'today' : ''}${repeat ? ' repeat' : ''}"><td class="nr">#${d.number}<span class="m">${esc(fmt(key, lang))}${key === today ? ' · heute' : ''}${repeat ? ' · Wiederholung' : ''}</span></td>` +
+      const key = NF.addDays(NF.CONFIG.launchDate, i), d = NF.buildDay(key, lang);
+      rows += `<tr class="${key === today ? 'today' : ''}${d.repeatOf ? ' repeat' : ''}"><td class="nr">#${d.number}<span class="m">${esc(fmt(key, lang))}${key === today ? ' · heute' : ''}${d.repeatOf ? ' · Wiederholung von #' + d.repeatOf : ''}${i < NF.CONFIG.frozenDays ? ' · eingefroren' : ''}</span></td>` +
         NF.MODES.map(m => {
           const p = d.puzzles[m.id], units = Math.max(...p.words.map(w => NF.wordUnits(w, m.id)));
           const flag = units > NF.CONFIG.maxCells ? `<span class="flag"> · ${units} Kästchen, bricht am Handy um</span>` : '';
-          return `<td>${esc(p.fact.t)}<span class="m">${p.words.length} Wörter${m.id === 'impossible' ? ' · Verschiebung ' + d.shift : ''}${flag}</span></td>`;
+          const topic = NF.TOPICS[p.fact.topic];
+          return `<td>${esc(p.fact.t)}<span class="m">${esc(p.fact.id)} · ${esc(topic ? topic.de : p.fact.topic)} · ${p.words.length} Wörter${m.id === 'impossible' ? ' · Verschiebung ' + d.shift : ''}${flag}</span></td>`;
         }).join('') + '</tr>';
     }
     $('#plan').innerHTML = rows;
