@@ -36,6 +36,8 @@ Jeder Tag braucht vier Fakten. Sie stehen alle in `fakten.js` im Hauptordner, in
 ## Reihenfolge und veröffentlichte Rätsel
 
 - Tag #n nimmt die Einträge 4n−3 bis 4n der Liste. **Neue Fakten immer ganz unten anhängen.**
+- Ganz unten können geprüfte Fakten stehen, die noch keinen vollen Tag ergeben (Kommentar „noch kein voller Tag“). Neue Fakten kommen darunter, zusammen ergeben sie den nächsten Tag. Darauf achten, dass dieser Tag dann vier verschiedene Themen hat.
+- Woher jeder Fakt stammt und was an welcher Stelle der Quelle steht, ist in `QUELLENPRUEFUNG.md` festgehalten. Neue Fakten dort ebenfalls eintragen.
 - Einträge von Tagen, die schon erschienen sind, **nie umsortieren, löschen oder im Satz ändern**. Sonst ändern sich Rätsel, die Leute schon gespielt haben. Die automatischen Tests verhindern das.
 - Ein Fehler in der Erklärung eines veröffentlichten Fakts darf korrigiert werden. Im Pull Request begründen und in `QUELLENPRUEFUNG.md` eintragen.
 - Künftige Tage dürfen umgestellt werden, zum Beispiel für eine bessere Themenmischung. Der Faktenbericht im GitHub-Lauf listet jede Änderung am Fahrplan auf, damit nichts unbemerkt passiert.
