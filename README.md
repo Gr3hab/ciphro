@@ -2,28 +2,54 @@
 
 **Crack the code. Reveal the fact.**
 
-Jeden Tag vier Zahlencodes von Easy bis Impossible. Hinter jedem steckt ein kurzer, wahrer Fakt. Auf Deutsch und Englisch.
+Jeden Tag vier Zahlencodes von Easy bis Impossible. Hinter jedem steckt ein kurzer, wahrer Fakt. Auf Deutsch und Englisch. Kein Konto, keine Werbung, kein Tracking.
 
-Spielen: https://gr3hab.github.io/numfact/ · English: https://gr3hab.github.io/numfact/?lang=en
+Spielen: https://gr3hab.github.io/numfact/ · English: https://gr3hab.github.io/numfact/en/
 
 ## Dateien
 
-| Datei | Inhalt |
-| --- | --- |
-| `index.html` | Das Spiel |
-| `fakten.js` | Deutsche Fakten, vier pro Tag, in Fahrplan-Reihenfolge |
-| `facts-en.js` | Englische Fakten, gleiche Reihenfolge wie `fakten.js` |
-| `kern.js` | Spiellogik (Codes, Tagesrätsel, Prüfungen) |
-| `pruefen.html` | Prüfseite: Fehler in den Fakten, kommende Tage, bis wann die Fakten reichen |
-| `og.png`, `icon*.png`, `manifest.webmanifest` | Vorschaubild, App-Icons, Home-Bildschirm-App |
+| Datei | Inhalt | Öffentlich |
+| --- | --- | --- |
+| `index.html` | Das Spiel | ja |
+| `fakten.js` | Alle Fakten, Deutsch und Englisch, mit ID, Thema und Quellen | ja |
+| `kern.js` | Spiellogik: Codes, Tagesrätsel, Prüfungen | ja |
+| `en/index.html` | Englischer Einstieg für geteilte Links (englische Vorschau in WhatsApp & Co.) | ja |
+| `sw.js` | Offline-Hilfe: zuletzt geladene Fassung, wenn keine Verbindung da ist | ja |
+| `fonts/` | Schriften (lokal, keine Anfragen an fremde Server) | ja |
+| `og.png`, `icon*.png`, `manifest.webmanifest` | Vorschaubild, App-Icons, Home-Bildschirm-App | ja |
+| `_dev/` | Prüfseite, Tests, Redaktionsunterlagen, Nachweise | **nein** |
+
+GitHub Pages veröffentlicht Ordner, die mit `_` beginnen, nicht. Alles mit Lösungen oder für die Redaktion liegt deshalb in `_dev/`.
+
+## Links zum Teilen
+
+- `…/numfact/` öffnet das heutige Rätsel (alte Links funktionieren weiter).
+- `…/numfact/?n=4&m=easy` öffnet #4, Stufe Easy. `m` ist `easy`, `hard`, `mirror` oder `impossible`.
+- `…/numfact/en/?n=4&m=easy` dasselbe auf Englisch. `?lang=en` funktioniert weiterhin.
+- Ein Link auf ein Rätsel, das in der eigenen Zeitzone noch nicht erschienen ist, öffnet das heutige Rätsel mit einem Hinweis, wann es erscheint.
+
+## Regeln für die Uhr
+
+- Die Uhr startet mit „Start“. Vorher ist der Code nicht zu sehen.
+- Sie läuft nur, solange der Code sichtbar ist. Sie steht, wenn ein Menü offen ist, der Tab im Hintergrund liegt, die App verlassen wird, ⏸ gedrückt wurde oder ein anderer Tab dasselbe Rätsel übernimmt. Solange sie steht, ist der Code verdeckt.
+- Nach dem Zurückkommen, Neuladen oder Wieder-Öffnen erscheint „Pausiert“ mit „Weiter“. Wechselt man selbst die Stufe oder Sprache, läuft die Uhr der neuen Stufe sofort.
+- Jede Stufe und jede Sprache hat ihre eigene Uhr. Die Zeit wird alle 5 Sekunden und beim Verlassen gespeichert.
+- Ergebnis, Stufen-Reiter, Teilen-Text und Statistik zeigen dieselbe, auf ganze Sekunden gerundete Zeit.
+
+## Farben beim Teilen
+
+🟩 ohne Hilfe gelöst · 🟨 mit Tipp, Schlüssel oder Trennung · 🟥 aufgelöst. Einmal gelb bleibt gelb, auch wenn der aufgedeckte Buchstabe später überschrieben wird. Der Schlüssel bei Hard und Mirror kostet einen Tipp und gilt für genau den nächsten getippten Buchstaben; dessen Wort wird gelb. Die Zahlen bei Easy sind gratis und zählen nicht als Hilfe.
 
 ## Neue Fakten hinzufügen
 
-1. `fakten.js` öffnen, Stift-Symbol, neue Zeilen **ganz unten** anhängen.
-2. Dieselben Fakten in derselben Reihenfolge in `facts-en.js` auf Englisch anhängen.
-3. „Commit changes“. Nach ein paar Minuten ist es live.
-4. `pruefen.html` öffnen und kontrollieren, ob alles grün ist.
+Ausführlich in [`_dev/redaktion/ANLEITUNG.md`](_dev/redaktion/ANLEITUNG.md). Kurz:
 
-Regeln für den Satz (`t`): nur Buchstaben und Leerzeichen, am Ende ein Punkt. Keine Ziffern, Kommas, Bindestriche oder Apostrophe. Im Deutschen sind Ä, Ö, Ü und ß erlaubt, im Englischen nicht. Bestehende Fakten nie umsortieren oder löschen, sonst ändern sich Rätsel, die schon gespielt wurden.
+1. In `fakten.js` **ganz unten** einen neuen Eintrag mit der nächsten ID anhängen (Deutsch, Englisch, Thema, Quelle).
+2. Bestehende Fakten von Tagen, die schon erschienen sind, nie ändern, umsortieren oder löschen. Die Tests prüfen das.
+3. Als Pull Request einreichen. Die Tests laufen automatisch, der Faktenbericht steht in der Zusammenfassung des Laufs.
 
-Die Fakten reichen derzeit bis **30. November 2026**.
+Satzregeln: nur Buchstaben und Leerzeichen, am Ende ein Punkt. Keine Ziffern, Kommas, Bindestriche oder Apostrophe. Ä, Ö, Ü und ß nur im Deutschen.
+
+## Tests
+
+Im Ordner `_dev`: `npm ci`, `npx playwright install chromium`, dann `npm test`. Details in [`_dev/README.md`](_dev/README.md). Dieselben Tests laufen bei jedem Pull Request auf GitHub. Jeden Montag prüft GitHub außerdem, ob der Faktenvorrat noch mindestens 14 Tage reicht, und meldet sich sonst per Mail.
