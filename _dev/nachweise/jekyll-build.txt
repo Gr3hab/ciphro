@@ -1,0 +1,29 @@
+GitHub-Pages-Build lokal nachgestellt (github-pages Gem, Jekyll 3.10.0), Stand dieses Branches.
+Veröffentlichte Dateien:
+  README.md
+  assets/css/style.css
+  en/index.html
+  fakten.js
+  fonts/LICENSE-atkinson-hyperlegible.txt
+  fonts/LICENSE-martian-mono.txt
+  fonts/atkinson-hyperlegible-latin-400-normal.woff2
+  fonts/atkinson-hyperlegible-latin-700-normal.woff2
+  fonts/atkinson-hyperlegible-latin-ext-400-normal.woff2
+  fonts/atkinson-hyperlegible-latin-ext-700-normal.woff2
+  fonts/martian-mono-latin-500-normal.woff2
+  fonts/martian-mono-latin-700-normal.woff2
+  fonts/martian-mono-latin-800-normal.woff2
+  fonts/martian-mono-latin-ext-500-normal.woff2
+  fonts/martian-mono-latin-ext-700-normal.woff2
+  fonts/martian-mono-latin-ext-800-normal.woff2
+  icon-192.png
+  icon-512.png
+  icon-maskable-512.png
+  icon.png
+  index.html
+  kern.js
+  manifest.webmanifest
+  og.png
+  sw.js
+
+Nicht veröffentlicht: _dev/ (Prüfseite, Tests, Redaktion), .github/, .gitignore

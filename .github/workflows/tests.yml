@@ -1,0 +1,60 @@
+# Prüft jede Änderung, bevor sie veröffentlicht wird. Kostenlos für öffentliche Repositories.
+# - Bei jedem Pull Request und jedem Push auf main: alle Tests (Fakten, Fahrplan, Spiel im Browser, Layout, Barrierefreiheit).
+# - Jeden Montag: Faktenbericht. Reicht der Vorrat für weniger als 14 Tage, schlägt der Lauf fehl und GitHub schickt eine Mail.
+name: Tests
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  schedule:
+    - cron: '17 6 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  tests:
+    if: github.event_name != 'schedule'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: _dev
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: _dev/package-lock.json
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - name: Vergleichsstand festlegen
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then echo "NUMIGMA_BASE_REF=origin/${{ github.base_ref }}" >> "$GITHUB_ENV";
+          else echo "NUMIGMA_BASE_REF=${{ github.event.before }}" >> "$GITHUB_ENV"; fi
+      - name: Faktenbericht
+        run: node tools/bericht.js >> "$GITHUB_STEP_SUMMARY"
+      - name: Tests
+        run: npm test
+
+  vorrat:
+    if: github.event_name == 'schedule'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    defaults:
+      run:
+        working-directory: _dev
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Faktenbericht und Vorrat
+        shell: bash
+        run: |
+          node tools/bericht.js --streng | tee -a "$GITHUB_STEP_SUMMARY"

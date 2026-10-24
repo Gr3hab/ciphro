@@ -1,0 +1,18 @@
+{
+  "name": "numigma-dev",
+  "private": true,
+  "description": "Tests und Werkzeuge für NUMIGMA. Wird nicht veröffentlicht (Ordner _dev ist für GitHub Pages unsichtbar).",
+  "scripts": {
+    "test": "node --test --test-concurrency=1 tests/daten.test.js tests/spiel.test.js tests/layout.test.js",
+    "test:daten": "node --test tests/daten.test.js",
+    "test:spiel": "node --test --test-concurrency=1 tests/spiel.test.js tests/layout.test.js",
+    "bericht": "node tools/bericht.js",
+    "serve": "node tools/server.js",
+    "pruefen": "node tools/server.js --open _dev/tools/pruefen.html"
+  },
+  "devDependencies": {
+    "axe-core": "4.10.2",
+    "playwright": "1.56.0"
+  },
+  "engines": { "node": ">=20" }
+}
