@@ -20,6 +20,7 @@ async function openPage(env, opt = {}) {
     locale: opt.locale || 'de-AT', colorScheme: opt.scheme || 'light',
     timezoneId: opt.timezone || 'Europe/Vienna', serviceWorkers: opt.sw ? 'allow' : 'block',
     hasTouch: !!opt.mobile, isMobile: !!opt.mobile, reducedMotion: 'reduce',
+    ...(opt.ua ? { userAgent: opt.ua } : {}),
     permissions: opt.clipboard ? ['clipboard-read', 'clipboard-write'] : []
   });
   if (!opt.context) await ctx.clock.install({ time: new Date(opt.time || '2026-10-24T10:00:00+02:00') });

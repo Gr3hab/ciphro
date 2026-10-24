@@ -1,6 +1,6 @@
 # _dev: Werkzeuge, Tests, Redaktion
 
-Dieser Ordner wird von GitHub Pages **nicht** veröffentlicht (Ordner mit `_` am Anfang ignoriert Jekyll). Hier liegt alles, was Lösungen enthält oder nur für die Pflege gebraucht wird.
+Dieser Ordner wird von GitHub Pages **nicht** veröffentlicht (Ordner mit `_` am Anfang ignoriert Jekyll). Hier liegen die Prüfseite mit Lösungen und alles, was nur für die Pflege gebraucht wird. Die Fakten selbst (`fakten.js` im Hauptordner) sind dagegen öffentlich, weil das Spiel sie braucht.
 
 | Pfad | Inhalt |
 | --- | --- |

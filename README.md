@@ -19,7 +19,9 @@ Spielen: https://gr3hab.github.io/numfact/ · English: https://gr3hab.github.io/
 | `og.png`, `icon*.png`, `manifest.webmanifest` | Vorschaubild, App-Icons, Home-Bildschirm-App | ja |
 | `_dev/` | Prüfseite, Tests, Redaktionsunterlagen, Nachweise | **nein** |
 
-GitHub Pages veröffentlicht Ordner, die mit `_` beginnen, nicht. Alles mit Lösungen oder für die Redaktion liegt deshalb in `_dev/`.
+GitHub Pages veröffentlicht Ordner, die mit `_` beginnen, nicht. Die Prüfseite mit allen Lösungen und alles für die Redaktion liegt deshalb in `_dev/`.
+
+**Was trotzdem öffentlich ist:** `fakten.js` muss abrufbar sein, damit das Spiel läuft. Darin stehen alle Sätze, auch die von künftigen Tagen. Wer gezielt in die Datei schaut, kann also vorab nachlesen. Für ein freundschaftliches Rätselspiel ist das bewusst so akzeptiert; die künftigen Lösungen sind nicht geheim, nur nicht mehr auf einer Seite zum Durchblättern. Eine tageweise Veröffentlichung ist in `_dev/KONZEPTE.md` beschrieben.
 
 ## Links zum Teilen
 

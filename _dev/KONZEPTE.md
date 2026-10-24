@@ -27,9 +27,17 @@ Hinweis: Schon heute lädt die Seite keine fremden Schriften mehr (früher Googl
 | Weitere Sprachen | Technisch vorbereitet (Fakten mit IDs, Texte getrennt). Aufwand ist die Redaktion: jeder Fakt muss in jeder Sprache geprüft werden. | Erst wenn Deutsch und Englisch stabil Nachschub haben. |
 | Freiwillige Unterstützung | Ein schlichter Link („Kaffee spendieren“) in den Einstellungen wäre vertretbar. | Nicht im Spielablauf, keine bezahlten Tipps oder Auflösungen. |
 
-## Offene Entscheidungen
+## Was öffentlich ist (Lösungen)
 
-- **Easy-Zahlen standardmäßig an:** Im Kurz-Einstieg stehen die Zahlen auf den Tasten. Damit Easy sich danach genauso leicht anfühlt, sind sie bei Easy jetzt standardmäßig eingeblendet (abschaltbar, zählt nicht als Hilfe). Wer lieber ohne spielt, schaltet sie einmal aus, das bleibt gespeichert.
+Die Prüfseite mit allen Lösungen liegt jetzt in `_dev/` und wird nicht mehr veröffentlicht. `fakten.js` dagegen muss öffentlich sein, damit das Spiel funktioniert, und enthält alle Sätze, auch künftige. Wer gezielt hineinschaut, kann vorab nachlesen. Das ist eine Eigenschaft der jetzigen Bauweise (alles statisch, ohne Server), kein neuer Fehler.
+
+- **Gewählt: pragmatisch.** Für ein kostenloses, freundschaftliches Rätselspiel genügt es, dass es keine Seite zum Durchblättern der Lösungen mehr gibt. Nirgends wird behauptet, künftige Lösungen seien geheim.
+- **Alternative: tageweise veröffentlichen.** Nur Fakten bis heute (plus ein Tag Puffer wegen der Zeitzonen) liegen öffentlich, der Rest bleibt im Repository außerhalb der Seite und wird täglich per GitHub Actions nachgeschoben. Kosten: mehr bewegliche Teile, ein täglicher Automatik-Lauf, der nicht ausfallen darf, und künftige Rätsel sind offline nicht vorab verfügbar. Lohnt sich erst, wenn Spoiler wirklich ein Problem werden (z. B. bei Bestenlisten).
+- Leichtes Verschleiern (z. B. Base64) wäre billig, hält aber niemanden ab, der sucht, und erschwert die Pflege von Hand. Nicht empfohlen.
+
+## Entscheidungen und offene Punkte
+
+- **Easy-Zahlen standardmäßig an (entschieden am 24. Oktober 2026):** Wer den Link zum ersten Mal bekommt, kann sofort loslegen, ohne das Alphabet durchzuzählen. Die Zahlen sind bei Easy kostenlos, zählen nicht als Hilfe und lassen sich abschalten; das bleibt gespeichert. Mehr Herausforderung bieten Hard, Mirror und Impossible.
 - **Englische Tage #1–#16:** Die Zuordnung von Fakt zu Stufe weicht an sechs dieser Tage zwischen Deutsch und Englisch ab, weil sie so veröffentlicht wurde. Ab #17 ist sie in beiden Sprachen gleich.
 - **Name des Repositorys:** Die Adresse lautet weiter `…/numfact/`. Eine Umbenennung in `numigma` würde alle bisherigen Links brechen (GitHub leitet Pages-Adressen nicht weiter).
 - **Zahlen 0–9 für Jahreszahlen:** Würde neue Rätselarten ermöglichen, ändert aber die Regeln aller Stufen. Nicht umgesetzt.

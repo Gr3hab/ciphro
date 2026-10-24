@@ -491,6 +491,38 @@ test('Antippen: Kästchen wählen, nächstes leeres Kästchen, Tipp-Buchstaben w
   await page.context().close();
 });
 
+test('iPhone: unsichtbare Haptik-Schalter liegen über den Tasten und leiten jedes Antippen weiter', async () => {
+  // Nur auf iPhones liegt über jeder Taste ein unsichtbarer Schalter (Safari gibt nur dort Haptik).
+  // Hier wird ein iPhone nachgestellt (Kennung, Touch, Handy-Ansicht), der Browser bleibt Chromium.
+  const ua = 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1';
+  const page = await openPage(env, { mobile: true, ua, clipboard: true });
+  await page.tap('#startBtn');
+  const info = await page.evaluate(() => {
+    const k = document.querySelector('#kb .k[data-k="A"]'), r = k.getBoundingClientRect();
+    const top = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
+    return { switches: document.querySelectorAll('#kb .hsw').length, keys: document.querySelectorAll('#kb .k').length,
+      topIsSwitch: !!top && top.classList.contains('hsw'), ariaHidden: top && top.getAttribute('aria-hidden'), tab: top && top.tabIndex };
+  });
+  assert.equal(info.switches, info.keys, 'jede Taste hat einen Schalter');
+  assert.ok(info.topIsSwitch, 'der Finger trifft den Schalter, nicht die Taste darunter');
+  assert.equal(info.ariaHidden, 'true');
+  assert.equal(info.tab, -1);
+  // Ganzes Easy-Rätsel nur durch Antippen lösen, mit einem Vertipper und der Rücktaste dazwischen
+  const sol = solution(4, 'de', 'easy');
+  const wrong = sol[0][0] === 'Q' ? 'X' : 'Q';
+  await page.tap(`#kb .k[data-k="${wrong}"]`);
+  await page.tap('#kb .k[data-k="back"]');
+  for (const w of sol) for (const ch of w) await page.tap(`#kb .k[data-k="${ch}"]`);
+  assert.equal((await state(page, K4, 'easy')).status, 'solved');
+  assert.ok(await page.isVisible('#result'));
+  // Teilen ist grün: Antippen über die Schalter zählt nicht als Hilfe
+  await page.tap('#result [data-act="share"]');
+  const text = await page.evaluate(() => navigator.clipboard.readText().catch(() => ''));
+  if (text) assert.ok(!/🟨|🟥/.test(text.split('\n')[1]), text);
+  noErrors(page);
+  await page.context().close();
+});
+
 /* ------------------------------------------------------------ Barrierefreiheit */
 const AXE = fs.readFileSync(require.resolve('axe-core/axe.min.js'), 'utf8');
 async function axe(page, label) {
