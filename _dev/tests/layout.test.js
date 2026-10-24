@@ -110,6 +110,16 @@ test('Layout: Kurz-Einstieg passt ohne Scrollen auf ein kleines Handy (320×568)
   await page.context().close();
 });
 
+test('Layout: Anleitung passt zugeklappt ohne Scrollen auf ein kleines Handy (320×568), Deutsch und Englisch', async () => {
+  for (const locale of ['de-AT', 'en-GB']) {
+    const page = await openPage(env, { width: 320, height: 568, locale, mobile: true });
+    await page.click('#helpBtn');
+    const fits = await page.evaluate(() => { const d = document.getElementById('helpDlg'); return d.scrollHeight <= d.clientHeight + 1; });
+    assert.ok(fits, locale);
+    await page.context().close();
+  }
+});
+
 test('Layout: die längsten Wörter des ganzen Vorrats passen auf 320 px in eine Zeile', async () => {
   // Für jede Stufe den Tag mit dem breitesten Wort suchen und dort spielen
   const worst = {};

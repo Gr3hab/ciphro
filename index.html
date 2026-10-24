@@ -367,7 +367,8 @@ textarea{width:100%;font:inherit;font-size:.95rem;padding:10px;border:1px solid 
 /* Anleitung: kurz, Details zum Aufklappen */
 .more-list{display:flex;flex-direction:column;border-top:1px solid var(--line)}
 .more-list details{border-bottom:1px solid var(--line)}
-.more-list summary{list-style:none;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:44px;font-weight:700}
+.more-list summary{list-style:none;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:42px;font-weight:700}
+@media (max-height:640px){ .more-list summary{min-height:38px} #helpBody{gap:10px} }
 .more-list summary::-webkit-details-marker{display:none}
 .more-list summary::after{content:"+";font-family:var(--display);font-weight:700;color:var(--ink);font-size:1.1rem}
 .more-list details[open] summary::after{content:"−"}
@@ -620,17 +621,16 @@ const STR = {
     },
     help: {
       title: 'So funktioniert’s',
-      lead: 'Jede Zahl steht für einen Buchstaben. Knack den Code und du erfährst einen wahren Fakt. Jeden Tag gibt es vier neue Codes.',
+      lead: 'Jede Zahl steht für einen Buchstaben. Knack den Code und du erfährst einen wahren Fakt. Jeden Tag vier neue.',
       sections: [
-        ['Die vier Stufen', '<ul><li><strong>Easy:</strong> A&nbsp;=&nbsp;1 … Z&nbsp;=&nbsp;26. Jede Zahl hat ihr eigenes Kästchen.</li><li><strong>Hard:</strong> dieselben Zahlen, aber ohne Trennung. 1 1 kann K sein oder AA.</li><li><strong>Mirror:</strong> rückwärts, A&nbsp;=&nbsp;26 … Z&nbsp;=&nbsp;1, ohne Trennung.</li><li><strong>Impossible:</strong> Das Alphabet ist um eine geheime Zahl verschoben, ohne Trennung.</li></ul><p>Die Kästchen verraten immer, wie viele Buchstaben ein Wort hat.</p>'],
+        ['Die vier Stufen', '<ul><li><strong>Easy:</strong> A&nbsp;=&nbsp;1 … Z&nbsp;=&nbsp;26. Jede Zahl hat ihr eigenes Kästchen.</li><li><strong>Hard:</strong> dieselben Zahlen, aber ohne Trennung. 1 1 kann K sein oder AA.</li><li><strong>Mirror:</strong> rückwärts, A&nbsp;=&nbsp;26 … Z&nbsp;=&nbsp;1, ohne Trennung.</li><li><strong>Impossible:</strong> Das Alphabet ist um eine geheime Zahl verschoben, ohne Trennung.</li></ul><p>Die Kästchen verraten immer, wie viele Buchstaben ein Wort hat. Ä&nbsp;=&nbsp;27, Ö&nbsp;=&nbsp;28, Ü&nbsp;=&nbsp;29, ß&nbsp;=&nbsp;30, in jeder Stufe gleich. Du kannst auch ae, oe, ue oder ss tippen.</p>'],
         ['Tippen und korrigieren', '<p>Tipp auf ein Kästchen und schreib mit der Tastatur. Jedes Kästchen lässt sich einzeln überschreiben. Ein volles, aber falsches Wort wird rot und gestrichelt umrandet. Richtige Wörter werden grün markiert. Der Pfeil springt zum nächsten Wort.</p><p>Am Computer: Buchstaben tippen, Pfeiltasten, Enter für das nächste Wort, Rücktaste.</p>'],
         ['Tipps, Schlüssel, Auflösen', '<p>Pro Rätsel hast du drei Tipps. Ein Tipp deckt das gewählte Kästchen auf. Bei Impossible zeigt er stattdessen, wo in einem Wort die Buchstaben getrennt sind.</p><p>Der <strong>Schlüssel</strong> blendet die Zahlen auf der Tastatur ein: bei Easy gratis und von Anfang an eingeschaltet (du kannst ihn ausschalten), bei Hard und Mirror für 1 Tipp bis zum nächsten Buchstaben. Bei Impossible gibt es keinen.</p><p><strong>Auflösen</strong> zeigt die ganze Lösung. Dann zählt das Rätsel nicht als gelöst.</p>'],
         ['Grün, Gelb, Rot', '<p>Beim Teilen steht jedes Kästchen für ein Wort: 🟩 ohne Hilfe gelöst, 🟨 mit Tipp, Schlüssel oder Trennung, 🟥 aufgelöst. Einmal gelb bleibt gelb. Ein kleiner Punkt am grünen Wort zeigt dir schon im Rätsel, wo du Hilfe hattest. Die Lösung wird beim Teilen nie verraten.</p>'],
         ['Zeit und Pause', '<p>Die Uhr startet mit Start und läuft nur, solange der Code zu sehen ist. Sie hält an, wenn du ein Menü öffnest, den Tab wechselst, die App verlässt oder auf ⏸ tippst. Dann ist der Code verdeckt. Mit Weiter geht es genau dort weiter. Jede Stufe hat ihre eigene Uhr.</p>'],
-        ['Serie, Archiv, Statistik', '<p>Deine Serie wächst mit jedem Tag, an dem du mindestens ein Rätsel des Tages löst. Neue Codes gibt es um Mitternacht nach deiner Uhrzeit. Ältere Rätsel kannst du im Archiv nachspielen. Sie zählen für die Statistik, nicht für die Serie.</p>'],
-        ['Ä, Ö, Ü und ß', '<p>Ä&nbsp;=&nbsp;27, Ö&nbsp;=&nbsp;28, Ü&nbsp;=&nbsp;29, ß&nbsp;=&nbsp;30, in jeder Stufe gleich. Du kannst auch ae, oe, ue oder ss tippen.</p>']
+        ['Serie, Archiv, Statistik', '<p>Deine Serie wächst mit jedem Tag, an dem du mindestens ein Rätsel des Tages löst. Neue Codes gibt es um Mitternacht nach deiner Uhrzeit. Ältere Rätsel kannst du im Archiv nachspielen. Sie zählen für die Statistik, nicht für die Serie.</p>']
       ],
-      replay: 'Kurz-Einstieg wiederholen', go: 'Los geht’s'
+      replay: 'Kurz-Einstieg', go: 'Los geht’s'
     },
     rules: {
       easy: { short: 'A=1 … Z=26', text: 'Jede Zahl steht für einen Buchstaben: A = 1, B = 2 … Z = 26.', ex: 'HUND → 8 · 21 · 14 · 4' },
@@ -715,7 +715,7 @@ const STR = {
     },
     help: {
       title: 'How to play',
-      lead: 'Each number stands for a letter. Crack the code and you learn a true fact. There are four new codes every day.',
+      lead: 'Each number stands for a letter. Crack the code and learn a true fact. Four new ones every day.',
       sections: [
         ['The four levels', '<ul><li><strong>Easy:</strong> A&nbsp;=&nbsp;1 … Z&nbsp;=&nbsp;26. Each number has its own box.</li><li><strong>Hard:</strong> the same numbers, but with no separators. 1 1 could be K or AA.</li><li><strong>Mirror:</strong> backwards, A&nbsp;=&nbsp;26 … Z&nbsp;=&nbsp;1, no separators.</li><li><strong>Impossible:</strong> the alphabet is shifted by a secret number, no separators.</li></ul><p>The boxes always tell you how many letters a word has.</p>'],
         ['Typing and fixing', '<p>Tap a box and type with the keyboard. You can type over any box on its own. A full word that is wrong gets a red dashed outline. Correct words are highlighted in green. The arrow jumps to the next word.</p><p>On a computer: type letters, use the arrow keys, Enter for the next word and Backspace.</p>'],
@@ -724,7 +724,7 @@ const STR = {
         ['Time and pause', '<p>The clock starts when you press Start and only runs while the code is visible. It stops when you open a menu, switch tabs, leave the app or tap ⏸. The code is hidden while it is stopped. Continue picks up exactly where you left off. Each level has its own clock.</p>'],
         ['Streak, archive, statistics', '<p>Your streak grows every day you solve at least one of that day’s puzzles. New codes arrive at midnight, your local time. You can replay older puzzles in the archive. They count towards your statistics but not your streak.</p>']
       ],
-      replay: 'Replay the quick start', go: 'Let’s go'
+      replay: 'Quick start', go: 'Let’s go'
     },
     rules: {
       easy: { short: 'A=1 … Z=26', text: 'Each number stands for a letter: A = 1, B = 2 … Z = 26.', ex: 'CAT → 3 · 1 · 20' },
@@ -1706,7 +1706,6 @@ function renderHelp() {
   const h = T().help, secs = h.sections;
   $('#helpBody').innerHTML =
     `<div class="dlg-head"><div><div class="eyebrow">${esc(CONFIG.tagline)}</div><h2 id="helpTitle">${esc(h.title)}</h2></div><button class="ib" type="button" data-close aria-label="${esc(T().close)}">${ICON.x}</button></div>` +
-    langSeg('helpLang', true) +
     `<p>${esc(h.lead)}</p>` +
     '<div class="more-list">' + secs.map(([title, body]) => `<details><summary>${esc(title)}</summary><div class="body">${body}</div></details>`).join('') + '</div>' +
     '<div class="actions-row">' +
