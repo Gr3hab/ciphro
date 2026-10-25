@@ -2,7 +2,7 @@
    Immer zuerst das Netz fragen (so kommen neue Rätsel und Korrekturen sofort an).
    Nur wenn keine Verbindung da ist, wird die zuletzt geladene Fassung aus dem Zwischenspeicher genommen.
    Die Rätsel werden im Browser berechnet, deshalb funktioniert auch ein neuer Tag offline. */
-const CACHE = 'numigma-v9';
+const CACHE = 'numigma-v10';
 const CORE = [
   './', 'index.html', 'kern.js?v=8', 'fakten.js?v=8', 'manifest.webmanifest', 'en/',
   'icon.png', 'icon-192.png',

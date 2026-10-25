@@ -171,6 +171,9 @@ a{color:var(--ink)}
 .w.ok .d.cut{box-shadow:inset 2px 0 0 var(--marker-text)}
 .w.ok.helped .lr::after{content:"";position:absolute;right:-4px;top:-3px;width:7px;height:7px;border-radius:50%;background:var(--marker-text);opacity:.55}
 .w.given .c{color:var(--pencil);box-shadow:inset 0 -2px 0 0 var(--pencil);background:transparent}
+/* Gelöste und aufgelöste Wörter: Die Zahlen verschwinden, das Wort rückt in die Mitte. Größe bleibt gleich, damit nichts verrutscht. */
+.w.ok .dr,.w.given .dr{opacity:0;visibility:hidden;transition:opacity .2s .35s,visibility 0s .55s}
+.w.ok .lr,.w.given .lr{transform:translateY(calc(var(--cell) * -.5));transition:transform .2s .35s}
 .w.locked{cursor:default}
 .w.flash::before{animation:swipe .45s ease-out both}
 .w.shake{animation:shake .32s ease-in-out}
@@ -417,7 +420,7 @@ textarea{width:100%;font:inherit;font-size:.95rem;padding:10px;border:1px solid 
 @media (min-width:640px) and (min-height:521px){ .modes .mode .n{font-size:.95rem} }
 @media (prefers-reduced-motion: reduce){
   .w.shake,.w.flash::before,.demo2 .hl{animation:none}
-  .w.ok .c,.w.ok .d{transition:none}
+  .w.ok .c,.w.ok .d,.w.ok .dr,.w.given .dr,.w.ok .lr,.w.given .lr{transition:none}
 }
 @media (forced-colors: active){
   .w.ok::before,.w.given::before{border:2px solid CanvasText;background:Canvas}
@@ -569,7 +572,7 @@ const STR = {
     issue: (n, d) => `#${n} · ${d}`,
     archiveBar: (n, d, r) => `Archiv: #${n} vom ${d}${r ? ` (Wiederholung von #${r})` : ''}. Zählt nicht für die Serie.`,
     repeatBar: r => `Heute: Wiederholung von #${r}. Neue Fakten sind in Arbeit.`,
-    backToday: 'Zu heute', newday: 'Ein neues Rätsel ist da.', newdayBtn: 'Jetzt spielen',
+    backToday: 'Zum heutigen Rätsel', newday: 'Ein neues Rätsel ist da.', newdayBtn: 'Jetzt spielen', newdayAuto: n => `Neuer Tag, neues Rätsel: #${n}`,
     futureSoon: (n, t) => `Rätsel #${n} erscheint bei dir in ${t}. Bis dahin: das heutige.`,
     futureLater: (n, d) => `Rätsel #${n} erscheint erst am ${d}. Hier ist das heutige.`,
     badLink: 'Diesen Link kennen wir nicht. Hier ist das heutige Rätsel.',
@@ -580,7 +583,7 @@ const STR = {
     startNote: 'Der Code erscheint erst nach Start. Die Uhr läuft nur, solange du ihn siehst. Die Pause-Taste neben der Uhr hält sie an.',
     toEasy: 'Neu hier? Fang lieber mit Easy an',
     noNumbers: 'Auf der Tastatur stehen hier keine Zahlen. Der Schlüssel blendet sie für einen Buchstaben ein und kostet 1 Tipp.',
-    impTip: 'Tipp: Fang mit einem kurzen Wort an. Errätst du einen Buchstaben, kennst du die Verschiebung für alle.',
+    impTip: 'Tipp: Fang mit einem kurzen Wort an. Errätst du einen Buchstaben, kennst du die Verschiebung für alle. Probier ruhig Buchstaben in den Kästchen aus, du kannst jedes überschreiben.',
     rotateTitle: 'Bitte hochkant halten', rotateText: 'Im Querformat ist auf diesem Bildschirm zu wenig Platz für Code und Tastatur. Die Uhr steht so lange.',
     paused: 'Pausiert', pausedAt: t => `Die Uhr steht bei ${t}. Der Code ist so lange verdeckt.`,
     pausedTab: 'Dieses Rätsel war zuletzt in einem anderen Tab offen.', pausedProgress: (c, n) => `${c} von ${n} Wörtern gelöst`, resume: 'Weiter',
@@ -623,7 +626,7 @@ const STR = {
       streakNote: 'Die Serie wächst mit jedem Tag, an dem du ein Rätsel des Tages löst. Nächste Codes in', empty: 'Noch nichts gelöst. Dein erstes Rätsel wartet.' },
     archive: { title: 'Archiv', intro: 'Alle bisherigen Rätsel zum Nachspielen. Sie zählen für die Statistik, aber nicht für die Serie.', today: 'Heute',
       st: { solved: 'gelöst', revealed: 'aufgelöst', playing: 'angefangen', open: 'offen' }, repeat: r => `Wiederholung von #${r}` },
-    settings: { title: 'Einstellungen', theme: 'Design', system: 'System', light: 'Hell', dark: 'Dunkel', language: 'Sprache',
+    settings: { title: 'Einstellungen', theme: 'Design', system: 'System', light: 'Hell', dark: 'Dunkel', themeNote: 'System: hell oder dunkel, je nachdem, wie dein Handy oder Computer eingestellt ist.', language: 'Sprache',
       haptics: 'Haptisches Feedback', hapticsNote: 'Am Handy bei jedem Tastendruck. Auf Android zusätzlich bei richtigen und falschen Wörtern.',
       privacy: 'Kein Konto, keine Werbung, kein Tracking. Dein Fortschritt bleibt nur in diesem Browser. Auf einem anderen Gerät oder als App am Home-Bildschirm beginnt die Statistik neu.',
       intro: 'Kurz-Einstieg ansehen', done: 'Fertig' },
@@ -667,7 +670,7 @@ const STR = {
     issue: (n, d) => `#${n} · ${d}`,
     archiveBar: (n, d, r) => `Archive: #${n} from ${d}${r ? ` (repeat of #${r})` : ''}. Does not count towards your streak.`,
     repeatBar: r => `Today: a repeat of #${r}. New facts are on the way.`,
-    backToday: 'To today', newday: 'A new puzzle is out.', newdayBtn: 'Play now',
+    backToday: 'Today’s puzzle', newday: 'A new puzzle is out.', newdayBtn: 'Play now', newdayAuto: n => `New day, new puzzle: #${n}`,
     futureSoon: (n, t) => `Puzzle #${n} arrives for you in ${t}. Until then, here is today’s.`,
     futureLater: (n, d) => `Puzzle #${n} is not out until ${d}. Here is today’s.`,
     badLink: 'That link did not work. Here is today’s puzzle.',
@@ -678,7 +681,7 @@ const STR = {
     startNote: 'The code appears when you press Start. The clock only runs while you can see it. The pause button next to the clock stops it.',
     toEasy: 'New here? Start with Easy instead',
     noNumbers: 'The keyboard shows no numbers here. The key shows them for one letter and costs 1 hint.',
-    impTip: 'Tip: start with a short word. Guess one letter and you know the shift for all of them.',
+    impTip: 'Tip: start with a short word. Guess one letter and you know the shift for all of them. Feel free to try letters in the boxes; you can type over any of them.',
     rotateTitle: 'Please turn your phone upright', rotateText: 'In landscape this screen is too small for the code and the keyboard. The clock is paused until you turn your phone back.',
     paused: 'Paused', pausedAt: t => `The clock is stopped at ${t}. The code stays hidden until you continue.`,
     pausedTab: 'This puzzle was last open in another tab.', pausedProgress: (c, n) => `${c} of ${n} words solved`, resume: 'Continue',
@@ -721,7 +724,7 @@ const STR = {
       streakNote: 'Your streak grows every day you solve at least one of that day’s puzzles. Next codes in', empty: 'Nothing solved yet. Your first puzzle is waiting.' },
     archive: { title: 'Archive', intro: 'Every puzzle so far, ready to replay. They count towards your statistics but not your streak.', today: 'Today',
       st: { solved: 'solved', revealed: 'revealed', playing: 'started', open: 'open' }, repeat: r => `Repeat of #${r}` },
-    settings: { title: 'Settings', theme: 'Theme', system: 'System', light: 'Light', dark: 'Dark', language: 'Language',
+    settings: { title: 'Settings', theme: 'Theme', system: 'System', light: 'Light', dark: 'Dark', themeNote: 'System: light or dark, matching the setting on your phone or computer.', language: 'Language',
       haptics: 'Haptic feedback', hapticsNote: 'On phones with every key press. On Android also for right and wrong words.',
       privacy: 'No account, no ads, no tracking. Your progress stays in this browser only. On another device or as a home screen app, your statistics start fresh.',
       intro: 'Show the quick start', done: 'Done' },
@@ -1757,7 +1760,7 @@ function renderSettings() {
     `<div><h3>${esc(t.language)}</h3>${langSeg('settingsLang')}</div>` +
     `<div><h3 id="themeLabel">${esc(t.theme)}</h3><div class="seg" role="radiogroup" aria-labelledby="themeLabel">` +
       [['system', t.system], ['light', t.light], ['dark', t.dark]].map(([v, l]) => `<label><input type="radio" name="theme" id="theme-${v}" value="${v}"${(store.theme || 'system') === v ? ' checked' : ''}><span>${esc(l)}</span></label>`).join('') +
-    '</div></div>' +
+    `</div><p class="small" style="margin-top:6px">${esc(t.themeNote)}</p></div>` +
     `<div class="row"><label for="hapticsToggle"><strong>${esc(t.haptics)}</strong><br><span class="small">${esc(t.hapticsNote)}</span></label><input type="checkbox" switch id="hapticsToggle"${store.haptics ? ' checked' : ''}></div>` +
     `<p class="small">${esc(t.privacy)}</p>` +
     '<div class="actions-row">' +
@@ -1850,6 +1853,16 @@ function afterDialog() {
   syncVeil();
   if (!dialogOpen() && !clock && day && ms(current).status === 'playing' && !paused) { ensureActive(); startClock(); }
   renderTimer();
+}
+
+// Seite vom Vortag wieder geöffnet (Tab oder App im Hintergrund): gleich das neue Rätsel zeigen.
+// Nicht, wenn man gerade ein Archivrätsel spielt oder mitten in einem Rätsel ist; dann bleibt der Hinweis mit „Jetzt spielen“.
+function newDayOnReturn() {
+  const t = realToday();
+  if (!day || t === openedOn || archive || dialogOpen() || ms(current).status === 'playing') return;
+  openedOn = t; $('#newday').hidden = true;
+  setView(t, false);
+  toast(T().newdayAuto(day.number));
 }
 
 function markSeen() { if (!store.seenHelp) { store.seenHelp = true; save(); } }
@@ -1994,10 +2007,10 @@ window.addEventListener('storage', e => {
 });
 document.addEventListener('visibilitychange', () => {
   if (document.hidden) { if (day && ms(current).status === 'playing' && !paused) pauseGame('hidden'); else stopClock(); }
-  else tick();
+  else { newDayOnReturn(); tick(); }
 });
 window.addEventListener('pagehide', () => { stopClock(); save(); });
-window.addEventListener('pageshow', e => { if (e.persisted && day && ms(current).status === 'playing' && !paused) pauseGame('hidden'); });
+window.addEventListener('pageshow', e => { if (!e.persisted || !day) return; newDayOnReturn(); if (ms(current).status === 'playing' && !paused) pauseGame('hidden'); });
 if (tinyLandscape.addEventListener) tinyLandscape.addEventListener('change', () => { if (tinyLandscape.matches && day && ms(current).status === 'playing' && !paused) pauseGame('rotate'); });
 let rz;
 window.addEventListener('resize', () => { cancelAnimationFrame(rz); rz = requestAnimationFrame(layoutBoard); });

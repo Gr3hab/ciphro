@@ -594,6 +594,74 @@ test('Serie: kurz vor Mitternacht angefangen, danach gelöst, zählt noch für d
   await page.context().close();
 });
 
+test('Neuer Tag: Wer die Seite vom Vortag wieder öffnet, landet beim neuen Rätsel, außer mitten im Spiel', async () => {
+  const back = p => p.evaluate(() => {
+    Object.defineProperty(document, 'hidden', { configurable: true, get: () => true }); document.dispatchEvent(new Event('visibilitychange'));
+    Object.defineProperty(document, 'hidden', { configurable: true, get: () => false }); document.dispatchEvent(new Event('visibilitychange'));
+  });
+  // Easy gestern gelöst, Seite über Nacht offen gelassen
+  let page = await openPage(env, { time: '2026-10-24T23:50:00+02:00' });
+  await page.click('#startBtn');
+  for (const w of solution(4, 'de', 'easy')) await typeWord(page, w);
+  await page.clock.runFor(11 * 60 * 1000);
+  await back(page);
+  assert.equal(await issueNumber(page), 5, 'neues Rätsel ohne Suchen');
+  assert.match(await page.textContent('#toast'), /Neuer Tag, neues Rätsel: #5/);
+  assert.equal(await page.isVisible('#newday'), false);
+  assert.equal(await page.isVisible('#archiveBar'), false);
+  noErrors(page);
+  await page.context().close();
+  // Mitten im Rätsel: nichts wird weggezogen, der Hinweis bleibt
+  page = await openPage(env, { time: '2026-10-24T23:50:00+02:00' });
+  await page.click('#startBtn');
+  await typeWord(page, solution(4, 'de', 'easy')[0]);
+  await page.clock.runFor(11 * 60 * 1000);
+  await back(page);
+  assert.equal(await issueNumber(page), 4);
+  assert.ok(await page.isVisible('#newday'));
+  await page.context().close();
+  // Archiv: Knopf sagt deutlich, wohin er führt
+  page = await openPage(env, { url: '?n=2' });
+  assert.equal((await page.textContent('#backToday')).trim(), 'Zum heutigen Rätsel');
+  await page.click('#backToday');
+  assert.equal(await issueNumber(page), 4);
+  await page.context().close();
+});
+
+test('Gelöste Wörter zeigen nur noch das Wort, die Zahlen darüber verschwinden', async () => {
+  const page = await openPage(env);
+  await page.click('#tab-hard');
+  await page.click('#startBtn');
+  const sol = solution(4, 'de', 'hard');
+  await typeWord(page, sol[0]);
+  const look = await page.evaluate(() => {
+    const vis = sel => getComputedStyle(document.querySelector(sel)).visibility;
+    const w = document.querySelector('.w[data-w="0"]'), lr = w.querySelector('.lr').getBoundingClientRect(), r = w.getBoundingClientRect();
+    return { solved: vis('.w[data-w="0"] .dr'), open: vis('.w[data-w="1"] .dr'), centred: Math.abs((lr.top + lr.bottom) / 2 - (r.top + r.bottom) / 2) < 2 };
+  });
+  assert.deepEqual(look, { solved: 'hidden', open: 'visible', centred: true });
+  // Auflösen: auch aufgelöste Wörter ohne Zahlen
+  await page.click('#revealBtn');
+  await page.click('#confirmYes');
+  assert.equal(await page.evaluate(() => [...document.querySelectorAll('.w .dr')].every(d => getComputedStyle(d).visibility === 'hidden')), true);
+  noErrors(page);
+  await page.context().close();
+});
+
+test('Einstellungen erklären „System“, Impossible ermuntert zum Ausprobieren', async () => {
+  let page = await openPage(env);
+  await page.click('#settingsBtn');
+  assert.match(await page.textContent('#settingsBody'), /System: hell oder dunkel, je nachdem, wie dein Handy oder Computer eingestellt ist/);
+  await page.keyboard.press('Escape');
+  await page.click('#tab-impossible');
+  assert.match(await page.textContent('#startCard'), /Probier ruhig Buchstaben in den Kästchen aus/);
+  await page.context().close();
+  page = await openPage(env, { locale: 'en-GB' });
+  await page.click('#settingsBtn');
+  assert.match(await page.textContent('#settingsBody'), /System: light or dark, matching the setting on your phone or computer/);
+  await page.context().close();
+});
+
 /* ------------------------------------------------------------ Vorrat erschöpft */
 test('Vorrat erschöpft: Wiederholung wird offen angezeigt', async () => {
   const last = NF.lastPlannedDay(), P = NF.plannedDays();
