@@ -83,6 +83,23 @@ test('Easy ist ab #17 der zweitkürzeste Satz, Impossible der kürzeste', () => 
   }
 });
 
+test('Ab #17 hat Easy in beiden Sprachen höchstens 8 Wörter, meist 5 bis 7', () => {
+  const words = s => s.split(/\s+/).filter(w => NF.symStr(w)).length;
+  const counts = [];
+  for (let i = NF.CONFIG.frozenDays; i < NF.plannedDays(); i++) {
+    const key = NF.addDays(NF.CONFIG.launchDate, i);
+    for (const lang of ['de', 'en']) {
+      const n = NF.buildDay(key, lang).puzzles.easy.words.length;
+      assert.ok(n <= 8, `#${i + 1} ${lang.toUpperCase()}: Easy hat ${n} Wörter`);
+      counts.push(n);
+    }
+  }
+  const ideal = counts.filter(n => n >= 5 && n <= 7).length / counts.length;
+  assert.ok(ideal >= 0.9, `nur ${Math.round(ideal * 100)} % der Easy-Sätze haben 5 bis 7 Wörter`);
+  const bad = check().filter(p => /Easy-Satz/.test(p.msg) && p.level === 'fehler');
+  assert.deepEqual(bad.map(p => p.msg), []);
+});
+
 test('Kein Wort ist breiter als ein kleines Handy (360 px)', () => {
   const bad = check().filter(p => /umbrechen/.test(p.msg));
   assert.deepEqual(bad.map(p => `${p.id}: ${p.msg}`), []);

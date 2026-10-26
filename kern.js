@@ -199,6 +199,15 @@ function checkFacts(today) {
     const four = L.slice(d * 4, d * 4 + 4), topics = four.map(f => f && f.thema);
     topics.forEach((t, j) => { if (topics.indexOf(t) !== j) out.push({ i: d * 4 + j, id: four[j].id, level: 'hinweis', msg: `#${d + 1}: Thema „${t}“ kommt an diesem Tag mehrfach vor` }); });
   }
+  // Ab #17: Easy ist der Einstieg und soll kurz sein. Ziel 5 bis 7 Wörter, höchstens 8, in beiden Sprachen.
+  const words = s => String(s).split(/\s+/).filter(w => symStr(w)).length;
+  for (let d = CONFIG.frozenDays; d < plannedDays(); d++) {
+    const e = assignment(d, 'de')[0];
+    if (!e || !Array.isArray(e.de) || !Array.isArray(e.en)) continue;
+    const n = Math.max(words(e.de[0]), words(e.en[0]));
+    if (n > 8) out.push({ i: L.indexOf(e), id: e.id, level: 'fehler', msg: `#${d + 1}: Der Easy-Satz hat ${n} Wörter (Ziel 5 bis 7, höchstens 8). Einen Fakt dieses Tages gegen einen mit weniger Wörtern tauschen.` });
+    else if (n === 8) out.push({ i: L.indexOf(e), id: e.id, level: 'hinweis', msg: `#${d + 1}: Der Easy-Satz hat 8 Wörter (Ziel 5 bis 7).` });
+  }
   if (today) {
     const left = dayIndex(lastPlannedDay()) - dayIndex(today) + 1;
     if (left < CONFIG.warnDays) out.push({ i: -1, id: null, level: left < 1 ? 'fehler' : 'hinweis', msg: left < 1 ? 'Der Faktenvorrat ist aufgebraucht. Es laufen Wiederholungen.' : `Der Faktenvorrat reicht nur noch ${left} Tage (bis ${lastPlannedDay()}).` });

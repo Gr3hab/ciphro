@@ -23,6 +23,7 @@ Jeder Tag braucht vier Fakten. Sie stehen alle in `fakten.js` im Hauptordner, in
 - Keine Ziffern, Kommas, Bindestriche, Apostrophe. Zahlen ausschreiben („vierzig“). Sätze mit Nebensatz so umbauen, dass kein Komma nötig ist.
 - Ä, Ö, Ü und ß nur im Deutschen. Im Englischen auch kein „it's“ oder „Earth's“ („of the Earth“ schreiben).
 - Kurz halten: am besten 25 bis 45 Buchstaben. Der zweitkürzeste Satz eines Tages wird Easy, der kürzeste Impossible.
+- **Easy ist der Einstieg:** Der Easy-Satz soll 5 bis 7 Wörter haben, höchstens 8, auf Deutsch und auf Englisch. Bei mehr meldet die Prüfseite einen Fehler. Dann einen der vier Fakten dieses Tages gegen einen mit weniger Wörtern tauschen. Gute Easy-Sätze sind auch ohne Vorwissen sofort klar.
 - Keine sehr langen Wörter (mehr als etwa 16 Buchstaben, z. B. „Oberschenkelknochen“). Sie passen auf kleinen Handys nicht in eine Zeile. Die Prüfseite meldet das.
 - Die Erklärung darf alles enthalten (Zahlen, Kommas). Sie sollte in zwei, drei Sätzen erklären, warum das stimmt.
 
@@ -41,7 +42,7 @@ Jeder Tag braucht vier Fakten. Sie stehen alle in `fakten.js` im Hauptordner, in
 - Woher jeder Fakt stammt und was an welcher Stelle der Quelle steht, ist in `QUELLENPRUEFUNG.md` festgehalten. Neue Fakten dort ebenfalls eintragen.
 - Einträge von Tagen, die schon erschienen sind, **nie umsortieren, löschen oder im Satz ändern**. Sonst ändern sich Rätsel, die Leute schon gespielt haben. Die automatischen Tests verhindern das.
 - Ein Fehler in der Erklärung eines veröffentlichten Fakts darf korrigiert werden. Im Pull Request begründen und in `QUELLENPRUEFUNG.md` eintragen.
-- Künftige Tage dürfen umgestellt werden, zum Beispiel für eine bessere Themenmischung. Der Faktenbericht im GitHub-Lauf listet jede Änderung am Fahrplan auf, damit nichts unbemerkt passiert.
+- Künftige Tage dürfen umgestellt werden, zum Beispiel für eine bessere Themenmischung oder kürzere Easy-Sätze (so geschehen am 25. Oktober 2026 für #17 bis #106). Der Faktenbericht im GitHub-Lauf listet jede Änderung am Fahrplan auf, damit nichts unbemerkt passiert.
 
 ## Prüfen
 
