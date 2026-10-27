@@ -29,7 +29,7 @@ GitHub Pages veröffentlicht Ordner, die mit `_` beginnen, nicht. Die Prüfseite
 - `…/numfact/?n=4&m=easy` öffnet #4, Stufe Easy. `m` ist `easy`, `hard`, `mirror` oder `impossible`.
 - `…/numfact/en/?n=4&m=easy` dasselbe auf Englisch. `?lang=en` funktioniert weiterhin.
 - Ein Link auf ein Rätsel, das in der eigenen Zeitzone noch nicht erschienen ist, öffnet das heutige Rätsel mit einem Hinweis, wann es erscheint.
-- Die Linkvorschau (WhatsApp & Co.) sagt auf Deutsch, was NUMIGMA ist und dass es kostenlos ist, ohne Anmeldung und ohne Werbung. Das Bild `og-de.png` hat den deutschen Slogan „Knack den Code. Entdeck den Fakt.“ `en/` hat eine eigene englische Vorschau mit `og-en.png`.
+- Die Linkvorschau (WhatsApp & Co.) sagt auf Deutsch, was NUMIGMA ist und dass es kostenlos ist, ohne Anmeldung und ohne Werbung. Das Bild `og-de.png` hat den deutschen Slogan „Knacke den Code. Entdecke den Fakt.“ `en/` hat eine eigene englische Vorschau mit `og-en.png`.
 
 ## Regeln für die Uhr
 

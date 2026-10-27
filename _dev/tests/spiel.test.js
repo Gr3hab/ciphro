@@ -110,9 +110,9 @@ test('Linkvorschau: Deutsch sagt klar, was das ist und dass es kostenlos ist; je
   assert.equal(meta('en/index.html', 'og:locale'), 'en_GB');
   // Jede Sprache hat ihr eigenes Bild (deutscher bzw. englischer Slogan), beide 1200×630 und tatsächlich vorhanden
   const base = 'https://gr3hab.github.io/numfact/';
-  assert.equal(meta('index.html', 'og:image'), base + 'og-de.png');
+  assert.equal(meta('index.html', 'og:image'), base + 'og-de.png?v=2');   // ?v= erhöhen, wenn sich das Bild ändert
   assert.equal(meta('en/index.html', 'og:image'), base + 'og-en.png');
-  assert.equal(meta('index.html', 'og:image:alt'), 'NUMIGMA: Knack den Code. Entdeck den Fakt.');
+  assert.equal(meta('index.html', 'og:image:alt'), 'NUMIGMA: Knacke den Code. Entdecke den Fakt.');
   assert.equal(meta('en/index.html', 'og:image:alt'), 'NUMIGMA: Crack the code. Reveal the fact.');
   for (const f of ['og-de.png', 'og-en.png']) {
     const png = fs.readFileSync(path.join(root, f));

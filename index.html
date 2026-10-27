@@ -5,18 +5,19 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>NUMIGMA · Crack the code. Reveal the fact.</title>
 <!-- Linkvorschau (WhatsApp & Co.): Wer den Link bekommt, weiß sonst nicht, was ihn erwartet. Deshalb auf Deutsch, klar und mit „kostenlos“.
-     Bild og-de.png mit deutschem Slogan. Englische Links (/en/) haben eine eigene Vorschau mit og-en.png. Neue Bildnamen, weil WhatsApp Bilder zwischenspeichert. -->
-<meta name="description" content="Das tägliche Zahlenrätsel: Jede Zahl ist ein Buchstabe. Knack den Code, dahinter steckt ein wahrer Fakt. Kostenlos, ohne Anmeldung, ohne Werbung.">
+     Bild og-de.png mit deutschem Slogan. Englische Links (/en/) haben eine eigene Vorschau mit og-en.png. Neue Bildnamen, weil WhatsApp Bilder zwischenspeichert;
+     ändert sich ein Bild, ?v= erhöhen (seit 27.10.2026 v=2: „Knacke den Code. Entdecke den Fakt.“). -->
+<meta name="description" content="Das tägliche Zahlenrätsel: Jede Zahl ist ein Buchstabe. Knacke den Code, dahinter steckt ein wahrer Fakt. Kostenlos, ohne Anmeldung, ohne Werbung.">
 <meta property="og:site_name" content="NUMIGMA">
 <meta property="og:title" content="NUMIGMA · Das tägliche Zahlenrätsel">
-<meta property="og:description" content="Jede Zahl ist ein Buchstabe. Knack den Code, dahinter steckt ein wahrer Fakt. Kostenlos, ohne Anmeldung, ohne Werbung.">
+<meta property="og:description" content="Jede Zahl ist ein Buchstabe. Knacke den Code, dahinter steckt ein wahrer Fakt. Kostenlos, ohne Anmeldung, ohne Werbung.">
 <meta property="og:locale" content="de_AT">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://gr3hab.github.io/numfact/">
-<meta property="og:image" content="https://gr3hab.github.io/numfact/og-de.png">
+<meta property="og:image" content="https://gr3hab.github.io/numfact/og-de.png?v=2">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="NUMIGMA: Knack den Code. Entdeck den Fakt.">
+<meta property="og:image:alt" content="NUMIGMA: Knacke den Code. Entdecke den Fakt.">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="theme-color" content="#f2f4f7" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#111715" media="(prefers-color-scheme: dark)">
@@ -639,14 +640,14 @@ const STR = {
     shareDlg: { title: 'Ergebnis teilen', note: 'Automatisches Kopieren klappt hier nicht. Der Text ist markiert, du kannst ihn selbst kopieren.', done: 'Fertig' },
     intro: {
       eyebrow: 'Das tägliche Zahlenrätsel', free: 'Kostenlos, ohne Anmeldung, ohne Werbung.',
-      title: 'Knack den Code', lead: 'Jede Zahl ist ein Buchstabe: A = 1, B = 2, C\u00a0=\u00a03\u00a0…',
+      title: 'Knacke den Code', lead: 'Jede Zahl ist ein Buchstabe: A = 1, B = 2, C\u00a0=\u00a03\u00a0…',
       task: 'Probier es aus: Welches Wort ist das? Die kleinen Zahlen auf den Tasten helfen dir.', word: 'EIS', keys: [...'AEHIRS'], wrong: c => `Gesucht ist die ${c}. Schau auf die kleinen Zahlen.`,
       won: 'Geknackt! Genau so geht’s.', wonMore: 'Jeden Tag gibt es vier neue Codes, von Easy bis Impossible. Hinter jedem steckt ein kurzer, wahrer Fakt.',
       go: 'Zum Rätsel von heute', goTo: n => `Zum Rätsel #${n}`, skip: 'Überspringen', rules: 'Alle Regeln', aria: n => `Übungs-Code ${n}`
     },
     help: {
       title: 'So funktioniert’s',
-      lead: 'Jede Zahl steht für einen Buchstaben. Knack den Code und du erfährst einen wahren Fakt. Jeden Tag vier neue.',
+      lead: 'Jede Zahl steht für einen Buchstaben. Knacke den Code und du erfährst einen wahren Fakt. Jeden Tag vier neue.',
       sections: [
         ['Die vier Stufen', '<ul><li><strong>Easy:</strong> A&nbsp;=&nbsp;1 … Z&nbsp;=&nbsp;26. Jede Zahl hat ihr eigenes Kästchen.</li><li><strong>Hard:</strong> dieselben Zahlen, aber ohne Trennung. 1 1 kann K sein oder AA.</li><li><strong>Mirror:</strong> rückwärts, A&nbsp;=&nbsp;26 … Z&nbsp;=&nbsp;1, ohne Trennung.</li><li><strong>Impossible:</strong> Das Alphabet ist um eine geheime Zahl verschoben, ohne Trennung.</li></ul><p>Die Kästchen verraten immer, wie viele Buchstaben ein Wort hat. Ä&nbsp;=&nbsp;27, Ö&nbsp;=&nbsp;28, Ü&nbsp;=&nbsp;29, ß&nbsp;=&nbsp;30, in jeder Stufe gleich. Du kannst auch ae, oe, ue oder ss tippen.</p>'],
         ['Tippen und korrigieren', '<p>Tippe ein Kästchen an und schreibe mit der Tastatur. Jedes Kästchen lässt sich einzeln überschreiben. Ein volles, aber falsches Wort wird rot und gestrichelt umrandet. Richtige Wörter werden grün markiert. Der Pfeil springt zum nächsten Wort.</p><p>Am Computer: Buchstaben tippen, Pfeiltasten, Enter für das nächste Wort, Rücktaste.</p>'],
