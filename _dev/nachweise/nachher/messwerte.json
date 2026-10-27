@@ -9,7 +9,7 @@
  "320 px: Tastenbreite px": 25.6,
  "320-de-hell Code bei offenem Dialog sichtbar": false,
  "320-de-hell Anleitung Höhe px (zugeklappt)": 540,
- "Hilfe-Farben: Teilen-Text nach Schlüssel (Wort 1) und überschriebenem Tipp (Wort 2)": "NUMIGMA #4 · Hard ⏱ 0:02\n🟨🟨🟩🟩🟩🟩🟩\nSchlägst du meine Zeit? https://gr3hab.github.io/numfact/?n=4&m=hard",
+ "Hilfe-Farben: Teilen-Text nach Schlüssel (Wort 1) und überschriebenem Tipp (Wort 2)": "NUMIGMA #4 · Hard ⏱ 0:03\n🟨🟨🟩🟩🟩🟩🟩\nSchlägst du meine Zeit? https://gr3hab.github.io/numfact/?n=4&m=hard",
  "pruefen.html HTTP-Status (Hauptordner)": 404,
  "_dev/tools/pruefen.html HTTP-Status": 404,
  "Zuordnung DE/EN und Buchstaben (106 Tage)": {
@@ -23,10 +23,10 @@
    14
   ],
   "avgLetters": {
-   "easy": 38,
-   "hard": 48,
+   "easy": 37,
+   "hard": 47,
    "mirror": 41,
-   "impossible": 29
+   "impossible": 31
   }
  }
 }

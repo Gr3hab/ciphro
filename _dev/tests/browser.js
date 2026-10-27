@@ -19,7 +19,7 @@ async function openPage(env, opt = {}) {
     viewport: { width: opt.width || 390, height: opt.height || 844 },
     locale: opt.locale || 'de-AT', colorScheme: opt.scheme || 'light',
     timezoneId: opt.timezone || 'Europe/Vienna', serviceWorkers: opt.sw ? 'allow' : 'block',
-    hasTouch: !!opt.mobile, isMobile: !!opt.mobile, reducedMotion: 'reduce',
+    hasTouch: !!opt.mobile, isMobile: !!opt.mobile, reducedMotion: opt.motion ? 'no-preference' : 'reduce',
     ...(opt.ua ? { userAgent: opt.ua } : {}),
     permissions: opt.clipboard ? ['clipboard-read', 'clipboard-write'] : []
   });

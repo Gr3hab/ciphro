@@ -648,6 +648,81 @@ test('Gelöste Wörter zeigen nur noch das Wort, die Zahlen darüber verschwinde
   await page.context().close();
 });
 
+test('Gelöste Rätsel öffnen sich ohne Zahlen-Animation, nur frisch gelöste Wörter blenden sanft über', async () => {
+  const page = await openPage(env, { motion: true });
+  await page.click('#startBtn');
+  const sol = solution(4, 'de', 'easy');
+  await typeWord(page, sol[0]);
+  const fresh = await page.evaluate(() => getComputedStyle(document.querySelector('.w[data-w="0"] .dr')).transitionDuration);
+  assert.notEqual(fresh.replace(/0s,?\s*/g, ''), '', 'beim frischen Lösen gibt es einen Übergang');
+  for (const w of sol.slice(1)) await typeWord(page, w);
+  await page.click('#tab-hard');
+  await page.click('#tab-easy');
+  const reopened = await page.evaluate(() => [...document.querySelectorAll('.w .dr')].map(d => { const c = getComputedStyle(d); return c.visibility + '/' + c.opacity + '/' + c.transitionDuration; }));
+  assert.ok(reopened.every(x => x === 'hidden/0/0s'), reopened.join(' '));
+  noErrors(page);
+  await page.context().close();
+});
+
+test('Schnell tippen: nach einem vollen, falschen Wort geht es im nächsten weiter; Antippen und Überschreiben bleibt', async () => {
+  let page = await openPage(env);
+  await page.click('#startBtn');
+  const typed = async () => (await state(page, K4, 'easy')).typed;
+  await page.keyboard.type('EIX');                       // EIN mit Tippfehler: Wort voll und rot
+  assert.ok(await page.isVisible('.w[data-w="0"].bad'));
+  await page.keyboard.type('ZU');                        // wer weitertippt, meint das nächste Wort
+  assert.deepEqual((await typed()).slice(0, 2), ['EIX', 'ZU']);
+  assert.ok(await page.isVisible('#coach'), 'Hinweis zum Korrigieren erscheint');
+  await page.click('.c[data-w="0"][data-i="2"]');        // Kästchen antippen und überschreiben
+  await page.keyboard.type('N');
+  assert.equal((await typed())[0], 'EIN');
+  assert.equal(await page.isVisible('#coach'), false, 'Hinweis verschwindet, wenn das Wort stimmt');
+  assert.equal(await page.getAttribute('.w[data-w="1"]', 'aria-current'), 'true', 'weiter im angefangenen Wort');
+  await page.keyboard.type('CKERWUERFEL');
+  assert.equal((await typed())[1], 'ZUCKERWÜRFEL');
+  // Antippen des letzten Kästchens eines vollen, falschen Worts: Überschreiben, nicht springen
+  await page.keyboard.type('NEUTRONENSTERX');
+  await page.click('.c[data-w="2"][data-i="13"]');
+  await page.keyboard.type('Q');
+  assert.equal((await typed())[2], 'NEUTRONENSTERQ');
+  assert.equal(await page.getAttribute('.w[data-w="2"]', 'aria-current'), 'true');
+  await page.context().close();
+  // „ss“ am Wortende wird weiterhin zu ß (#20, Impossible: HIEß)
+  page = await openPage(env, { time: '2026-11-09T10:00:00+01:00' });
+  await page.click('#tab-impossible');
+  await page.click('#startBtn');
+  await page.click('.c[data-w="3"][data-i="0"]');
+  await page.keyboard.type('HIESS');
+  const s = await state(page, '2026-11-09', 'impossible');
+  assert.equal(s.typed[3], 'HIEß');
+  assert.ok(await page.isVisible('.w[data-w="3"].ok'));
+  await page.context().close();
+});
+
+test('Archivleiste ist kurz und der Knopf passt daneben; das Ergebnis sagt, dass Archivrätsel nicht für die Serie zählen', async () => {
+  let page = await openPage(env, { url: '?n=2&m=easy', width: 412, height: 800 });
+  assert.equal((await page.textContent('#archiveText')).trim(), 'Archiv: #2 vom Do., 22. Okt.');
+  const h = await page.evaluate(() => Math.round(document.getElementById('archiveBar').getBoundingClientRect().height));
+  assert.ok(h <= 52, `Archivleiste ${h} px hoch`);
+  await page.click('#startBtn');
+  for (const w of solution(2, 'de', 'easy')) await typeWord(page, w);
+  assert.match(await page.textContent('#result'), /Archivrätsel zählen nicht für die Serie\./);
+  assert.doesNotMatch(await page.textContent('#result'), /Deine Serie/);
+  await page.context().close();
+  // Rätsel von heute: Serie statt Archiv-Hinweis; Englisch
+  page = await openPage(env);
+  await page.click('#startBtn');
+  for (const w of solution(4, 'de', 'easy')) await typeWord(page, w);
+  assert.match(await page.textContent('#result'), /Deine Serie: 1 Tag/);
+  assert.doesNotMatch(await page.textContent('#result'), /Archivrätsel/);
+  await page.context().close();
+  page = await openPage(env, { url: '?n=2&m=easy', locale: 'en-GB' });
+  await page.click('#startBtn');
+  for (const w of solution(2, 'en', 'easy')) await typeWord(page, w);
+  assert.match(await page.textContent('#result'), /Archive puzzles do not count towards your streak\./);
+  await page.context().close();
+});
+
 test('Einstellungen erklären „System“, Impossible ermuntert zum Ausprobieren', async () => {
   let page = await openPage(env);
   await page.click('#settingsBtn');

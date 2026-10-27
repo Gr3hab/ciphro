@@ -104,9 +104,10 @@ a{color:var(--ink)}
 .banners{flex:none;display:flex;flex-direction:column}
 .banners > :not([hidden]){margin-bottom:8px}
 .banner{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;padding:8px 10px;border:1.5px solid var(--ink);border-radius:var(--r);background:var(--sheet);font-size:.92rem;font-weight:700}
-.banner > span{flex:1 1 180px}
+.banner > span{flex:1 1 150px}
 .banner.archive,.banner.note{border-color:var(--line);font-weight:400}
-.banner .btn{min-height:34px;padding:4px 12px}
+.banner .btn{min-height:34px;padding:4px 10px;font-size:.88rem}
+.banner.archive{padding:5px 6px 5px 10px}
 .banner .countdown{font-size:.92em}
 
 /* Stufen */
@@ -172,8 +173,11 @@ a{color:var(--ink)}
 .w.ok.helped .lr::after{content:"";position:absolute;right:-4px;top:-3px;width:7px;height:7px;border-radius:50%;background:var(--marker-text);opacity:.55}
 .w.given .c{color:var(--pencil);box-shadow:inset 0 -2px 0 0 var(--pencil);background:transparent}
 /* Gelöste und aufgelöste Wörter: Die Zahlen verschwinden, das Wort rückt in die Mitte. Größe bleibt gleich, damit nichts verrutscht. */
-.w.ok .dr,.w.given .dr{opacity:0;visibility:hidden;transition:opacity .2s .35s,visibility 0s .55s}
-.w.ok .lr,.w.given .lr{transform:translateY(calc(var(--cell) * -.5));transition:transform .2s .35s}
+.w.ok .dr,.w.given .dr{opacity:0;visibility:hidden}
+.w.ok .lr,.w.given .lr{transform:translateY(calc(var(--cell) * -.5))}
+/* Nur beim frischen Lösen sanft: erst der Marker, dann verschwinden die Zahlen. Beim Öffnen eines gelösten Rätsels steht alles sofort. */
+.w.ok.flash .dr{transition:opacity .15s .25s,visibility 0s .4s}
+.w.ok.flash .lr{transition:transform .2s .4s}
 .w.locked{cursor:default}
 .w.flash::before{animation:swipe .45s ease-out both}
 .w.shake{animation:shake .32s ease-in-out}
@@ -220,6 +224,7 @@ a{color:var(--ink)}
 .result .eyebrow{margin-bottom:6px}
 .result .daydone{margin:0;font-weight:700}
 .result .streak{margin:0;font-size:.92rem}
+.result .streak.note{color:var(--muted)}
 .result .actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:2px}
 .countdown{font-family:var(--display);font-weight:700;font-variant-numeric:tabular-nums;color:var(--ink)}
 
@@ -251,9 +256,10 @@ a{color:var(--ink)}
 .confirm,.coach{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:10px 12px;border:1px solid var(--red);border-radius:var(--r);background:var(--sheet)}
 .confirm.calm,.coach{border-color:var(--ink)}
 .confirm span,.coach span{flex:1 1 200px;font-size:.92rem}
-.coach span{flex-basis:140px}
+.coach{padding:7px 10px;gap:6px 8px}
+.coach span{flex-basis:140px;font-size:.88rem;line-height:1.35}
 .confirm .btn,.coach .btn{min-height:38px}
-.coach .btn{padding-inline:12px}
+.coach .btn{padding-inline:12px;min-height:34px}
 
 .kb{display:flex;flex-direction:column;gap:6px;user-select:none;-webkit-user-select:none}
 .kr{display:flex;gap:4px}
@@ -420,7 +426,7 @@ textarea{width:100%;font:inherit;font-size:.95rem;padding:10px;border:1px solid 
 @media (min-width:640px) and (min-height:521px){ .modes .mode .n{font-size:.95rem} }
 @media (prefers-reduced-motion: reduce){
   .w.shake,.w.flash::before,.demo2 .hl{animation:none}
-  .w.ok .c,.w.ok .d,.w.ok .dr,.w.given .dr,.w.ok .lr,.w.given .lr{transition:none}
+  .w.ok .c,.w.ok .d,.w.ok.flash .dr,.w.ok.flash .lr{transition:none}
 }
 @media (forced-colors: active){
   .w.ok::before,.w.given::before{border:2px solid CanvasText;background:Canvas}
@@ -570,7 +576,7 @@ const STR = {
   de: {
     locale: 'de-AT',
     issue: (n, d) => `#${n} · ${d}`,
-    archiveBar: (n, d, r) => `Archiv: #${n} vom ${d}${r ? ` (Wiederholung von #${r})` : ''}. Zählt nicht für die Serie.`,
+    archiveBar: (n, d, r) => `Archiv: #${n} vom ${d}${r ? ` (Wiederholung von #${r})` : ''}`,
     repeatBar: r => `Heute: Wiederholung von #${r}. Neue Fakten sind in Arbeit.`,
     backToday: 'Zum heutigen Rätsel', newday: 'Ein neues Rätsel ist da.', newdayBtn: 'Jetzt spielen', newdayAuto: n => `Neuer Tag, neues Rätsel: #${n}`,
     futureSoon: (n, t) => `Rätsel #${n} erscheint bei dir in ${t}. Bis dahin: das heutige.`,
@@ -618,7 +624,7 @@ const STR = {
     source: 'Quelle', sources: 'Quellen',
     share: 'Ergebnis teilen', next: m => `Weiter mit ${m}`, statsBtn: 'Statistik',
     dayDone: 'Alle vier Codes für heute erledigt. Neue Codes in',
-    streak: n => n === 1 ? 'Deine Serie: 1 Tag' : `Deine Serie: ${n} Tage`,
+    streak: n => n === 1 ? 'Deine Serie: 1 Tag' : `Deine Serie: ${n} Tage`, archiveNoStreak: 'Archivrätsel zählen nicht für die Serie.',
     copied: 'Ergebnis kopiert. Jetzt in WhatsApp & Co. einfügen', copiedBtn: 'Kopiert ✓',
     stats: { title: 'Statistik', played: 'Rätseltage', streak: 'Serie', best: 'Beste Serie', cracked: 'Codes geknackt', byMode: 'Nach Stufe', solved: 'Gelöst', clean: 'Ohne Hilfe', bestTime: 'Bestzeit*', week: 'Letzte 7 Tage',
       weekSr: (d, s) => `${d}: ${s} von 4 am selben Tag gelöst`,
@@ -668,7 +674,7 @@ const STR = {
   en: {
     locale: 'en-GB',
     issue: (n, d) => `#${n} · ${d}`,
-    archiveBar: (n, d, r) => `Archive: #${n} from ${d}${r ? ` (repeat of #${r})` : ''}. Does not count towards your streak.`,
+    archiveBar: (n, d, r) => `Archive: #${n} from ${d}${r ? ` (repeat of #${r})` : ''}`,
     repeatBar: r => `Today: a repeat of #${r}. New facts are on the way.`,
     backToday: 'Today’s puzzle', newday: 'A new puzzle is out.', newdayBtn: 'Play now', newdayAuto: n => `New day, new puzzle: #${n}`,
     futureSoon: (n, t) => `Puzzle #${n} arrives for you in ${t}. Until then, here is today’s.`,
@@ -716,7 +722,7 @@ const STR = {
     source: 'Source', sources: 'Sources',
     share: 'Share result', next: m => `Next: ${m}`, statsBtn: 'Statistics',
     dayDone: 'All four codes done for today. New codes in',
-    streak: n => n === 1 ? 'Your streak: 1 day' : `Your streak: ${n} days`,
+    streak: n => n === 1 ? 'Your streak: 1 day' : `Your streak: ${n} days`, archiveNoStreak: 'Archive puzzles do not count towards your streak.',
     copied: 'Result copied. Paste it into WhatsApp or anywhere else', copiedBtn: 'Copied ✓',
     stats: { title: 'Statistics', played: 'Puzzle days', streak: 'Streak', best: 'Best streak', cracked: 'Codes cracked', byMode: 'By level', solved: 'Solved', clean: 'No help', bestTime: 'Best time*', week: 'Last 7 days',
       weekSr: (d, s) => `${d}: ${s} of 4 solved on the day`,
@@ -993,7 +999,7 @@ function renderHeader() {
   $('#issue').textContent = t.issue(day.number, dateLabel(day.key));
   $('#archiveBar').hidden = !archive && !day.repeatOf;
   $('#backToday').hidden = !archive;
-  if (archive) $('#archiveText').textContent = t.archiveBar(day.number, dateLabel(day.key, 'long'), day.repeatOf);
+  if (archive) $('#archiveText').textContent = t.archiveBar(day.number, dateLabel(day.key), day.repeatOf);
   else if (day.repeatOf) $('#archiveText').textContent = t.repeatBar(day.repeatOf);
   document.title = archive ? `${name} #${day.number}` : `${name} · ${CONFIG.tagline}`;
   renderNotice();
@@ -1233,6 +1239,8 @@ function renderResult() {
     `<p class="more">${esc(p.fact.m)}</p>` +
     (src.length ? `<p class="src">${esc(src.length > 1 ? t.sources : t.source)}: ${src.map(x => `<a href="${esc(x.url)}" target="_blank" rel="noopener noreferrer">${esc(x.name || hostOf(x.url))}</a>`).join(' · ')}</p>` : '') +
     (streak ? `<p class="streak">${esc(t.streak(streak))}</p>` : '') +
+    // Wer über einen alten Link kommt, sieht hier, warum die Serie nicht wächst (die Archivleiste bleibt kurz)
+    (archive ? `<p class="streak note">${esc(t.archiveNoStreak)}</p>` : '') +
     (allDone && !archive ? `<p class="daydone">${esc(t.dayDone)} <span class="countdown" data-countdown></span>.</p>` : '') +
     '<div class="actions">' +
       `<button class="btn primary" type="button" data-act="share">${ICON.share}${esc(t.share)}</button>` +
@@ -1373,6 +1381,13 @@ function typeLetter(L) {
   if (aw == null) return;
   justAdvanced = false;
   const wi = aw, target = lettersOf(wi), n = target.length, cells = cellsOf(s, wi);
+  // Wort voll, aber falsch, und eben das letzte Kästchen getippt: Wer weitertippt, meint das nächste Wort.
+  // Wer ein Kästchen antippt, um es zu korrigieren, überschreibt es wie bisher; „ae“ → Ä geht weiterhin.
+  const digraph = lastIn && lastIn.w === wi && cur === lastIn.next && DIGRAPH[target[lastIn.i]] === lastIn.L + L && cells[lastIn.i] === lastIn.L;
+  if (!digraph && lastIn && lastIn.w === wi && lastIn.i === n - 1 && cur === n - 1 && cells.every(Boolean)) {
+    const nx = nextUnsolved(wi);
+    if (nx >= 0 && nx !== wi) { select(nx, null); return typeLetter(L); }
+  }
   // Bezahlter Schlüssel gilt für genau diesen Buchstaben: Das Wort zählt als „mit Hilfe“
   if (s.keyOpen) { s.keyOpen = false; markHelped(s, wi); renderKeyboard(); renderTools(); }
   // „ae“ → Ä, „ss“ → ß usw., wenn das vorige Kästchen so ein Buchstabe sein soll
@@ -1394,6 +1409,7 @@ function typeLetter(L) {
   cur = nextCursor(cells, at, n);
   lastIn = { w: wi, i: at, L, next: cur };
   setCells(s, wi, cells);
+  if (coachKind === 'first') hideCoach();   // Wer tippt, hat es verstanden
   afterEdit(wi, true);
 }
 
@@ -1401,7 +1417,7 @@ function afterEdit(wi, typed) {
   const s = ms(current), cells = cellsOf(s, wi), t = T();
   if (isSolvedW(wi, s)) {
     flash(wi); buzz('ok');
-    if (coachKind === 'first') { $('#coach').hidden = true; coachKind = null; }
+    if (coachKind === 'first' || coachKind === 'fix') hideCoach();
     announce(t.sayWordOk(wi + 1, puz().words[wi].show.replace(/[.]+$/, '')));
     if (allSolved()) { save(); return complete('solved'); }
     const nx = nextUnsolved(wi);
@@ -1536,6 +1552,7 @@ function openConfirm(kind) {
 function closeConfirm() { confirmKind = null; $('#confirm').hidden = true; $('#tools').hidden = false; }
 
 let coachKind = null;
+function hideCoach() { $('#coach').hidden = true; coachKind = null; }
 function coach(kind) {
   if (store.coach[kind]) return;
   store.coach[kind] = true; save();
