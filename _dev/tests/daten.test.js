@@ -5,22 +5,27 @@ const assert = require('node:assert/strict');
 const fs = require('fs');
 const path = require('path');
 const { execFileSync } = require('child_process');
-const { ROOT, loadNF, rawFacts, loadBase, latestLiveKey, loadFromSources } = require('./helpers');
+const { ROOT, loadNF, rawFacts, rawParked, loadBase, latestLiveKey, loadFromSources } = require('./helpers');
 
 const NF = loadNF();
 const F = rawFacts();
+const PARKED = rawParked();
 const SNAP = JSON.parse(fs.readFileSync(path.join(__dirname, 'veroeffentlicht-1-16.json'), 'utf8'));
 const MODES = Array.from(NF.MODES, m => m.id);
 // Ergebnisse aus kern.js stammen aus einer eigenen JavaScript-Umgebung: für Vergleiche in normale Werte umwandeln
 const plain = x => JSON.parse(JSON.stringify(x));
 const check = today => plain(NF.checkFacts(today));
+// Ab #9 stehen Umlaute als AE, OE, UE, SS in den Kästchen. So sieht ein älterer Code-Stand nach der Umstellung aus:
+const az = sig => sig.replace(/[ÄÖÜß]/g, c => NF.DIGRAPH[c]);
+const AZ_FROM = NF.dayIndex(NF.CONFIG.lettersFrom) + 1;   // Rätselnummer, ab der nur A–Z gilt (#9)
 
 test('Faktenliste lädt und hat feste, fortlaufende IDs', () => {
   assert.ok(Array.isArray(F) && F.length >= 64, 'NUMIGMA_FACTS fehlt oder ist zu kurz');
-  const ids = F.map(f => f.id);
+  // Eingeplante und geparkte Fakten zusammen: keine ID doppelt, keine verloren
+  const ids = [...F, ...PARKED].map(f => f.id);
   assert.equal(new Set(ids).size, ids.length, 'doppelte IDs');
   ids.forEach(id => assert.match(id, /^n\d{3,}$/));
-  // Neue Fakten werden hinten angehängt und bekommen die nächste Nummer. Die Reihenfolge in der Liste darf ab #17 abweichen.
+  // Neue Fakten werden hinten angehängt und bekommen die nächste Nummer. Die Reihenfolge in der Liste darf ab #9 abweichen.
   const nums = ids.map(id => +id.slice(1)).sort((a, b) => a - b);
   nums.forEach((n, i) => assert.equal(n, i + 1, `ID-Lücke bei n${String(i + 1).padStart(3, '0')}`));
 });
@@ -37,14 +42,42 @@ test('Quellen haben Name und https-Adresse', () => {
   }));
 });
 
-test('Veröffentlichte Rätsel #1–#16 sind unverändert (Deutsch und Englisch)', () => {
+test('Veröffentlichte Rätsel #1–#8 behalten Sätze, Stufen und Verschiebung (Umlaute seit 28.10.2026 als AE, OE, UE, SS)', () => {
+  // Am 28.10.2026 bekamen #9–#16 neue Fakten ohne Umlaute (vorher eingefroren, aber noch nicht erschienen),
+  // und in #1–#8 stehen Ä, Ö, Ü, ß seitdem wie im Kreuzworträtsel als AE, OE, UE, SS: nur noch A–Z im ganzen Spiel.
+  assert.equal(AZ_FROM, 9, 'Umstellung auf A–Z gilt ab #9 (29. Oktober 2026)');
+  assert.equal(NF.CONFIG.frozenDays, 8);
   for (const lang of ['de', 'en']) {
-    SNAP[lang].forEach(day => {
+    SNAP[lang].filter(day => day.n < AZ_FROM).forEach(day => {
       const d = NF.buildDay(NF.keyOfNumber(day.n), lang);
       assert.equal(d.shift, day.shift, `${lang} #${day.n}: Verschiebung`);
-      assert.deepEqual(MODES.map(m => d.puzzles[m].sig), day.sigs, `${lang} #${day.n}: Sätze oder Stufen geändert`);
+      assert.deepEqual(MODES.map(m => d.puzzles[m].sig), day.sigs.map(az), `${lang} #${day.n}: Sätze oder Stufen geändert`);
     });
   }
+});
+
+test('Nur A–Z an allen Tagen, Zahlen 1 bis 26 in jeder Stufe; ab #9 deutsche Sätze ganz ohne Ä, Ö, Ü, ß', () => {
+  for (let i = 0; i < NF.plannedDays(); i++) {
+    for (const lang of ['de', 'en']) {
+      const d = NF.buildDay(NF.addDays(NF.CONFIG.launchDate, i), lang);
+      assert.equal(d.az, true, `#${i + 1}`);
+      MODES.forEach(m => {
+        if (i + 1 >= AZ_FROM) assert.doesNotMatch(d.puzzles[m].fact.t, /[ÄÖÜäöüßẞ]/, `${lang} #${i + 1} ${m}: ${d.puzzles[m].fact.t}`);
+        d.puzzles[m].words.forEach(w => {
+          assert.match(w.plain, /^[A-Z]+$/, `${lang} #${i + 1} ${m}: ${w.plain}`);
+          w.codes.forEach(c => assert.ok(c >= 1 && c <= 26, `${lang} #${i + 1} ${m}: Zahl ${c}`));
+        });
+      });
+    }
+  }
+  // Mirror ohne Ausnahme A = 26 … Z = 1
+  const mir = NF.buildDay(NF.keyOfNumber(9), 'de').puzzles.mirror.words[0];
+  assert.deepEqual(Array.from(mir.codes), [...mir.plain].map(c => 27 - (c.charCodeAt(0) - 64)));
+  // Umlaute in #1–#8 stehen wie im Kreuzworträtsel da
+  assert.equal(NF.plainOf('Grüße'), 'GRUESSE');
+  assert.equal(NF.buildDay(NF.keyOfNumber(8), 'de').puzzles.easy.words[0].plain, 'FUSSSPUREN');
+  assert.equal(NF.buildDay(NF.keyOfNumber(8), 'de').puzzles.mirror.words[0].plain, 'KAENGURUS');
+  assert.deepEqual([...NF.ALPHABET].join(''), 'ABCDEFGHIJKLMNOPQRSTUVWXYZ');
 });
 
 test('Rätsel, die schon irgendwo auf der Welt live sind, gleichen dem letzten Stand von main', t => {
@@ -58,24 +91,27 @@ test('Rätsel, die schon irgendwo auf der Welt live sind, gleichen dem letzten S
       try { b = base.NF.buildDay(key, lang); } catch (e) { continue; }
       const c = NF.buildDay(key, lang);
       assert.equal(c.shift, b.shift, `${lang} #${i + 1} Verschiebung weicht von ${base.ref} ab`);
+      // Einmalige, gewollte Ausnahme: Umstellung am 28.10.2026, ab #9 neue Fakten ohne Umlaute.
+      // #9 war da nur in Zeitzonen ab UTC+11 schon zu sehen. Vergleichsstände von danach (mit az) werden voll geprüft.
+      if (c.az && b.az === undefined) continue;
       MODES.forEach(m => assert.equal(c.puzzles[m].sig, b.puzzles[m].sig, `${lang} #${i + 1} ${m} weicht von ${base.ref} ab`));
     }
   }
 });
 
-test('Ab #17 steckt in beiden Sprachen derselbe Fakt in derselben Stufe', () => {
+test('Ab #9 steckt in beiden Sprachen derselbe Fakt in derselben Stufe', () => {
   for (let i = NF.CONFIG.frozenDays; i < NF.plannedDays(); i++) {
     const key = NF.addDays(NF.CONFIG.launchDate, i), de = NF.buildDay(key, 'de'), en = NF.buildDay(key, 'en');
     MODES.forEach(m => assert.equal(de.puzzles[m].fact.id, en.puzzles[m].fact.id, `#${i + 1} ${m}`));
   }
 });
 
-test('Ab #17 kein Thema doppelt am selben Tag', () => {
+test('Ab #9 kein Thema doppelt am selben Tag', () => {
   const bad = check().filter(p => /mehrfach vor/.test(p.msg));
   assert.deepEqual(bad.map(p => p.msg), []);
 });
 
-test('Easy ist ab #17 der zweitkürzeste Satz, Impossible der kürzeste', () => {
+test('Easy ist ab #9 der zweitkürzeste Satz, Impossible der kürzeste', () => {
   const len = f => [...NF.symStr(f.de[0])].length + [...NF.symStr(f.en[0])].length;
   for (let i = NF.CONFIG.frozenDays; i < NF.plannedDays(); i++) {
     const [easy, hard, mirror, imp] = NF.assignment(i, 'de');
@@ -83,7 +119,7 @@ test('Easy ist ab #17 der zweitkürzeste Satz, Impossible der kürzeste', () => 
   }
 });
 
-test('Ab #17 hat Easy in beiden Sprachen höchstens 8 Wörter, meist 5 bis 7', () => {
+test('Ab #9 hat Easy in beiden Sprachen höchstens 8 Wörter, meist 5 bis 7', () => {
   const words = s => s.split(/\s+/).filter(w => NF.symStr(w)).length;
   const counts = [];
   for (let i = NF.CONFIG.frozenDays; i < NF.plannedDays(); i++) {
@@ -112,16 +148,12 @@ test('Verschlüsselung: Easy, Hard, Mirror, Impossible und Umlaute', () => {
   assert.equal(NF.letterCode('Z', 'mirror', 0), 1);
   assert.equal(NF.letterCode('A', 'impossible', 3), 4);
   assert.equal(NF.letterCode('Z', 'impossible', 3), 3);
-  for (const m of MODES) {
-    assert.equal(NF.letterCode('Ä', m, 7), 27); assert.equal(NF.letterCode('Ö', m, 7), 28);
-    assert.equal(NF.letterCode('Ü', m, 7), 29); assert.equal(NF.letterCode('ß', m, 7), 30);
-  }
   assert.equal(NF.symStr('Grüße, café!'), 'GRÜßECAFE');
   assert.equal(NF.symStr('ẞ'), 'ß');
   const d = NF.buildDay('2026-10-24', 'de');
   MODES.forEach(m => d.puzzles[m].words.forEach(w => {
     assert.equal(w.codes.length, [...w.plain].length);
-    w.codes.forEach(c => assert.ok(c >= 1 && c <= 30));
+    w.codes.forEach(c => assert.ok(c >= 1 && c <= 26));
   }));
 });
 
@@ -154,7 +186,8 @@ test('Vorrat: reicht mindestens bis 30. November 2026, Wiederholung ist sichtbar
   const after = NF.addDays(NF.CONFIG.launchDate, P + 2);
   const rep = NF.buildDay(after, 'de'), src = NF.buildDay(NF.addDays(NF.CONFIG.launchDate, 2), 'de');
   assert.equal(rep.repeatOf, 3);
-  MODES.forEach(m => assert.equal(rep.puzzles[m].sig, src.puzzles[m].sig));
+  // Wiederholung: dieselben Sätze in denselben Stufen, geschrieben nach der Regel ihres Tages (ab #9 nur A–Z)
+  MODES.forEach(m => assert.equal(rep.puzzles[m].sig, az(src.puzzles[m].sig)));
   assert.equal(NF.buildDay(NF.lastPlannedDay(), 'de').repeatOf, null);
   // Warnung, wenn der Vorrat knapp wird
   const late = NF.addDays(NF.lastPlannedDay(), -5);
@@ -162,8 +195,21 @@ test('Vorrat: reicht mindestens bis 30. November 2026, Wiederholung ist sichtbar
   assert.ok(check(NF.addDays(NF.lastPlannedDay(), 1)).some(p => p.level === 'fehler' && /aufgebraucht/.test(p.msg)));
 });
 
-test('Vorrat: mindestens 60 Tage über den 30. November hinaus', { skip: process.env.NUMIGMA_SKIP_SUPPLY === '1' }, () => {
-  assert.ok(NF.lastPlannedDay() >= NF.addDays('2026-11-30', 60), `reicht nur bis ${NF.lastPlannedDay()}`);
+// Seit dem 28.10.2026 nur Sätze ohne Umlaute: Der Vorrat reicht bis 14. Dezember. Umformulierte Fakten aus
+// _dev/redaktion/geparkt-umlaute.js füllen ihn wieder auf; danach die Grenze wieder anheben.
+test('Vorrat: mindestens zwei Wochen über den 30. November hinaus', { skip: process.env.NUMIGMA_SKIP_SUPPLY === '1' }, () => {
+  assert.ok(NF.lastPlannedDay() >= NF.addDays('2026-11-30', 14), `reicht nur bis ${NF.lastPlannedDay()}`);
+});
+
+test('Geparkte Fakten: nur solche mit Umlaut im deutschen Satz, vollständig, mit Quelle, nicht eingeplant', () => {
+  const planned = new Set(F.map(f => f.id));
+  PARKED.forEach(f => {
+    assert.ok(!planned.has(f.id), `${f.id} ist geparkt und eingeplant`);
+    assert.match(f.de[0], /[ÄÖÜäöüßẞ]/, `${f.id} hat keinen Umlaut, gehört in fakten.js`);
+    assert.ok(NF.TOPICS[f.thema], `${f.id}: Thema`);
+    assert.ok(Array.isArray(f.en) && f.en[0] && f.en[1] && f.de[1], `${f.id}: Text fehlt`);
+    assert.ok(Array.isArray(f.quellen) && f.quellen.length, `${f.id}: Quelle fehlt`);
+  });
 });
 
 test('Englische Sätze enthalten keine Umlaute, deutsche keine englischen Apostrophe', () => {

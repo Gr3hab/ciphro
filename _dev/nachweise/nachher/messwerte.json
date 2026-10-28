@@ -1,32 +1,27 @@
 {
  "390-de-hell Kurz-Einstieg passt ohne Scrollen": true,
  "390-de-hell Code bei offenem Dialog sichtbar": false,
- "390-de-hell Anleitung Höhe px (zugeklappt)": 512,
+ "390-de-hell Anleitung Höhe px (zugeklappt)": 497,
  "390-en-dunkel Kurz-Einstieg passt ohne Scrollen": true,
  "390-en-dunkel Code bei offenem Dialog sichtbar": false,
  "390-en-dunkel Anleitung Höhe px (zugeklappt)": 512,
  "320-de-hell Kurz-Einstieg passt ohne Scrollen": true,
- "320 px: Tastenbreite px": 25.6,
+ "320 px: Tastenbreite px": 28.5,
  "320-de-hell Code bei offenem Dialog sichtbar": false,
  "320-de-hell Anleitung Höhe px (zugeklappt)": 540,
  "Hilfe-Farben: Teilen-Text nach Schlüssel (Wort 1) und überschriebenem Tipp (Wort 2)": "NUMIGMA #4 · Hard ⏱ 0:02\n🟨🟨🟩🟩🟩🟩🟩\nSchlägst du meine Zeit? https://gr3hab.github.io/numfact/?n=4&m=hard",
  "pruefen.html HTTP-Status (Hauptordner)": 404,
  "_dev/tools/pruefen.html HTTP-Status": 404,
- "Zuordnung DE/EN und Buchstaben (106 Tage)": {
-  "mism": 6,
+ "Zuordnung DE/EN und Buchstaben (55 Tage)": {
+  "mism": 1,
   "days": [
-   3,
-   9,
-   10,
-   11,
-   12,
-   14
+   3
   ],
   "avgLetters": {
-   "easy": 37,
-   "hard": 47,
-   "mirror": 41,
-   "impossible": 31
+   "easy": 36,
+   "hard": 45,
+   "mirror": 40,
+   "impossible": 30
   }
  }
 }

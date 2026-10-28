@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>NUMIGMA · Crack the code. Reveal the fact.</title>
+<title>NUMIGMA · Knacke den Code. Entdecke den Fakt.</title>
 <!-- Linkvorschau (WhatsApp & Co.): Wer den Link bekommt, weiß sonst nicht, was ihn erwartet. Deshalb auf Deutsch, klar und mit „kostenlos“.
      Bild og-de.png mit deutschem Slogan. Englische Links (/en/) haben eine eigene Vorschau mit og-en.png. Neue Bildnamen, weil WhatsApp Bilder zwischenspeichert;
      ändert sich ein Bild, ?v= erhöhen (seit 27.10.2026 v=2: „Knacke den Code. Entdecke den Fakt.“). -->
@@ -546,8 +546,8 @@ textarea{width:100%;font:inherit;font-size:.95rem;padding:10px;border:1px solid 
 
 <div class="toast" id="toast" role="status" hidden></div>
 
-<script src="fakten.js?v=9"></script>
-<script src="kern.js?v=9"></script>
+<script src="fakten.js?v=10"></script>
+<script src="kern.js?v=10"></script>
 <script>
 (function () {
 'use strict';
@@ -576,6 +576,8 @@ const ICON = {
 const STR = {
   de: {
     locale: 'de-AT',
+    tagline: 'Knacke den Code. Entdecke den Fakt.',
+    helpEyebrow: 'Das tägliche Zahlenrätsel',   // der Spruch wäre in der Anleitung zu lang für eine Zeile
     issue: (n, d) => `#${n} · ${d}`,
     archiveBar: (n, d, r) => `Archiv: #${n} vom ${d}${r ? ` (Wiederholung von #${r})` : ''}`,
     repeatBar: r => `Heute: Wiederholung von #${r}. Neue Fakten sind in Arbeit.`,
@@ -649,7 +651,7 @@ const STR = {
       title: 'So funktioniert’s',
       lead: 'Jede Zahl steht für einen Buchstaben. Knacke den Code und du erfährst einen wahren Fakt. Jeden Tag vier neue.',
       sections: [
-        ['Die vier Stufen', '<ul><li><strong>Easy:</strong> A&nbsp;=&nbsp;1 … Z&nbsp;=&nbsp;26. Jede Zahl hat ihr eigenes Kästchen.</li><li><strong>Hard:</strong> dieselben Zahlen, aber ohne Trennung. 1 1 kann K sein oder AA.</li><li><strong>Mirror:</strong> rückwärts, A&nbsp;=&nbsp;26 … Z&nbsp;=&nbsp;1, ohne Trennung.</li><li><strong>Impossible:</strong> Das Alphabet ist um eine geheime Zahl verschoben, ohne Trennung.</li></ul><p>Die Kästchen verraten immer, wie viele Buchstaben ein Wort hat. Ä&nbsp;=&nbsp;27, Ö&nbsp;=&nbsp;28, Ü&nbsp;=&nbsp;29, ß&nbsp;=&nbsp;30, in jeder Stufe gleich. Du kannst auch ae, oe, ue oder ss tippen.</p>'],
+        ['Die vier Stufen', '<ul><li><strong>Easy:</strong> A&nbsp;=&nbsp;1 … Z&nbsp;=&nbsp;26. Jede Zahl hat ihr eigenes Kästchen.</li><li><strong>Hard:</strong> dieselben Zahlen, aber ohne Trennung. 1 1 kann K sein oder AA.</li><li><strong>Mirror:</strong> rückwärts, A&nbsp;=&nbsp;26 … Z&nbsp;=&nbsp;1, ohne Trennung.</li><li><strong>Impossible:</strong> Das Alphabet ist um eine geheime Zahl verschoben, ohne Trennung.</li></ul><p>Die Kästchen verraten immer, wie viele Buchstaben ein Wort hat. Es gibt nur die 26&nbsp;Buchstaben A bis&nbsp;Z, keine Umlaute und kein&nbsp;ß.</p>'],
         ['Tippen und korrigieren', '<p>Tippe ein Kästchen an und schreibe mit der Tastatur. Jedes Kästchen lässt sich einzeln überschreiben. Ein volles, aber falsches Wort wird rot und gestrichelt umrandet. Richtige Wörter werden grün markiert. Der Pfeil springt zum nächsten Wort.</p><p>Am Computer: Buchstaben tippen, Pfeiltasten, Enter für das nächste Wort, Rücktaste.</p>'],
         ['Tipps, Schlüssel, Auflösen', '<p>Pro Rätsel hast du drei Tipps. Ein Tipp deckt das gewählte Kästchen auf. Bei Impossible zeigt er stattdessen, wo in einem Wort die Buchstaben getrennt sind.</p><p>Der <strong>Schlüssel</strong> blendet die Zahlen auf der Tastatur ein: bei Easy gratis und von Anfang an eingeschaltet (du kannst ihn ausschalten), bei Hard und Mirror für 1 Tipp bis zum nächsten Buchstaben. Bei Impossible gibt es keinen.</p><p><strong>Auflösen</strong> zeigt die ganze Lösung. Dann zählt das Rätsel nicht als gelöst.</p>'],
         ['Grün, Gelb, Rot', '<p>Im Ergebnis steht jedes Kästchen für ein Wort: 🟩 ohne Hilfe gelöst, 🟨 mit Tipp, Schlüssel oder Trennung, 🟥 aufgelöst. Einmal gelb bleibt gelb. Ein kleiner Punkt am grünen Wort zeigt dir schon im Rätsel, wo du Hilfe hattest.</p><p>Geteilt werden nur Stufen, die du selbst geknackt hast. Die Lösung wird dabei nie verraten.</p>'],
@@ -667,13 +669,16 @@ const STR = {
     ruleTitle: m => `Regel: ${m}`,
     shiftShort: s => [`A = ${s + 1} … Z = ${s}`, `um ${s} verschoben`],
     shiftLong: (s, past) => `Heute ${past ? 'war es' : 'ist es'} um ${s} verschoben: A = ${s + 1}, B = ${s + 2} … Z = ${s}`,
-    umlauts: used => `${used ? 'In diesem Satz stecken Umlaute oder ß: ' : 'Umlaute und ß: '}Ä = 27, Ö = 28, Ü = 29, ß = 30, in jeder Stufe gleich.`,
-    keyrows: [[...'QWERTZUIOPÜ'], [...'ASDFGHJKLÖÄ'], ['next', ...'YXCVBNMß', 'back']],
+    // Nur A–Z. Ab #9 haben die Sätze keine Umlaute; in #1–#8 (Archiv) stehen sie wie im Kreuzworträtsel da.
+    umlauts: 'In diesem Satz stecken Umlaute oder ß. Sie stehen wie im Kreuzworträtsel als AE, OE, UE und SS.',
+    keyrows: [[...'QWERTZUIOP'], [...'ASDFGHJKL'], ['next', ...'YXCVBNM', 'back']],
     shareHead: (n, a) => `${CONFIG.name} #${n}${a ? ' (Archiv)' : ''}`,
     beatOne: 'Schlägst du meine Zeit?', beatMany: 'Schlägst du meine Zeiten?', crackIt: "Schaffst du's?", notCracked: a => a ? 'Nicht geknackt 😅' : 'Heute nicht geknackt 😅'
   },
   en: {
     locale: 'en-GB',
+    tagline: CONFIG.tagline,
+    helpEyebrow: CONFIG.tagline,
     issue: (n, d) => `#${n} · ${d}`,
     archiveBar: (n, d, r) => `Archive: #${n} from ${d}${r ? ` (repeat of #${r})` : ''}`,
     repeatBar: r => `Today: a repeat of #${r}. New facts are on the way.`,
@@ -861,9 +866,28 @@ function upgrade(s) {
   }
   return s;
 }
+// Seit 28.10.2026 nur A–Z: Spielstände von #1–#8 mit Ä, Ö, Ü, ß umschreiben (Ä → AE …), statt sie zu verwerfen.
+// Gelöste Rätsel bleiben gelöst, angefangene behalten ihre Buchstaben und Tipps an der richtigen Stelle.
+function toAZ(s, p) {
+  const old = s.sig.split(' ');
+  s.typed = p.words.map((w, i) => {
+    const src = [...(old[i] || '')], t = [...(s.typed[i] || '')], out = [], map = [];
+    src.forEach((ch, j) => {
+      map[j] = out.length;
+      const c = t[j] && t[j] !== '_' ? t[j] : '_';
+      if (DIGRAPH[ch]) out.push(...(c === ch ? DIGRAPH[ch] : [c, '_'])); else out.push(c);
+    });
+    const hk = s.hints && s.hints[i];
+    if (Array.isArray(hk)) s.hints[i] = hk.map(k => map[k]).filter(k => k != null);
+    return out.join('').replace(/_+$/, '');
+  });
+  s.sig = p.sig;
+}
+const azSig = sig => sig.replace(/[ÄÖÜß]/g, c => DIGRAPH[c]);
 function msFor(key, id, p, l) {
   const st = dayState(key, l);
   let s = st[id];
+  if (s && typeof s === 'object' && typeof s.sig === 'string' && s.sig !== p.sig && azSig(s.sig) === p.sig && Array.isArray(s.typed)) { toAZ(s, p); save(); }
   if (!s || typeof s !== 'object' || s.sig !== p.sig) {
     s = st[id] = { sig: p.sig, typed: p.words.map(() => ''), hints: {}, hintCount: 0, cuts: [], status: 'open', elapsed: 0, given: [], helped: [] };
   }
@@ -1002,7 +1026,7 @@ function renderHeader() {
   $('#backToday').hidden = !archive;
   if (archive) $('#archiveText').textContent = t.archiveBar(day.number, dateLabel(day.key), day.repeatOf);
   else if (day.repeatOf) $('#archiveText').textContent = t.repeatBar(day.repeatOf);
-  document.title = archive ? `${name} #${day.number}` : `${name} · ${CONFIG.tagline}`;
+  document.title = archive ? `${name} #${day.number}` : `${name} · ${T().tagline}`;
   renderNotice();
 }
 
@@ -1064,7 +1088,7 @@ function ruleHtml(withTip) {
   return `<p>${esc(r.text)}</p>` + (ex ? `<p class="ex">${esc(ex)}</p>` : '') +
     (withTip && current === 'impossible' && !finished(s) ? `<p class="tip">${esc(t.impTip)}</p>` : '') +
     (withTip && (current === 'hard' || current === 'mirror') && !finished(s) ? `<p class="tip">${esc(t.noNumbers)}</p>` : '') +
-    (t.umlauts && (um || current === 'easy') ? `<p class="note">${esc(t.umlauts(um))}</p>` : '');
+    (t.umlauts && um ? `<p class="note">${esc(t.umlauts)}</p>` : '');
 }
 
 function renderStart() {
@@ -1378,6 +1402,7 @@ function nextCursor(cells, i, n) {
 function typeLetter(L) {
   const s = ms(current);
   if (s.status !== 'playing' || paused) return;
+  if (DIGRAPH[L]) { [...DIGRAPH[L]].forEach(typeLetter); return; }   // nur A–Z: ä → A, E; ß → S, S
   ensureActive();
   if (aw == null) return;
   justAdvanced = false;
@@ -1763,7 +1788,7 @@ function langSeg(name, slim) {
 function renderHelp() {
   const h = T().help, secs = h.sections;
   $('#helpBody').innerHTML =
-    `<div class="dlg-head"><div><div class="eyebrow">${esc(CONFIG.tagline)}</div><h2 id="helpTitle">${esc(h.title)}</h2></div><button class="ib" type="button" data-close aria-label="${esc(T().close)}">${ICON.x}</button></div>` +
+    `<div class="dlg-head"><div><div class="eyebrow">${esc(T().helpEyebrow)}</div><h2 id="helpTitle">${esc(h.title)}</h2></div><button class="ib" type="button" data-close aria-label="${esc(T().close)}">${ICON.x}</button></div>` +
     `<p>${esc(h.lead)}</p>` +
     '<div class="more-list">' + secs.map(([title, body]) => `<details><summary>${esc(title)}</summary><div class="body">${body}</div></details>`).join('') + '</div>' +
     '<div class="actions-row">' +

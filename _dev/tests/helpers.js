@@ -21,6 +21,14 @@ function loadNF() {
     ['kern.js', fs.readFileSync(path.join(ROOT, 'kern.js'), 'utf8')]
   ]);
 }
+// Geparkte Fakten (deutscher Satz mit Umlaut, seit #9 nicht eingeplant). Das Spiel lädt sie nicht.
+function rawParked() {
+  const file = path.join(ROOT, '_dev', 'redaktion', 'geparkt-umlaute.js');
+  if (!fs.existsSync(file)) return [];
+  const win = {};
+  vm.runInContext(fs.readFileSync(file, 'utf8'), vm.createContext({ window: win }), { filename: 'geparkt-umlaute.js' });
+  return win.NUMIGMA_GEPARKT || [];
+}
 function rawFacts() {
   const win = {};
   vm.runInContext(fs.readFileSync(path.join(ROOT, 'fakten.js'), 'utf8'), vm.createContext({ window: win }), { filename: 'fakten.js' });
@@ -49,4 +57,4 @@ function loadBase() {
 // Tag, der irgendwo auf der Welt schon begonnen hat (UTC+14)
 function latestLiveKey(now = Date.now()) { return new Date(now + 14 * 3600e3).toISOString().slice(0, 10); }
 
-module.exports = { ROOT, loadNF, rawFacts, loadBase, latestLiveKey, loadFromSources };
+module.exports = { ROOT, loadNF, rawFacts, rawParked, loadBase, latestLiveKey, loadFromSources };

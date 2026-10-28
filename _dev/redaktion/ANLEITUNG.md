@@ -21,7 +21,8 @@ Jeder Tag braucht vier Fakten. Sie stehen alle in `fakten.js` im Hauptordner, in
 - **Ohne Erklärung verständlich.** Laut vorlesen: Versteht jemand den Satz sofort? Gegenbeispiel aus #4: „Ein Zuckerwürfel Neutronenstern wiegt eine Milliarde Tonnen.“ Testspieler haben ihn nicht verstanden. Besser wäre gewesen: „Neutronensterne sind unglaublich schwer.“
 - Nur Buchstaben und Leerzeichen, am Ende ein Punkt.
 - Keine Ziffern, Kommas, Bindestriche, Apostrophe. Zahlen ausschreiben („vierzig“). Sätze mit Nebensatz so umbauen, dass kein Komma nötig ist.
-- Ä, Ö, Ü und ß nur im Deutschen. Im Englischen auch kein „it's“ oder „Earth's“ („of the Earth“ schreiben).
+- **Kein Ä, Ö, Ü und kein ß, auch nicht im Deutschen** (seit #9, 29. Oktober 2026). Im Spiel gibt es nur die 26 Buchstaben A bis Z. Umformulieren: „mehr als“ statt „über“, „sehr groß“ oder „riesig“ statt „größte“ nur, wenn es weiter stimmt. In der Erklärung sind Umlaute erlaubt. Die Prüfseite meldet einen Fehler, wenn ein Satz ab #9 einen Umlaut hat.
+- Im Englischen kein „it's“ oder „Earth's“ („of the Earth“ schreiben).
 - Kurz halten: am besten 25 bis 45 Buchstaben. Der zweitkürzeste Satz eines Tages wird Easy, der kürzeste Impossible.
 - **Easy ist der Einstieg:** Der Easy-Satz soll 5 bis 7 Wörter haben, höchstens 8, auf Deutsch und auf Englisch. Bei mehr meldet die Prüfseite einen Fehler. Dann einen der vier Fakten dieses Tages gegen einen mit weniger Wörtern tauschen. Gute Easy-Sätze sind auch ohne Vorwissen sofort klar.
 - Keine sehr langen Wörter (mehr als etwa 16 Buchstaben, z. B. „Oberschenkelknochen“). Sie passen auf kleinen Handys nicht in eine Zeile. Die Prüfseite meldet das.
@@ -42,7 +43,7 @@ Jeder Tag braucht vier Fakten. Sie stehen alle in `fakten.js` im Hauptordner, in
 - Woher jeder Fakt stammt und was an welcher Stelle der Quelle steht, ist in `QUELLENPRUEFUNG.md` festgehalten. Neue Fakten dort ebenfalls eintragen.
 - Einträge von Tagen, die schon erschienen sind, **nie umsortieren, löschen oder im Satz ändern**. Sonst ändern sich Rätsel, die Leute schon gespielt haben. Die automatischen Tests verhindern das.
 - Ein Fehler in der Erklärung eines veröffentlichten Fakts darf korrigiert werden. Im Pull Request begründen und in `QUELLENPRUEFUNG.md` eintragen.
-- Künftige Tage dürfen umgestellt werden, zum Beispiel für eine bessere Themenmischung oder kürzere Easy-Sätze (so geschehen am 25. Oktober 2026 für #17 bis #106). Der Faktenbericht im GitHub-Lauf listet jede Änderung am Fahrplan auf, damit nichts unbemerkt passiert.
+- Künftige Tage dürfen umgestellt werden, zum Beispiel für eine bessere Themenmischung oder kürzere Easy-Sätze (so geschehen am 25. Oktober 2026 für #17 bis #106 und am 28. Oktober 2026 ab #9: nur noch Sätze ohne Umlaute). Der Faktenbericht im GitHub-Lauf listet jede Änderung am Fahrplan auf, damit nichts unbemerkt passiert.
 
 ## Prüfen
 
@@ -51,6 +52,16 @@ Jeder Tag braucht vier Fakten. Sie stehen alle in `fakten.js` im Hauptordner, in
 3. Erst wenn alles grün ist, zusammenführen. Nach ein paar Minuten ist es live.
 
 Belege schneller finden: `python3 _dev/tools/belege.py spec.json` lädt Wikipedia-Artikel und zeigt die Sätze, die zu Suchwörtern passen. Das Werkzeug ersetzt nicht das Lesen, es hilft nur beim Finden.
+
+## Geparkte Fakten mit Umlaut
+
+In `_dev/redaktion/geparkt-umlaute.js` liegen geprüfte Fakten, deren deutscher Satz Ä, Ö, Ü oder ß enthält. Sie wurden am 28. Oktober 2026 aus dem Fahrplan genommen, nicht gelöscht. Das Spiel lädt diese Datei nicht. So kommt ein Fakt zurück:
+
+1. Den deutschen Satz ohne Umlaut umformulieren. Bedeutung und Quelle müssen weiter passen, der englische Satz sagt dasselbe.
+2. Den ganzen Eintrag mit seiner ID in `fakten.js` ganz unten anhängen und in der geparkten Datei löschen.
+3. Im Ordner `_dev`: `npm test`.
+
+Seit der Umstellung reicht der Vorrat bis 14. Dezember 2026. Umformulierte Fakten verlängern ihn.
 
 ## Wenn der Vorrat knapp wird
 

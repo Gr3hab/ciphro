@@ -679,7 +679,7 @@ test('Schnell tippen: nach einem vollen, falschen Wort geht es im nächsten weit
   assert.equal(await page.isVisible('#coach'), false, 'Hinweis verschwindet, wenn das Wort stimmt');
   assert.equal(await page.getAttribute('.w[data-w="1"]', 'aria-current'), 'true', 'weiter im angefangenen Wort');
   await page.keyboard.type('CKERWUERFEL');
-  assert.equal((await typed())[1], 'ZUCKERWÜRFEL');
+  assert.equal((await typed())[1], 'ZUCKERWUERFEL');
   // Antippen des letzten Kästchens eines vollen, falschen Worts: Überschreiben, nicht springen
   await page.keyboard.type('NEUTRONENSTERX');
   await page.click('.c[data-w="2"][data-i="13"]');
@@ -687,15 +687,82 @@ test('Schnell tippen: nach einem vollen, falschen Wort geht es im nächsten weit
   assert.equal((await typed())[2], 'NEUTRONENSTERQ');
   assert.equal(await page.getAttribute('.w[data-w="2"]', 'aria-current'), 'true');
   await page.context().close();
-  // „ss“ am Wortende wird weiterhin zu ß (#20, Impossible: HIEß)
-  page = await openPage(env, { time: '2026-11-09T10:00:00+01:00' });
-  await page.click('#tab-impossible');
+});
+
+// Playwright kennt keine Umlaut-Tasten: so, wie eine deutsche Tastatur die Taste meldet
+const umlautKey = (pg, k) => pg.evaluate(k => (document.activeElement || document.body).dispatchEvent(new KeyboardEvent('keydown', { key: k, bubbles: true, cancelable: true })), k);
+
+test('Ab #9 nur 26 Buchstaben: Tastatur ohne Ä Ö Ü ß, Sätze ohne Umlaute; das Archiv bis #8 bleibt wie erschienen', async () => {
+  const page = await openPage(env, { time: '2026-10-29T10:00:00+01:00' });
+  assert.equal(await issueNumber(page), 9);
+  const keys = await page.$$eval('#kb .k[data-k]', ks => ks.map(k => k.dataset.k).filter(k => k.length === 1).join(''));
+  assert.equal([...keys].sort().join(''), 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'genau 26 Buchstabentasten');
+  // Kein Umlaut-Hinweis auf der Startkarte, in keiner Stufe
+  for (const m of ['easy', 'hard', 'mirror', 'impossible']) {
+    await page.click(`#tab-${m}`);
+    assert.equal(await page.isVisible('#startCard .note'), false, m);
+  }
+  // Mirror #9 lösen wie ein Mensch: nur A–Z
+  await page.click('#tab-mirror');
   await page.click('#startBtn');
-  await page.click('.c[data-w="3"][data-i="0"]');
-  await page.keyboard.type('HIESS');
-  const s = await state(page, '2026-11-09', 'impossible');
-  assert.equal(s.typed[3], 'HIEß');
-  assert.ok(await page.isVisible('.w[data-w="3"].ok'));
+  const sol = solution(9, 'de', 'mirror');
+  sol.forEach(w => assert.match(w, /^[A-Z]+$/));
+  for (const w of sol) await typeWord(page, w);
+  await page.waitForSelector('#result:not([hidden])');
+  const s = await state(page, '2026-10-29', 'mirror');
+  assert.equal(s.status, 'solved');
+  // Anleitung sagt es in einem Satz, deutscher Titel und deutsche Zeile über der Anleitung
+  await page.click('#helpBtn');
+  const help = (await page.textContent('#helpBody')).replace(/\u00a0/g, ' ');
+  assert.match(help, /Es gibt nur die 26 Buchstaben A bis Z, keine Umlaute und kein ß\./);
+  assert.doesNotMatch(help, /27/);
+  assert.match(await page.textContent('#helpBody .eyebrow'), /^Das tägliche Zahlenrätsel$/, 'deutsche Anleitung ohne englischen Spruch');
+  assert.equal(await page.title(), 'NUMIGMA · Knacke den Code. Entdecke den Fakt.');
+  await page.keyboard.press('Escape');
+  noErrors(page);
+  await page.context().close();
+  // Archiv #8 (KÄNGURUS KÖNNEN …): auch dort nur 26 Tasten, Umlaute wie im Kreuzworträtsel
+  const old = await openPage(env, { time: '2026-10-29T10:00:00+01:00', url: '?n=8&m=mirror' });
+  assert.equal(await issueNumber(old), 8);
+  assert.equal(await old.$$eval('#kb .k[data-k="Ä"], #kb .k[data-k="ß"]', k => k.length), 0, 'keine Umlaut-Tasten, auch im Archiv');
+  assert.match((await old.textContent('#startCard .note')).replace(/\u00a0/g, ' '), /wie im Kreuzworträtsel als AE, OE, UE und SS/);
+  await old.click('#startBtn');
+  await old.keyboard.type('K');
+  await umlautKey(old, 'ä');
+  await old.keyboard.type('NGURUS');
+  const o = await state(old, '2026-10-28', 'mirror');
+  assert.equal(o.typed[0], 'KAENGURUS');
+  assert.ok(await old.isVisible('.w[data-w="0"].ok'));
+  noErrors(old);
+  await old.context().close();
+});
+
+test('Spielstände von #1–#8 mit Umlauten werden auf A–Z umgeschrieben: gelöst bleibt gelöst, Angefangenes bleibt an seiner Stelle', async () => {
+  const k4 = keyOf(4), k8 = keyOf(8);
+  const e4 = puzzle(4, 'de', 'easy'), m8 = puzzle(8, 'de', 'mirror');
+  assert.equal(e4.words[1].plain, 'ZUCKERWUERFEL');
+  // So waren die Stände bis 28.10.2026 gespeichert: Ä, Ö, Ü, ß als eigene Buchstaben
+  const oldSig = p => p.words.map(w => NF.symStr(w.show)).join(' ');
+  const old8 = NF.symStr(m8.words[0].show);                  // KÄNGURUS
+  const store0 = { v: 2, seenHelp: true, lang: 'de', days: {
+    [k4]: { easy: { sig: oldSig(e4), typed: oldSig(e4).split(' '), hints: { 1: [8] }, hintCount: 1, cuts: [], status: 'solved', elapsed: 95000, given: [], helped: [1], doneOn: k4 } },
+    [k8]: { mirror: { sig: oldSig(m8), typed: [old8.slice(0, 1) + '_' + old8.slice(2, 4)], hints: { 0: [3] }, hintCount: 1, cuts: [], status: 'playing', elapsed: 30000, given: [], helped: [0] } }
+  }, daysEn: {} };
+  assert.equal(store0.days[k4].easy.typed[1], 'ZUCKERWÜRFEL');
+  const page = await openPage(env, { time: '2026-10-29T10:00:00+01:00', store: store0, url: '?n=4&m=easy' });
+  assert.match(await page.textContent('#result'), /1:35/, 'gelöstes Rätsel bleibt gelöst, Zeit bleibt');
+  let s = await store(page);
+  assert.equal(s.days[k4].easy.status, 'solved');
+  assert.deepEqual(s.days[k4].easy.typed, Array.from(e4.words, w => w.plain));
+  assert.deepEqual(s.days[k4].easy.hints[1], [9], 'Tipp auf dem R nach dem Ü wandert mit');
+  // angefangenes #8: K _ N G (Ä leer) → K _ _ N G, Tipp auf dem G wandert mit
+  await page.goto(env.srv.url + '?n=8&m=mirror');
+  s = await store(page);
+  assert.equal(s.days[k8].mirror.sig, m8.sig);
+  assert.equal(s.days[k8].mirror.typed[0], 'K__NG');
+  assert.deepEqual(s.days[k8].mirror.hints[0], [4]);
+  assert.match(await page.textContent('#pauseCard'), /0:30/);
+  noErrors(page);
   await page.context().close();
 });
 
@@ -749,14 +816,17 @@ test('Vorrat erschöpft: Wiederholung wird offen angezeigt', async () => {
 });
 
 /* ------------------------------------------------------------ Tastatur und Korrektur */
-test('Tastatur: Umlaute als ae/ue, Pfeile, Rücktaste, Enter springt weiter', async () => {
+test('Tastatur: Umlaut-Wörter als AE/UE, echte Taste ü tippt UE, Pfeile, Rücktaste, Enter springt weiter', async () => {
   const page = await openPage(env);
   await page.click('#startBtn');
-  const sol = solution(4, 'de', 'easy');               // EIN ZUCKERWÜRFEL …
+  const sol = solution(4, 'de', 'easy');               // EIN ZUCKERWUERFEL …
+  assert.equal(sol[1], 'ZUCKERWUERFEL');
   await typeWord(page, sol[0]);
-  await page.keyboard.type('ZUCKERWUERFEL');
+  await page.keyboard.type('ZUCKERW');
+  await umlautKey(page, 'ü');                            // wie die Ü-Taste einer deutschen Tastatur
+  await page.keyboard.type('RFEL');
   let s = await state(page, K4, 'easy');
-  assert.equal(s.typed[1], 'ZUCKERWÜRFEL');
+  assert.equal(s.typed[1], 'ZUCKERWUERFEL');
   // falsches Wort: rot und gestrichelt, dann einzelnes Kästchen korrigieren
   await page.keyboard.type('NEUTRONENSTERX');
   assert.ok(await page.isVisible('.w[data-w="2"].bad'));
