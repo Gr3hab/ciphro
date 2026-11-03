@@ -157,3 +157,33 @@ test('Layout: die längsten Wörter des ganzen Vorrats passen auf 320 px in eine
   }
   assert.deepEqual(problems, []);
 });
+
+test('Layout: Karopapier geht mit ganzen Kästchen auf (gleicher Rand links und rechts), Trennstrich mittig, Buchstabentasten gleich breit', async () => {
+  for (const [width, height] of [[320, 568], [360, 740], [411, 836], [844, 390], [1280, 800]]) {
+    for (const lang of ['de', 'en']) {
+      const page = await openPage(env, { width, height, mobile: width < 800, url: (lang === 'en' ? 'en/' : '') + '?n=4&m=impossible' });
+      await page.click('#startBtn');
+      await page.click('#hintBtn');
+      if (await page.isVisible('#confirmYes')) await page.click('#confirmYes');
+      const r = await page.evaluate(() => {
+        const bd = document.querySelector('#board'), cs = getComputedStyle(bd);
+        const cell = parseFloat(cs.getPropertyValue('--cell')), pad = parseFloat(cs.getPropertyValue('--pad'));
+        const cols = (bd.clientWidth - 2 * pad) / cell;
+        const keys = [...document.querySelectorAll('#kb .k')].filter(k => k.dataset.k.length === 1).map(k => k.getBoundingClientRect().width);
+        const cut = document.querySelector('.d.cut'), prev = cut && cut.previousElementSibling;
+        let mid = null;
+        if (cut && prev) {
+          const line = getComputedStyle(cut, '::before'), c = cut.getBoundingClientRect(), p = prev.getBoundingClientRect();
+          mid = Math.abs((c.left + parseFloat(line.left) + parseFloat(line.width) / 2) - (p.right + c.left) / 2);
+        }
+        return { cell, pad, cols, keys: [Math.min(...keys), Math.max(...keys)], mid };
+      });
+      const tag = `${width}×${height} ${lang}`;
+      assert.ok(Math.abs(r.cols - Math.round(r.cols)) < 0.05, `${tag}: ${r.cols} Kästchen breit, Rand ${r.pad}px`);
+      assert.ok(r.pad >= 6, `${tag}: Rand ${r.pad}px`);
+      assert.ok(r.keys[1] - r.keys[0] <= 1, `${tag}: Tasten ${r.keys.join('–')}px breit`);
+      assert.ok(r.mid !== null && r.mid <= 1, `${tag}: Trennstrich ${r.mid}px neben der Mitte`);
+      await page.context().close();
+    }
+  }
+});

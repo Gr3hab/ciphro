@@ -153,9 +153,10 @@ a{color:var(--ink)}
 .w:focus-visible{outline:2px solid var(--ink);outline-offset:5px}
 .dr,.lr{display:flex;flex-wrap:wrap;position:relative;z-index:1}
 .dr{min-height:var(--cell)}
-.d{width:calc(var(--cell) / 2);height:var(--cell);display:grid;place-items:center;font-family:var(--display);font-weight:700;font-size:calc(var(--cell) * .54);color:var(--ink);font-variant-numeric:tabular-nums;line-height:1}
+.d{position:relative;width:calc(var(--cell) / 2);height:var(--cell);display:grid;place-items:center;font-family:var(--display);font-weight:700;font-size:calc(var(--cell) * .54);color:var(--ink);font-variant-numeric:tabular-nums;line-height:1}
 .easy .d{width:var(--cell);font-size:calc(var(--cell) * .5);letter-spacing:-.04em}
-.d.cut{box-shadow:inset 2px 0 0 var(--pencil)}
+/* Trennung: schmaler Strich genau in der Mitte zwischen zwei Ziffern, so hoch wie die Ziffern */
+.d.cut::before{content:"";position:absolute;left:-1px;top:24%;bottom:24%;width:2px;border-radius:1px;background:var(--pencil)}
 .c{width:var(--cell);height:var(--cell);display:grid;place-items:center;background:var(--cellbg);box-shadow:inset 0 0 0 1px var(--cellline);font-weight:700;font-size:calc(var(--cell) * .62);line-height:1;color:var(--text);user-select:none;-webkit-user-select:none}
 .c.hint{color:var(--pencil)}
 .w.act .c{box-shadow:inset 0 0 0 1px var(--ink)}
@@ -170,7 +171,7 @@ a{color:var(--ink)}
 .w.ok .d{color:var(--marker-text)}
 .w.ok .c.hint{color:var(--marker-text);opacity:.6}
 .w.ok .c,.w.ok .d{transition:color .1s .3s}
-.w.ok .d.cut{box-shadow:inset 2px 0 0 var(--marker-text)}
+.w.ok .d.cut::before{background:var(--marker-text)}
 .w.ok.helped .lr::after{content:"";position:absolute;right:-4px;top:-3px;width:7px;height:7px;border-radius:50%;background:var(--marker-text);opacity:.55}
 .w.given .c{color:var(--pencil);box-shadow:inset 0 -2px 0 0 var(--pencil);background:transparent}
 /* Gelöste und aufgelöste Wörter: Die Zahlen verschwinden, das Wort rückt in die Mitte. Größe bleibt gleich, damit nichts verrutscht. */
@@ -268,8 +269,10 @@ a{color:var(--ink)}
 .confirm.ask #confirmYes{order:2;margin-left:auto}
 .coach .btn{padding-inline:12px;min-height:34px}
 
-.kb{display:flex;flex-direction:column;gap:6px;user-select:none;-webkit-user-select:none}
-.kr{display:flex;gap:4px}
+.kb{--kgap:4px;display:flex;flex-direction:column;gap:6px;user-select:none;-webkit-user-select:none}
+.kr{display:flex;gap:var(--kgap)}
+/* Wie eine echte Tastatur: alle Buchstabentasten gleich breit, die mittlere Reihe (9 Tasten) um eine halbe Taste eingerückt */
+.kr.half{padding-inline:calc((100% + var(--kgap)) / 20)}
 .k{position:relative;flex:1 1 0;min-width:0;height:var(--kh)}
 .k > button{width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border:0;border-radius:6px;background:var(--key);color:var(--text);font-weight:700;font-size:1.05rem;line-height:1;cursor:pointer;touch-action:manipulation;padding:0;position:relative;overflow:hidden}
 .k > button b{font-weight:700;line-height:1}
@@ -301,7 +304,7 @@ a{color:var(--ink)}
   .tool{font-size:.8rem;padding:4px 6px;gap:4px}
   .tool svg{width:15px;height:15px}
   .pips i{width:7px;height:7px}
-  .kr{gap:3px}
+  .kb{--kgap:3px}
   .k > button{font-size:1rem}
   .card{padding:16px 14px}
 }
@@ -324,7 +327,7 @@ a{color:var(--ink)}
   .dock{grid-area:dock;align-self:end;border-top:0;margin:0;padding-block:8px 8px}
   .dock > .tools,.dock > .confirm,.dock > .coach{margin:0}
   .kb{gap:4px}
-  .kr{gap:3px}
+  .kb{--kgap:3px}
   .mode .n{font-size:.74rem;letter-spacing:-.02em}
   .mode .st{font-size:.7rem}
   .tools{gap:4px}
@@ -1160,12 +1163,15 @@ function layoutBoard() {
   const avail = board.clientWidth;
   if (!avail) return;
   const maxU = Math.max(...puz().words.map(w => wordUnits(w, current)));
-  // Normal: halbes Kästchen Rand. Wird es zu eng (sehr lange Wörter, schmale Handys), wird der Rand schmaler.
-  let cell = Math.floor((avail - 2) / (maxU + 1)), pad = null;
-  if (cell < 17) { pad = 6; cell = Math.floor((avail - 2 - 2 * pad) / maxU); }
+  // Normal: mindestens ein halbes Kästchen Rand. Wird es zu eng (sehr lange Wörter, schmale Handys), wird der Rand schmaler.
+  let cell = Math.floor((avail - 2) / (maxU + 1)), min = cell / 2;
+  if (cell < 17) { min = 6; cell = Math.floor((avail - 2 - 2 * min) / maxU); }
   cell = Math.max(15, Math.min(30, cell));
+  // Links und rechts gleich viel Rand, damit das Karopapier mit ganzen Kästchen aufgeht (kein schmaler Streifen am Rand)
+  const cols = Math.max(maxU, Math.floor((avail - 2 * min) / cell));
+  const pad = Math.max(0, Math.floor((avail - cols * cell) / 2));
   board.style.setProperty('--cell', cell + 'px');
-  if (pad) board.style.setProperty('--pad', pad + 'px'); else board.style.removeProperty('--pad');
+  board.style.setProperty('--pad', pad + 'px');
 }
 
 function updateWord(wi) {
@@ -1196,7 +1202,8 @@ function updateWord(wi) {
 
 function buildKeyboard() {
   const t = T();
-  $('#kb').innerHTML = t.keyrows.map(row => '<div class="kr">' + row.map(k => {
+  const half = row => row.length === t.keyrows[0].length - 1 && row.every(k => k.length === 1);   // mittlere Buchstabenreihe
+  $('#kb').innerHTML = t.keyrows.map(row => `<div class="kr${half(row) ? ' half' : ''}">` + row.map(k => {
     if (k === 'next') return `<div class="k wide" data-k="next"><button type="button" aria-label="${esc(t.nextWord)}">${ICON.next}</button></div>`;
     if (k === 'back') return `<div class="k wide" data-k="back"><button type="button" aria-label="${esc(t.backspace)}">${ICON.back}</button></div>`;
     return `<div class="k" data-k="${k}"><button type="button"><b>${k}</b><i aria-hidden="true"></i></button></div>`;
