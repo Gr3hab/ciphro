@@ -73,6 +73,7 @@ for (const lang of ['de', 'en']) {
       }
       await page.click('.c[data-w="0"][data-i="0"]');
       await page.click('#hintBtn');
+      await page.click('#confirmYes');
       await page.click('#keyBtn');
       await page.click('.c[data-w="0"][data-i="0"]');
       await check('Easy mit Tipp');

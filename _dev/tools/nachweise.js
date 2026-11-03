@@ -61,7 +61,7 @@ const R = {};
     const hw = solution(4, 'de', 'hard');
     await page.click('#keyBtn'); await page.click('#confirmYes');
     for (const w of [hw[0]]) for (const L of w) await page.click(`#kb .k[data-k="${L}"] button`);
-    await page.click('#board .w[data-w="1"] .c[data-i="0"]'); await page.click('#hintBtn');
+    await page.click('#board .w[data-w="1"] .c[data-i="0"]'); await page.click('#hintBtn'); await page.click('#confirmYes');
     await page.click('#board .w[data-w="1"] .c[data-i="0"]'); await page.click('#kb .k[data-k="Q"] button');
     for (let wi = 1; wi < hw.length; wi++) {
       await page.click(`#board .w[data-w="${wi}"] .c[data-i="0"]`);
