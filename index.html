@@ -260,6 +260,12 @@ a{color:var(--ink)}
 .coach{padding:7px 10px;gap:6px 8px}
 .coach span{flex-basis:140px;font-size:.88rem;line-height:1.35}
 .confirm .btn,.coach .btn{min-height:38px}
+/* Nachfrage vor einem Tipp: „Abbrechen“ links, „Ja“ ganz rechts. Wer reflexartig noch einmal an dieselbe Stelle tippt
+   wie auf „Tipp“ (links), trifft nie das Ja. Beim Schlüssel (Mitte) bleibt „Ja“ links, dort liegt dann der Abstand
+   oder „Abbrechen“ (die Tests messen das). */
+.confirm.ask span{flex-basis:100%}
+.confirm.ask #confirmNo{order:1}
+.confirm.ask #confirmYes{order:2;margin-left:auto}
 .coach .btn{padding-inline:12px;min-height:34px}
 
 .kb{display:flex;flex-direction:column;gap:6px;user-select:none;-webkit-user-select:none}
@@ -605,6 +611,11 @@ const STR = {
     keyShown: 'Zahlen auf der Tastatur sind wieder da', keyHidden: 'Zahlen ausgeblendet. „Schlüssel“ blendet sie wieder ein.',
     keyExplain: 'Der Schlüssel zeigt die Zahlen auf der Tastatur, bis du den nächsten Buchstaben tippst. Er kostet 1 Tipp und das Wort zählt beim Teilen als 🟨.',
     keyYes: 'Schlüssel nutzen', cancel: 'Abbrechen',
+    // Alles, was einen Tipp kostet, fragt vorher kurz nach (Rückmeldung: Tipp aus Versehen ausgelöst)
+    hintQ: left => `Tipp nutzen? Ein Buchstabe im markierten Wort wird aufgedeckt. Das kostet ${left === 1 ? 'deinen letzten Tipp' : `1 von ${left} Tipps`} und das Wort zählt beim Teilen als 🟨.`,
+    hintYes: 'Aufdecken',
+    cutQ: left => `Trennung zeigen? Du siehst, wo im markierten Wort die Buchstaben getrennt sind. Das kostet ${left === 1 ? 'deinen letzten Tipp' : `1 von ${left} Tipps`} und das Wort zählt beim Teilen als 🟨.`,
+    cutYes: 'Trennung zeigen',
     keyOpened: 'Schlüssel offen: Die Zahlen gelten für deinen nächsten Buchstaben.',
     revealQ: 'Lösung anzeigen? Dann zählt dieses Rätsel nicht als gelöst.', revealYes: 'Ja, auflösen', revealNo: 'Weiter rätseln',
     kb: 'Tastatur', nextWord: 'Nächstes Wort', backspace: 'Löschen',
@@ -653,7 +664,7 @@ const STR = {
       sections: [
         ['Die vier Stufen', '<ul><li><strong>Easy:</strong> A&nbsp;=&nbsp;1 … Z&nbsp;=&nbsp;26. Jede Zahl hat ihr eigenes Kästchen.</li><li><strong>Hard:</strong> dieselben Zahlen, aber ohne Trennung. 1 1 kann K sein oder AA.</li><li><strong>Mirror:</strong> rückwärts, A&nbsp;=&nbsp;26 … Z&nbsp;=&nbsp;1, ohne Trennung.</li><li><strong>Impossible:</strong> Das Alphabet ist um eine geheime Zahl verschoben, ohne Trennung.</li></ul><p>Die Kästchen verraten immer, wie viele Buchstaben ein Wort hat. Es gibt nur die 26&nbsp;Buchstaben A bis&nbsp;Z, keine Umlaute und kein&nbsp;ß.</p>'],
         ['Tippen und korrigieren', '<p>Tippe ein Kästchen an und schreibe mit der Tastatur. Jedes Kästchen lässt sich einzeln überschreiben. Ein volles, aber falsches Wort wird rot und gestrichelt umrandet. Richtige Wörter werden grün markiert. Der Pfeil springt zum nächsten Wort.</p><p>Am Computer: Buchstaben tippen, Pfeiltasten, Enter für das nächste Wort, Rücktaste.</p>'],
-        ['Tipps, Schlüssel, Auflösen', '<p>Pro Rätsel hast du drei Tipps. Ein Tipp deckt das gewählte Kästchen auf. Bei Impossible zeigt er stattdessen, wo in einem Wort die Buchstaben getrennt sind.</p><p>Der <strong>Schlüssel</strong> blendet die Zahlen auf der Tastatur ein: bei Easy gratis und von Anfang an eingeschaltet (du kannst ihn ausschalten), bei Hard und Mirror für 1 Tipp bis zum nächsten Buchstaben. Bei Impossible gibt es keinen.</p><p><strong>Auflösen</strong> zeigt die ganze Lösung. Dann zählt das Rätsel nicht als gelöst.</p>'],
+        ['Tipps, Schlüssel, Auflösen', '<p>Pro Rätsel hast du drei Tipps. Ein Tipp deckt das gewählte Kästchen auf. Bei Impossible zeigt er stattdessen, wo in einem Wort die Buchstaben getrennt sind. Bevor ein Tipp verbraucht wird, fragt das Spiel kurz nach.</p><p>Der <strong>Schlüssel</strong> blendet die Zahlen auf der Tastatur ein: bei Easy gratis und von Anfang an eingeschaltet (du kannst ihn ausschalten), bei Hard und Mirror für 1 Tipp bis zum nächsten Buchstaben. Bei Impossible gibt es keinen.</p><p><strong>Auflösen</strong> zeigt die ganze Lösung. Dann zählt das Rätsel nicht als gelöst.</p>'],
         ['Grün, Gelb, Rot', '<p>Im Ergebnis steht jedes Kästchen für ein Wort: 🟩 ohne Hilfe gelöst, 🟨 mit Tipp, Schlüssel oder Trennung, 🟥 aufgelöst. Einmal gelb bleibt gelb. Ein kleiner Punkt am grünen Wort zeigt dir schon im Rätsel, wo du Hilfe hattest.</p><p>Geteilt werden nur Stufen, die du selbst geknackt hast. Die Lösung wird dabei nie verraten.</p>'],
         ['Zeit und Pause', '<p>Die Uhr startet mit Start und läuft nur, solange der Code zu sehen ist. Sie hält an, wenn du ein Menü öffnest, den Tab wechselst, die App verlässt oder auf die Pause-Taste tippst. Dann ist der Code verdeckt. Mit Weiter geht es genau dort weiter. Jede Stufe hat ihre eigene Uhr.</p>'],
         ['Serie, Archiv, Statistik', '<p>Deine Serie wächst mit jedem Tag, an dem du mindestens ein Rätsel des Tages löst. Neue Codes gibt es um Mitternacht nach deiner Uhrzeit. Ältere Rätsel kannst du im Archiv nachspielen. Sie zählen für die Statistik, nicht für die Serie.</p>']
@@ -706,6 +717,10 @@ const STR = {
     keyShown: 'Numbers on the keyboard are back', keyHidden: 'Numbers hidden. Tap “Key” to bring them back.',
     keyExplain: 'The key shows the numbers on the keyboard until you type your next letter. It costs 1 hint and the word counts as 🟨 when you share.',
     keyYes: 'Use the key', cancel: 'Cancel',
+    hintQ: left => `Use a hint? One letter in the highlighted word will be revealed. It costs ${left === 1 ? 'your last hint' : `1 of your ${left} hints`} and the word counts as 🟨 when you share.`,
+    hintYes: 'Reveal',
+    cutQ: left => `Show the split? You will see where the letters split in the highlighted word. It costs ${left === 1 ? 'your last hint' : `1 of your ${left} hints`} and the word counts as 🟨 when you share.`,
+    cutYes: 'Show split',
     keyOpened: 'Key open: the numbers apply to your next letter.',
     revealQ: 'Show the answer? This puzzle will then not count as solved.', revealYes: 'Yes, reveal', revealNo: 'Keep going',
     kb: 'Keyboard', nextWord: 'Next word', backspace: 'Delete',
@@ -754,7 +769,7 @@ const STR = {
       sections: [
         ['The four levels', '<ul><li><strong>Easy:</strong> A&nbsp;=&nbsp;1 … Z&nbsp;=&nbsp;26. Each number has its own box.</li><li><strong>Hard:</strong> the same numbers, but with no separators. 1 1 could be K or AA.</li><li><strong>Mirror:</strong> backwards, A&nbsp;=&nbsp;26 … Z&nbsp;=&nbsp;1, no separators.</li><li><strong>Impossible:</strong> the alphabet is shifted by a secret number, no separators.</li></ul><p>The boxes always tell you how many letters a word has.</p>'],
         ['Typing and fixing', '<p>Tap a box and type with the keyboard. You can type over any box on its own. A full word that is wrong gets a red dashed outline. Correct words are highlighted in green. The arrow jumps to the next word.</p><p>On a computer: type letters, use the arrow keys, Enter for the next word and Backspace.</p>'],
-        ['Hints, key, reveal', '<p>You get three hints per puzzle. A hint reveals the selected box. In Impossible it shows where the letters split within a word instead.</p><p>The <strong>key</strong> shows the numbers on the keyboard: free and switched on from the start in Easy (you can turn it off), for 1 hint until your next letter in Hard and Mirror. There is no key in Impossible.</p><p><strong>Reveal</strong> shows the whole answer. The puzzle then does not count as solved.</p>'],
+        ['Hints, key, reveal', '<p>You get three hints per puzzle. A hint reveals the selected box. In Impossible it shows where the letters split within a word instead. Before a hint is used up, the game asks you to confirm.</p><p>The <strong>key</strong> shows the numbers on the keyboard: free and switched on from the start in Easy (you can turn it off), for 1 hint until your next letter in Hard and Mirror. There is no key in Impossible.</p><p><strong>Reveal</strong> shows the whole answer. The puzzle then does not count as solved.</p>'],
         ['Green, yellow, red', '<p>In your result, each square stands for one word: 🟩 solved without help, 🟨 with a hint, key or split, 🟥 revealed. Once yellow, always yellow. A small dot on a green word shows you where you had help.</p><p>Only levels you actually cracked are shared. Sharing never gives away the answer.</p>'],
         ['Time and pause', '<p>The clock starts when you press Start and only runs while the code is visible. It stops when you open a menu, switch tabs, leave the app or tap the pause button. The code is hidden while it is stopped. Continue picks up exactly where you left off. Each level has its own clock.</p>'],
         ['Streak, archive, statistics', '<p>Your streak grows every day you solve at least one of that day’s puzzles. New codes arrive at midnight, your local time. You can replay older puzzles in the archive. They count towards your statistics but not your streak.</p>']
@@ -1511,10 +1526,24 @@ function pasteText(text) {
   if (ms(current).status === 'playing') { const nx = nextUnsolved(-1); aw = null; if (nx >= 0) select(nx, null); }
 }
 
+// Tipp-Knopf: erst nachfragen. Ein Tipp aus Versehen ist sonst weg (Rückmeldung eines Testspielers).
 function useHint() {
   const s = ms(current), t = T();
   if (s.status !== 'playing' || paused) return;
   if (!hintsLeft(s)) { toast(t.noTips); return; }
+  ensureActive();
+  if (aw == null) return;
+  const cutMode = current === 'impossible' && !s.shiftShown;
+  if (cutMode) {
+    const wi = cutTarget(s);
+    if (wi < 0) { toast(t.allCut); return; }
+    if (wi !== aw) select(wi, null);   // das Wort, das getrennt würde, ist markiert
+  }
+  openConfirm(cutMode ? 'cut' : 'hint');
+}
+function giveHint() {
+  const s = ms(current), t = T();
+  if (s.status !== 'playing' || paused || !hintsLeft(s)) return;
   ensureActive();
   if (aw == null) return;
   if (current === 'impossible' && !s.shiftShown) {
@@ -1552,8 +1581,7 @@ function onKeyBtn() {
   if (current === 'easy') { store.easyKey = !easyKeyOn(); save(); renderKeyboard(); renderTools(); buzz('tap'); toast(easyKeyOn() ? T().keyShown : T().keyHidden); return; }
   if (keyForbidden(s) || s.keyOpen) return;
   if (!hintsLeft(s)) { toast(T().noTips); return; }
-  if (!store.coach.key) { openConfirm('key'); return; }
-  payKey();
+  openConfirm('key');   // kostet einen Tipp: jedes Mal kurz fragen
 }
 function payKey() {
   const s = ms(current);
@@ -1567,11 +1595,13 @@ function payKey() {
 function openConfirm(kind) {
   const t = T(), yes = $('#confirmYes');
   confirmKind = kind;
-  $('#confirmText').textContent = kind === 'reveal' ? t.revealQ : t.keyExplain;
-  yes.textContent = kind === 'reveal' ? t.revealYes : t.keyYes;
+  const left = hintsLeft(ms(current));
+  $('#confirmText').textContent = kind === 'reveal' ? t.revealQ : kind === 'hint' ? t.hintQ(left) : kind === 'cut' ? t.cutQ(left) : t.keyExplain;
+  yes.textContent = kind === 'reveal' ? t.revealYes : kind === 'hint' ? t.hintYes : kind === 'cut' ? t.cutYes : t.keyYes;
   yes.className = 'btn ' + (kind === 'reveal' ? 'danger' : 'primary');
   $('#confirmNo').textContent = kind === 'reveal' ? t.revealNo : t.cancel;
   $('#confirm').classList.toggle('calm', kind !== 'reveal');
+  $('#confirm').classList.toggle('ask', kind === 'hint' || kind === 'cut');
   $('#confirm').hidden = false; $('#tools').hidden = true; $('#coach').hidden = true;
   $('#confirmNo').focus();
 }
@@ -1924,11 +1954,15 @@ $('#modes').addEventListener('keydown', e => {
   setMode(MODES[j].id);
   $('#tab-' + MODES[j].id).focus();
 });
-$('#hintBtn').addEventListener('click', useHint);
-$('#keyBtn').addEventListener('click', onKeyBtn);
+// Zweites Antippen derselben Stelle direkt danach (Reflex, „wieder wegmachen“) gilt nicht als „Ja“
+let askTap = null;
+const noteTap = e => { askTap = e && e.detail ? { t: e.timeStamp, x: e.clientX, y: e.clientY } : null; };
+const reflexTap = e => !!(askTap && e.detail && e.timeStamp - askTap.t < 600 && Math.hypot(e.clientX - askTap.x, e.clientY - askTap.y) < 28);
+$('#hintBtn').addEventListener('click', e => { noteTap(e); useHint(); });
+$('#keyBtn').addEventListener('click', e => { noteTap(e); onKeyBtn(); });
 $('#revealBtn').addEventListener('click', () => openConfirm('reveal'));
 $('#confirmNo').addEventListener('click', () => { closeConfirm(); });
-$('#confirmYes').addEventListener('click', () => { const k = confirmKind; closeConfirm(); if (k === 'reveal') complete('revealed'); else if (k === 'key') payKey(); });
+$('#confirmYes').addEventListener('click', e => { if (confirmKind !== 'reveal' && reflexTap(e)) return; const k = confirmKind; closeConfirm(); if (k === 'reveal') complete('revealed'); else if (k === 'key') payKey(); else if (k === 'hint' || k === 'cut') giveHint(); });
 $('#coachOk').addEventListener('click', () => { $('#coach').hidden = true; });
 $('#pauseBtn').addEventListener('click', () => { pauseGame('button'); $('#resumeBtn') && $('#resumeBtn').focus(); });
 $('#statsBtn').addEventListener('click', () => { renderStats(); openDlg($('#statsDlg')); });
@@ -2013,6 +2047,7 @@ document.addEventListener('keydown', e => {
     return;
   }
   if (dialogOpen()) return;
+  if (confirmKind && e.key === 'Escape') { e.preventDefault(); closeConfirm(); return; }   // Nachfrage abbrechen
   const s = ms(current), onButton = tag === 'BUTTON' && !t.classList.contains('w');
   if (s.status === 'open') { if (e.key === 'Enter' && !onButton) { e.preventDefault(); startMode(); } return; }
   if (s.status !== 'playing') return;

@@ -224,8 +224,9 @@ test('Farben: aufgedeckter Buchstabe bleibt gelb, auch nach Überschreiben; Schl
   await page.click('#tab-hard');
   await page.click('#startBtn');
   const sol = solution(4, 'de', 'hard');
-  // Tipp auf Wort 1, dann den aufgedeckten Buchstaben falsch überschreiben und wieder richtig
+  // Tipp auf Wort 1 (mit Nachfrage), dann den aufgedeckten Buchstaben falsch überschreiben und wieder richtig
   await page.click('#hintBtn');
+  await page.click('#confirmYes');
   let s = await state(page, K4, 'hard');
   assert.deepEqual(s.helped, [0]);
   const hinted = s.hints['0'][0];
@@ -238,7 +239,7 @@ test('Farben: aufgedeckter Buchstabe bleibt gelb, auch nach Überschreiben; Schl
   s = await state(page, K4, 'hard');
   assert.equal(s.typed[0], sol[0]);
   assert.deepEqual(s.helped, [0], 'Hilfe bleibt nach Überschreiben erhalten');
-  // Schlüssel: beim ersten Mal kurze Erklärung, dann gilt er für genau einen Buchstaben
+  // Schlüssel: kurze Erklärung mit Preis, dann gilt er für genau einen Buchstaben
   await page.click('#keyBtn');
   assert.ok(await page.isVisible('#confirm'));
   assert.match(await page.textContent('#confirmText'), /kostet 1 Tipp/);
@@ -260,8 +261,55 @@ test('Farben: aufgedeckter Buchstabe bleibt gelb, auch nach Überschreiben; Schl
   assert.ok((await page.textContent('#result')).includes(squares));
   assert.match(await page.textContent('#result'), /mit 2 Tipps/);
   assert.match(await page.textContent('#result'), /2 mit Hilfe/);
-  // Zweiter Schlüssel ohne Erklärung, aber mit sichtbarem Preis
   assert.equal((await store(page)).coach.key, true);
+  noErrors(page);
+  await page.context().close();
+});
+
+test('Tipp aus Versehen: Das Spiel fragt erst nach, Abbrechen kostet nichts; Schlüssel fragt jedes Mal', async () => {
+  const page = await openPage(env);
+  await page.click('#tab-hard');
+  await page.click('#startBtn');
+  // Versehentlich getippt: nur eine Nachfrage, nichts verbraucht, kein Buchstabe aufgedeckt
+  await page.click('#hintBtn');
+  assert.ok(await page.isVisible('#confirm'));
+  assert.match(await page.textContent('#confirmText'), /^Tipp nutzen\? Ein Buchstabe im markierten Wort wird aufgedeckt\. Das kostet 1 von 3 Tipps/);
+  assert.equal((await page.textContent('#confirmYes')).trim(), 'Aufdecken');
+  await page.click('#confirmNo');
+  let s = await state(page, K4, 'hard');
+  assert.equal(s.hintCount || 0, 0);
+  assert.deepEqual(s.helped, []);
+  assert.equal(s.typed.join(''), '');
+  assert.ok(await page.isVisible('#hintBtn'), 'Werkzeuge wieder da');
+  // Reflex: sofort noch einmal an dieselbe Stelle getippt, auch wenn dort jetzt ein Knopf der Nachfrage liegt
+  const at = await page.$eval('#hintBtn', el => { const r = el.getBoundingClientRect(); return [r.x + r.width / 2, r.y + r.height / 2]; });
+  await page.mouse.click(...at);
+  await page.mouse.click(...at);
+  assert.equal((await state(page, K4, 'hard')).hintCount || 0, 0, 'Doppeltipp verbraucht nichts');
+  if (await page.isVisible('#confirm')) await page.click('#confirmNo');
+  // Am Computer: Escape bricht die Nachfrage ab
+  await page.click('#hintBtn');
+  await page.keyboard.press('Escape');
+  assert.equal(await page.isVisible('#confirm'), false);
+  assert.equal((await state(page, K4, 'hard')).hintCount || 0, 0);
+  // Bestätigt: genau ein Tipp, ein Buchstabe
+  await page.click('#hintBtn');
+  await page.click('#confirmYes');
+  s = await state(page, K4, 'hard');
+  assert.equal(s.hintCount, 1);
+  assert.equal(s.typed[0].replace(/_/g, '').length, 1);
+  // Letzter Tipp wird so genannt
+  await page.click('#hintBtn'); await page.click('#confirmYes');
+  await page.click('#hintBtn');
+  assert.match(await page.textContent('#confirmText'), /deinen letzten Tipp/);
+  await page.click('#confirmNo');
+  // Schlüssel fragt auch beim zweiten Mal (kostet ebenfalls einen Tipp)
+  const store0 = await store(page);
+  assert.equal(store0.coach.key, undefined);
+  await page.click('#keyBtn');
+  assert.match(await page.textContent('#confirmText'), /kostet 1 Tipp/);
+  await page.click('#confirmNo');
+  assert.equal((await state(page, K4, 'hard')).hintCount, 2);
   noErrors(page);
   await page.context().close();
 });
@@ -291,6 +339,8 @@ test('Farben: Trennung bei Impossible ist gelb, Auflösen ist rot', async () => 
   await page.click('.w[data-w="1"]');
   assert.equal(await page.textContent('#hintLabel'), 'Trennung');
   await page.click('#hintBtn');
+  assert.match(await page.textContent('#confirmText'), /Trennung zeigen\?/);
+  await page.click('#confirmYes');
   let s = await state(page, K4, 'impossible');
   assert.deepEqual(s.cuts, [1]);
   assert.deepEqual(s.helped, [1]);
@@ -852,6 +902,7 @@ test('Antippen: Kästchen wählen, nächstes leeres Kästchen, Tipp-Buchstaben w
   const sol = solution(4, 'de', 'easy');
   await page.click('.c[data-w="1"][data-i="1"]');
   await page.click('#hintBtn');                      // deckt Kästchen 1 von Wort 2 auf
+  await page.click('#confirmYes');
   await page.click('.c[data-w="1"][data-i="0"]');
   await page.click(`#kb .k[data-k="${sol[1][0]}"] button`);
   await page.click(`#kb .k[data-k="${sol[1][2]}"] button`);   // springt über das aufgedeckte Kästchen
