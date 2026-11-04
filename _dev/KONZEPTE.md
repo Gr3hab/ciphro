@@ -4,7 +4,7 @@ Diese Punkte aus dem Relaunch-Auftrag sind bewusst nur bewertet, nicht gebaut.
 
 ## Nutzungsdaten ohne Tracking (Vorschlag)
 
-Heute misst NUMIGMA nichts. Das bleibt so, bis jemand eine konkrete Frage hat, die nur Zahlen beantworten können.
+Heute misst CIPHRO nichts. Das bleibt so, bis jemand eine konkrete Frage hat, die nur Zahlen beantworten können.
 
 Falls es einmal nötig wird, in dieser Reihenfolge:
 
@@ -37,7 +37,7 @@ Die Prüfseite mit allen Lösungen liegt jetzt in `_dev/` und wird nicht mehr ve
 
 ## Entscheidungen und offene Punkte
 
-- **Name NUMIGMA (festgelegt am 24. Oktober 2026):** kurz, international, unterscheidbar, verbindet Zahlen und Rätsel. Die Adresse bleibt `…/numfact/`.
+- **Name NUMIGMA (festgelegt am 24. Oktober 2026):** kurz, international, unterscheidbar, verbindet Zahlen und Rätsel. Die Adresse blieb `…/numfact/`. Abgelöst durch CIPHRO, siehe unten.
 - **Impossible bleibt unverändert (24. Oktober 2026):** Kurze Wörter erraten und so die Verschiebung finden ist der gewollte Lösungsweg; das Spiel sagt das auch im Tipp.
 - **Teilen nur mit gelösten Stufen (24. Oktober 2026):** Aufgelöste und nicht gespielte Stufen werden nicht geteilt, ohne gelöste Stufe gibt es eine kurze Herausforderung ohne Kästchen. Die Ergebnisanzeige im Spiel bleibt vollständig.
 - **Easy-Zahlen standardmäßig an (entschieden am 24. Oktober 2026):** Wer den Link zum ersten Mal bekommt, kann sofort loslegen, ohne das Alphabet durchzuzählen. Die Zahlen sind bei Easy kostenlos, zählen nicht als Hilfe und lassen sich abschalten; das bleibt gespeichert. Mehr Herausforderung bieten Hard, Mirror und Impossible.
@@ -52,5 +52,7 @@ Die Prüfseite mit allen Lösungen liegt jetzt in `_dev/` und wird nicht mehr ve
 - **Nur 26 Buchstaben ab #9 (entschieden am 28. Oktober 2026):** Ab #9 kommen in den Rätseln kein Ä, Ö, Ü und kein ß mehr vor (Entscheidung von Christian: „Es darf einfach keine Fakten mit Umlauten und ß mehr geben“). Grund: Bei Mirror passten die festen Zahlen 27–30 nicht zu A = 26 … Z = 1, und „mehr als 26“ verwirrt, weil jeder beim Alphabet bis 26 zählt. Umsetzung: neuer Fahrplan ab #9 nur aus Fakten, deren deutscher Satz keinen Umlaut hat (191 von 395 noch nicht erschienenen, reicht bis 14. Dezember 2026); die übrigen 204 liegen in `_dev/redaktion/geparkt-umlaute.js` und kommen umformuliert zurück. #9–#16 bekamen dafür neue Fakten (vorher eingefroren, aber noch nicht erschienen). Auch im Archiv gilt nur A–Z (Entscheidung von Christian am selben Tag): In #1–#8 stehen Ä, Ö, Ü, ß wie im Kreuzworträtsel als AE, OE, UE, SS, Sätze und Stufen bleiben gleich. Gespeicherte Spielstände dieser Tage werden umgeschrieben, gelöste bleiben gelöst. Die Tastatur hat überall nur 26 Buchstabentasten; wer am Computer ä oder ß tippt, bekommt AE oder SS. Stichtag für Sätze ohne Umlaute in `kern.js` (`CONFIG.lettersFrom`), nicht ändern.
 - **Tipp nur nach Nachfrage (3. November 2026):** Ein Testspieler hat aus Versehen auf „Tipp“ getippt und beim Versuch, es rückgängig zu machen, einen zweiten Tipp verbraucht. Seitdem fragt alles, was einen Tipp kostet, vorher kurz nach: Tipp, Trennung bei Impossible und Schlüssel (der Schlüssel fragte vorher nur beim ersten Mal). Bei Tipp und Trennung liegt „Abbrechen“ dort, wo der Tipp-Knopf war; ein sofortiges zweites Antippen derselben Stelle gilt nie als „Ja“. Rückgängig machen statt Nachfragen wäre eleganter, ginge aber nicht sauber, wenn der Tipp das Rätsel gerade fertig macht.
 - **Englische Tage #1–#16:** Die Zuordnung von Fakt zu Stufe weicht an sechs dieser Tage zwischen Deutsch und Englisch ab, weil sie so veröffentlicht wurde. Ab #17 ist sie in beiden Sprachen gleich.
-- **Name des Repositorys:** Die Adresse lautet weiter `…/numfact/`. Eine Umbenennung in `numigma` würde alle bisherigen Links brechen (GitHub leitet Pages-Adressen nicht weiter).
+- **Name CIPHRO und eigene Adresse ciphro.eu (November 2026):** Vor der Nutzerakquise ein Name, der sich merken lässt, und eine eigene Adresse statt `gr3hab.github.io/numfact`. Domain `ciphro.eu` bei netcup gekauft (4. November 2026), DNS zeigt auf GitHub Pages, bei GitHub verifiziert. Impressum und Datenschutz mit Lukas Greil als Medieninhaber, E-Mail vorerst `kontakt@lohnkeil.at` (später gern `kontakt@ciphro.eu`). Namensprüfung: keine eingetragene Marke CIPHRO gefunden (EUIPO-Datenbank TMview noch nicht geprüft); der Name wird in den USA von einer Passwort-App verwendet.
+- **Zwei Repositorys (November 2026):** Das Spiel liegt in `Gr3hab/ciphro` (Pages mit `ciphro.eu`). `Gr3hab/numfact` bleibt unter der alten Adresse und leitet nur weiter. Grund: Der Browser speichert pro Adresse. Bekäme das alte Repository selbst die neue Domain, leitete GitHub schon auf dem Server weiter, und der alte Spielstand wäre nicht mehr lesbar. So liest die alte Seite ihn und gibt ihn im Anker mit (siehe README, „Umzug“).
+- **Name des Repositorys (bis November 2026):** Die Adresse lautete `…/numfact/`. Eine Umbenennung in `numigma` hätte alle bisherigen Links gebrochen (GitHub leitet Pages-Adressen nicht weiter).
 - **Zahlen 0–9 für Jahreszahlen:** Würde neue Rätselarten ermöglichen, ändert aber die Regeln aller Stufen. Nicht umgesetzt.

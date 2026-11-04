@@ -1,7 +1,7 @@
 {
-  "name": "numigma-dev",
+  "name": "ciphro-dev",
   "private": true,
-  "description": "Tests und Werkzeuge für NUMIGMA. Wird nicht veröffentlicht (Ordner _dev ist für GitHub Pages unsichtbar).",
+  "description": "Tests und Werkzeuge für CIPHRO. Wird nicht veröffentlicht (Ordner _dev ist für GitHub Pages unsichtbar).",
   "scripts": {
     "test": "node --test --test-concurrency=1 tests/daten.test.js tests/spiel.test.js tests/layout.test.js",
     "test:daten": "node --test tests/daten.test.js",

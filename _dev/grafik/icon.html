@@ -1,0 +1,21 @@
+<!doctype html><html><head><meta charset="utf-8">
+<!-- App-Symbol: Karopapier-Kärtchen mit „3“ über „C“ (C = 3), grüner Textmarker, blauer Rand.
+     ?size=512 (Pixel) und ?mask=1 für das maskierbare Symbol (mehr Rand). Erzeugen im Ordner _dev: node grafik/render.js -->
+<style>
+@font-face{font-family:"Martian Mono";font-weight:800;src:url(../../fonts/martian-mono-latin-800-normal.woff2) format("woff2")}
+html,body{margin:0}
+body{width:var(--s);height:var(--s);background:#1f3fa6;display:grid;place-items:center;overflow:hidden}
+.card{position:relative;width:calc(var(--s) * var(--k));height:calc(var(--s) * var(--k));background:#fff;border-radius:calc(var(--s) * var(--k) * .08);overflow:hidden;
+  background-image:linear-gradient(#e3e9f1 2px,transparent 2px),linear-gradient(90deg,#e3e9f1 2px,transparent 2px);
+  background-size:calc(var(--s) * var(--k) / 4) calc(var(--s) * var(--k) / 4);background-position:-1px -1px}
+.num{position:absolute;left:8%;top:5%;font-family:"Martian Mono",monospace;font-weight:800;color:#1f3fa6;font-size:calc(var(--s) * var(--k) * .2);line-height:1}
+.mark{position:absolute;left:12%;right:10%;top:53%;height:27%;background:#8fe3a0;border-radius:calc(var(--s) * var(--k) * .04);transform:rotate(-2deg)}
+.let{position:absolute;left:0;right:0;top:24%;text-align:center;font-family:"Martian Mono",monospace;font-weight:800;color:#0f2414;font-size:calc(var(--s) * var(--k) * .56);line-height:1}
+</style></head><body>
+<div class="card"><div class="num">3</div><div class="mark"></div><div class="let">C</div></div>
+<script>
+  const q = new URLSearchParams(location.search), s = +(q.get('size') || 512), mask = q.get('mask') === '1';
+  document.documentElement.style.setProperty('--s', s + 'px');
+  document.documentElement.style.setProperty('--k', mask ? .62 : .845);
+</script>
+</body></html>
