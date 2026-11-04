@@ -1,5 +1,5 @@
 /* ================================================================
-   NUMIGMA · GEPARKTE FAKTEN (deutscher Satz mit Ä, Ö, Ü oder ß)
+   CIPHRO · GEPARKTE FAKTEN (deutscher Satz mit Ä, Ö, Ü oder ß)
    ================================================================
    Seit #9 (29.10.2026) kommen in den Rätseln nur noch die 26 Buchstaben A–Z vor.
    Diese Fakten sind geprüft und haben Quellen, aber ihr deutscher Satz enthält einen Umlaut oder ß.

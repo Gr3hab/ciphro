@@ -14,7 +14,7 @@ const hints = probs.filter(p => p.level === 'hinweis' && !/Keine Quelle/.test(p.
 const noSrc = F.filter(f => !Array.isArray(f.quellen) || !f.quellen.length);
 const out = [];
 
-out.push('## NUMIGMA · Faktenbericht', '');
+out.push('## CIPHRO · Faktenbericht', '');
 out.push(`| | |`, `|---|---|`);
 out.push(`| Fakten | ${F.length} (= ${NF.plannedDays()} Tage) |`);
 out.push(`| Vorrat reicht bis | ${last} (${left > 0 ? `noch ${left} Tage` : '**aufgebraucht, es laufen Wiederholungen**'}) |`);

@@ -1,5 +1,5 @@
 /* ================================================================
-   NUMIGMA · FAKTEN (Deutsch und Englisch)
+   CIPHRO · FAKTEN (Deutsch und Englisch)
    ================================================================
    • Jeder Tag nimmt die nächsten vier Fakten der Liste: #1 die ersten vier, #2 die nächsten vier usw.
    • NEUE FAKTEN IMMER GANZ UNTEN ANHÄNGEN. Nie umsortieren oder löschen:

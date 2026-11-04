@@ -1,4 +1,4 @@
-# Neue Fakten für NUMIGMA
+# Neue Fakten für CIPHRO
 
 Jeder Tag braucht vier Fakten. Sie stehen alle in `fakten.js` im Hauptordner, in beiden Sprachen.
 

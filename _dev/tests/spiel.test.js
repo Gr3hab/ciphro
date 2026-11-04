@@ -102,18 +102,18 @@ test('Linkvorschau: Deutsch sagt klar, was das ist und dass es kostenlos ist; je
     const m = fs.readFileSync(path.join(root, f), 'utf8').match(new RegExp(`<meta (?:property|name)="${prop}" content="([^"]*)"`));
     return m ? m[1] : '';
   };
-  assert.match(meta('index.html', 'og:title'), /^NUMIGMA · Das tägliche Zahlenrätsel$/);
+  assert.match(meta('index.html', 'og:title'), /^CIPHRO · Das tägliche Zahlenrätsel$/);
   assert.match(meta('index.html', 'og:description'), /Jede Zahl ist ein Buchstabe.*Kostenlos, ohne Anmeldung, ohne Werbung\.$/);
   assert.doesNotMatch(meta('index.html', 'og:description'), /\b(four|each|daily)\b/i, 'keine englischen Sätze in der deutschen Vorschau');
   assert.equal(meta('index.html', 'og:locale'), 'de_AT');
   assert.match(meta('en/index.html', 'og:description'), /each number is a letter.*Free, no sign-up, no ads\.$/);
   assert.equal(meta('en/index.html', 'og:locale'), 'en_GB');
   // Jede Sprache hat ihr eigenes Bild (deutscher bzw. englischer Slogan), beide 1200×630 und tatsächlich vorhanden
-  const base = 'https://gr3hab.github.io/numfact/';
-  assert.equal(meta('index.html', 'og:image'), base + 'og-de.png?v=2');   // ?v= erhöhen, wenn sich das Bild ändert
-  assert.equal(meta('en/index.html', 'og:image'), base + 'og-en.png');
-  assert.equal(meta('index.html', 'og:image:alt'), 'NUMIGMA: Knacke den Code. Entdecke den Fakt.');
-  assert.equal(meta('en/index.html', 'og:image:alt'), 'NUMIGMA: Crack the code. Reveal the fact.');
+  const base = 'https://ciphro.eu/';
+  assert.equal(meta('index.html', 'og:image'), base + 'og-de.png?v=3');   // ?v= erhöhen, wenn sich das Bild ändert
+  assert.equal(meta('en/index.html', 'og:image'), base + 'og-en.png?v=3');
+  assert.equal(meta('index.html', 'og:image:alt'), 'CIPHRO: Knacke den Code. Entdecke den Fakt.');
+  assert.equal(meta('en/index.html', 'og:image:alt'), 'CIPHRO: Crack the code. Reveal the fact.');
   for (const f of ['og-de.png', 'og-en.png']) {
     const png = fs.readFileSync(path.join(root, f));
     assert.equal(png.toString('latin1', 1, 4), 'PNG', f);
@@ -355,7 +355,7 @@ test('Farben: Trennung bei Impossible ist gelb, Auflösen ist rot', async () => 
   // Im Spiel bleibt das Ergebnis vollständig (oben), geteilt wird eine aufgelöste Stufe aber nicht
   await page.click('#result [data-act="share"]');
   const text = await page.evaluate(() => navigator.clipboard.readText());
-  assert.deepEqual(text.split('\n').slice(0, 2), ['NUMIGMA #4', 'Heute nicht geknackt 😅']);
+  assert.deepEqual(text.split('\n').slice(0, 2), ['CIPHRO #4', 'Heute nicht geknackt 😅']);
   assert.ok(!text.includes(exp) && !/[🟩🟨🟥]/u.test(text));
   assert.match(text.split('\n')[2], /^Schaffst du's\? http:\/\/127\.0\.0\.1:\d+\/\?n=4$/);
   await page.context().close();
@@ -498,7 +498,7 @@ test('Zeit: Ergebnis, Stufen-Reiter, Teilen und Statistik zeigen dieselbe Zeit',
   assert.ok((await page.textContent('#tab-easy')).includes(t));
   await page.click('#result [data-act="share"]');
   const text = await page.evaluate(() => navigator.clipboard.readText());
-  assert.ok(text.startsWith(`NUMIGMA #4 · Easy ⏱ ${t}\n`));
+  assert.ok(text.startsWith(`CIPHRO #4 · Easy ⏱ ${t}\n`));
   await page.click('#statsBtn');
   assert.ok((await page.textContent('#statsBody .table')).includes(t));
   await page.context().close();
@@ -518,7 +518,7 @@ test('Teilen: nur gelöste Stufen, drei Zeilen bei einer, eine Zeile je Stufe be
   let text = await read();
   let lines = text.split('\n');
   assert.equal(lines.length, 3);
-  assert.match(lines[0], /^NUMIGMA #4 · Easy ⏱ \d+:\d\d$/);
+  assert.match(lines[0], /^CIPHRO #4 · Easy ⏱ \d+:\d\d$/);
   assert.match(lines[1], /^(🟩|🟨|🟥)+$/u);
   assert.match(lines[2], /^Schlägst du meine Zeit\? http:\/\/127\.0\.0\.1:\d+\/\?n=4&m=easy$/);
   noSolution(text, 4);
@@ -529,7 +529,7 @@ test('Teilen: nur gelöste Stufen, drei Zeilen bei einer, eine Zeile je Stufe be
   text = await read();
   lines = text.split('\n');
   assert.equal(lines.length, 4, text);
-  assert.equal(lines[0], 'NUMIGMA #4');
+  assert.equal(lines[0], 'CIPHRO #4');
   assert.match(lines[1], /^Easy ⏱ \d+:\d\d (🟩|🟨|🟥)+$/u);
   assert.match(lines[2], /^Hard ⏱ \d+:\d\d (🟩|🟨|🟥)+$/u);
   assert.match(lines[3], /^Schlägst du meine Zeiten\? http:\/\/127\.0\.0\.1:\d+\/\?n=4$/);
@@ -549,7 +549,7 @@ test('Teilen: nur gelöste Stufen, drei Zeilen bei einer, eine Zeile je Stufe be
   await page.click('#startBtn');
   for (const w of solution(2, 'de', 'mirror')) await typeWord(page, w);
   text = await read();
-  assert.match(text.split('\n')[0], /^NUMIGMA #2 \(Archiv\) · Mirror ⏱/);
+  assert.match(text.split('\n')[0], /^CIPHRO #2 \(Archiv\) · Mirror ⏱/);
   assert.match(text, /\?n=2&m=mirror$/);
   await page.context().close();
   // nichts gelöst: kurze Herausforderung ohne Kästchen; danach eine gelöste Stufe neben einer aufgelösten: drei Zeilen
@@ -561,7 +561,7 @@ test('Teilen: nur gelöste Stufen, drei Zeilen bei einer, eine Zeile je Stufe be
   text = await p2.evaluate(() => navigator.clipboard.readText());
   lines = text.split('\n');
   assert.equal(lines.length, 3, text);
-  assert.equal(lines[0], 'NUMIGMA #4');
+  assert.equal(lines[0], 'CIPHRO #4');
   assert.equal(lines[1], 'Heute nicht geknackt 😅');
   assert.match(lines[2], /^Schaffst du's\? http:\/\/127\.0\.0\.1:\d+\/\?n=4$/);
   assert.ok(!/[🟩🟨🟥]/u.test(text));
@@ -573,7 +573,7 @@ test('Teilen: nur gelöste Stufen, drei Zeilen bei einer, eine Zeile je Stufe be
   text = await p2.evaluate(() => navigator.clipboard.readText());
   lines = text.split('\n');
   assert.equal(lines.length, 3, text);
-  assert.match(lines[0], /^NUMIGMA #4 · Hard ⏱ \d+:\d\d$/);
+  assert.match(lines[0], /^CIPHRO #4 · Hard ⏱ \d+:\d\d$/);
   assert.match(lines[2], /\?n=4&m=hard$/);
   await p2.context().close();
   // Englisch: eine Stufe und nichts gelöst
@@ -590,7 +590,7 @@ test('Teilen: nur gelöste Stufen, drei Zeilen bei einer, eine Zeile je Stufe be
   await en2.click('#confirmYes');
   await en2.click('#result [data-act="share"]');
   const t3 = (await en2.evaluate(() => navigator.clipboard.readText())).split('\n');
-  assert.deepEqual(t3.slice(0, 2), ['NUMIGMA #4', 'Not cracked today 😅']);
+  assert.deepEqual(t3.slice(0, 2), ['CIPHRO #4', 'Not cracked today 😅']);
   assert.match(t3[2], /^Can you crack it\? http:\/\/127\.0\.0\.1:\d+\/en\/\?n=4$/);
   await en2.context().close();
 });
@@ -601,7 +601,7 @@ test('Teilen: am Handy über das Teilen-Menü des Geräts', async () => {
   for (const w of solution(4, 'de', 'easy')) await typeWord(page, w);
   await page.click('#result [data-act="share"]');
   const shared = await page.evaluate(() => window.__shared);
-  assert.ok(shared && /^NUMIGMA #4 · Easy/.test(shared.text));
+  assert.ok(shared && /^CIPHRO #4 · Easy/.test(shared.text));
   await page.context().close();
 });
 
@@ -767,7 +767,7 @@ test('Ab #9 nur 26 Buchstaben: Tastatur ohne Ä Ö Ü ß, Sätze ohne Umlaute; d
   assert.match(help, /Es gibt nur die 26 Buchstaben A bis Z, keine Umlaute und kein ß\./);
   assert.doesNotMatch(help, /27/);
   assert.match(await page.textContent('#helpBody .eyebrow'), /^Das tägliche Zahlenrätsel$/, 'deutsche Anleitung ohne englischen Spruch');
-  assert.equal(await page.title(), 'NUMIGMA · Knacke den Code. Entdecke den Fakt.');
+  assert.equal(await page.title(), 'CIPHRO · Knacke den Code. Entdecke den Fakt.');
   await page.keyboard.press('Escape');
   noErrors(page);
   await page.context().close();
@@ -852,6 +852,145 @@ test('Einstellungen erklären „System“, Impossible ermuntert zum Ausprobiere
   await page.click('#settingsBtn');
   assert.match(await page.textContent('#settingsBody'), /System: light or dark, matching the setting on your phone or computer/);
   await page.context().close();
+});
+
+/* ------------------------------------------------------------ Umzug nach ciphro.eu
+   Die alte Adresse (gr3hab.github.io/numfact) schickt den Spielstand im Anker mit: #import=<Base64url von JSON>. */
+const packMoved = st => '#import=' + Buffer.from(JSON.stringify(st), 'utf8').toString('base64url');
+function solvedState(n, mode, lang = 'de', extra = {}) {
+  const p = puzzle(n, lang, mode), k = keyOf(n);
+  return { sig: p.sig, typed: p.words.map(w => w.plain), hints: {}, hintCount: 0, cuts: [], status: 'solved', elapsed: 83000, given: [], helped: [], startedOn: k, doneOn: k, ...extra };
+}
+function playingState(n, mode, lang = 'de') {
+  const p = puzzle(n, lang, mode);
+  return { sig: p.sig, typed: p.words.map((w, i) => i === 0 ? w.plain.slice(0, 2) : ''), hints: {}, hintCount: 0, cuts: [], status: 'playing', elapsed: 5000, given: [], helped: [], startedOn: keyOf(n) };
+}
+const oldStore = () => ({
+  v: 2, seenHelp: true, lang: 'de', theme: 'dark', haptics: false, easyKey: false, coach: { first: true },
+  days: { [keyOf(2)]: { easy: solvedState(2, 'easy') }, [keyOf(3)]: { easy: solvedState(3, 'easy'), hard: solvedState(3, 'hard') }, [K4]: { hard: playingState(4, 'hard') } },
+  daysEn: { [keyOf(3)]: { easy: solvedState(3, 'easy', 'en') } }
+});
+
+test('Umzug: Spielstand von der alten Adresse kommt mit, Anker verschwindet, einmal ein Hinweis', async () => {
+  const page = await openPage(env, { store: null, url: '?n=4&m=hard' + packMoved(oldStore()) });
+  assert.equal(await page.evaluate(() => location.hash), '', 'Anker sofort aus der Adresse entfernt');
+  assert.equal(await page.evaluate(() => document.getElementById('introDlg').open), false, 'kennt das Spiel schon: kein Einstieg');
+  assert.ok(await page.isVisible('#notice'));
+  assert.equal((await page.textContent('#noticeText')).trim(), 'NUMIGMA heißt jetzt CIPHRO. Dein Spielstand ist mitgekommen.');
+  const s = await store(page);
+  assert.equal(s.moved, true);
+  assert.equal(s.days[keyOf(3)].hard.status, 'solved');
+  assert.equal(s.daysEn[keyOf(3)].easy.status, 'solved');
+  assert.deepEqual([s.theme, s.haptics, s.easyKey, s.coach.first], ['dark', false, false, true], 'Einstellungen kommen mit');
+  assert.equal(await page.evaluate(() => document.documentElement.getAttribute('data-theme')), 'dark');
+  // Angefangenes Hard von #4 geht dort weiter, wo es war
+  assert.equal(await page.getAttribute('#tab-hard', 'aria-selected'), 'true');
+  assert.equal(s.days[K4].hard.typed[0], solution(4, 'de', 'hard')[0].slice(0, 2));
+  // Serie: #2 und #3 gelöst, heute (#4) noch nicht → 2 Tage
+  await page.click('#statsBtn');
+  const tiles = await page.$$eval('#statsBody .n', ns => ns.map(n => n.nextElementSibling.textContent + '=' + n.textContent));
+  assert.ok(tiles.includes('Serie=2'), JSON.stringify(tiles));
+  await page.keyboard.press('Escape');
+  // Neu laden: kein Hinweis mehr, Stand bleibt
+  await page.reload();
+  await page.waitForFunction(() => document.querySelector('#issue').textContent);
+  assert.equal(await page.isVisible('#notice'), false);
+  assert.equal((await store(page)).days[keyOf(3)].hard.status, 'solved');
+  noErrors(page);
+  await page.context().close();
+});
+
+test('Umzug: Wer auf ciphro.eu schon gespielt hat, behält seinen Stand; von alt kommt nur, was fehlt oder weiter ist', async () => {
+  const local = {
+    v: 2, seenHelp: true, theme: 'light', haptics: true, coach: {},
+    days: { [keyOf(3)]: { easy: playingState(3, 'easy') }, [K4]: { hard: solvedState(4, 'hard', 'de', { elapsed: 42000 }) } }, daysEn: {}
+  };
+  const page = await openPage(env, { store: local, url: packMoved(oldStore()) });
+  const s = await store(page);
+  assert.equal(s.days[keyOf(3)].easy.status, 'solved', 'alt gelöst schlägt neu angefangen');
+  assert.equal(s.days[keyOf(3)].hard.status, 'solved', 'fehlende Stufe kommt dazu');
+  assert.equal(s.days[K4].hard.status, 'solved', 'neu gelöst bleibt gelöst');
+  assert.equal(s.days[K4].hard.elapsed, 42000, 'neue Zeit bleibt');
+  assert.equal(s.days[keyOf(2)].easy.status, 'solved', 'fehlender Tag kommt dazu');
+  assert.deepEqual([s.theme, s.haptics, s.easyKey, s.coach.first], ['light', true, false, true], 'eigene Einstellungen bleiben, fehlende kommen dazu');
+  assert.match(await page.textContent('#noticeText'), /Spielstand ist mitgekommen/);
+  await page.context().close();
+  // Zweites Mal über die alte Adresse (z. B. altes Lesezeichen): nichts geht verloren, kein Hinweis mehr
+  const again = await openPage(env, { store: { ...local, moved: true, days: { ...local.days, [keyOf(5)]: { easy: solvedState(5, 'easy') } } }, url: packMoved(oldStore()) });
+  const s2 = await store(again);
+  assert.equal(s2.days[keyOf(5)].easy.status, 'solved');
+  assert.equal(s2.days[keyOf(3)].easy.status, 'solved');
+  assert.equal(await again.isVisible('#notice'), false);
+  assert.equal(await again.evaluate(() => location.hash), '');
+  await again.context().close();
+});
+
+test('Umzug: englischer Link, alter Link ohne Spielstand und kaputter Anker', async () => {
+  let page = await openPage(env, { store: null, url: 'en/?n=3&m=easy' + packMoved(oldStore()) });
+  assert.equal((await page.textContent('#noticeText')).trim(), 'NUMIGMA is now CIPHRO. Your progress came with you.');
+  assert.match(await page.textContent('#issue'), /#3\b/, 'Archivlink bleibt erhalten');
+  assert.equal(await page.evaluate(() => location.search + location.hash), '?lang=en&n=3&m=easy');
+  await page.context().close();
+  // Neu: alter Link, aber dort nie gespielt → Hinweis auf den neuen Namen, normaler Einstieg
+  page = await openPage(env, { store: null, url: '#moved' });
+  assert.equal((await page.textContent('#noticeText')).trim(), 'NUMIGMA heißt jetzt CIPHRO. Neue Adresse: ciphro.eu');
+  assert.equal(await page.evaluate(() => document.getElementById('introDlg').open), true);
+  assert.equal(await page.evaluate(() => location.hash), '');
+  await page.context().close();
+  // Kaputt: nichts überschreiben, ehrlich sagen
+  const local = { v: 2, seenHelp: true, days: { [keyOf(3)]: { easy: solvedState(3, 'easy') } }, daysEn: {} };
+  page = await openPage(env, { store: local, url: '#import=bm9wZQ' });
+  assert.match(await page.textContent('#noticeText'), /ließ sich leider nicht übernehmen/);
+  const s = await store(page);
+  assert.equal(s.days[keyOf(3)].easy.status, 'solved');
+  assert.equal(s.moved, undefined);
+  noErrors(page);
+  await page.context().close();
+});
+
+/* ------------------------------------------------------------ Impressum und Datenschutz */
+test('Impressum und Datenschutz: aus den Einstellungen erreichbar, Deutsch und Englisch, ohne fremde Server', async () => {
+  let page = await openPage(env);
+  await page.click('#settingsBtn');
+  assert.deepEqual(await page.$$eval('#settingsBody .legal a', as => as.map(a => [a.textContent, a.getAttribute('href')])),
+    [['Impressum', 'impressum.html'], ['Datenschutz', 'datenschutz.html']]);
+  await page.click('#settingsBody .legal a[href="impressum.html"]');
+  await page.waitForURL(/impressum\.html$/);
+  const imp = (await page.textContent('main')).replace(/\s+/g, ' ');
+  for (const t of ['Lukas Greil', 'Hatzenbacher Straße 2a', '2003 Leitzersdorf', 'Österreich', 'kontakt@lohnkeil.at', '§ 25 Mediengesetz']) assert.ok(imp.includes(t), t);
+  await page.click('main a[href="datenschutz.html"]');
+  await page.waitForURL(/datenschutz\.html$/);
+  const ds = (await page.textContent('main')).replace(/\s+/g, ' ');
+  for (const t of ['keine Cookies', 'GitHub, Inc.', 'Datenschutzbehörde', 'Websitedaten von ciphro.eu löschen', 'nach dem #-Zeichen']) assert.ok(ds.includes(t), t);
+  // Zurück zum Rätsel
+  await page.click('.top .back');
+  await page.waitForFunction(() => document.querySelector('#issue') && document.querySelector('#issue').textContent);
+  noErrors(page);
+  await page.context().close();
+  page = await openPage(env, { locale: 'en-GB' });
+  await page.click('#settingsBtn');
+  assert.deepEqual(await page.$$eval('#settingsBody .legal a', as => as.map(a => [a.textContent, a.getAttribute('href')])),
+    [['Legal notice', 'impressum.html#en'], ['Privacy', 'datenschutz.html#en']]);
+  await page.context().close();
+  // Kleines Handy, dunkel: nichts ragt seitlich hinaus, Seiten laden ohne Fehler
+  for (const f of ['impressum.html', 'datenschutz.html']) {
+    const ctx = await env.browser.newContext({ viewport: { width: 320, height: 568 }, colorScheme: 'dark', serviceWorkers: 'block' });
+    page = await ctx.newPage(); page.errors = [];
+    page.on('pageerror', e => page.errors.push(String(e)));
+    page.on('console', m => { if (m.type() === 'error') page.errors.push('console: ' + m.text()); });
+    await page.goto(env.srv.url + f);
+    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), f + ' passt in die Breite');
+    assert.notEqual(await page.evaluate(() => getComputedStyle(document.body).backgroundColor), 'rgb(242, 244, 247)', f + ' dunkel');
+    noErrors(page);
+    await page.context().close();
+  }
+  // Keine Skripte, Stylesheets, Bilder oder Schriften von fremden Servern auf irgendeiner Seite
+  const root = path.join(__dirname, '..', '..');
+  for (const f of ['index.html', 'en/index.html', 'impressum.html', 'datenschutz.html', 'recht.css']) {
+    const src = fs.readFileSync(path.join(root, f), 'utf8');
+    const ext = [...src.matchAll(/(?:<script[^>]+src|<link[^>]+href|<img[^>]+src|url\()\s*=?\s*["']?(https?:)?\/\//gi)];
+    assert.deepEqual(ext.map(m => m[0]).filter(x => !/rel="canonical"/.test(x)), [], f);
+  }
 });
 
 /* ------------------------------------------------------------ Vorrat erschöpft */

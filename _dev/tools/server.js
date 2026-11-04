@@ -44,5 +44,5 @@ if (require.main === module) {
   const args = process.argv.slice(2);
   const port = +(args[args.indexOf('--port') + 1] || 0) || 8080;
   const open = args.includes('--open') ? args[args.indexOf('--open') + 1] : '';
-  start({ port, allowDev: true }).then(s => console.log(`NUMIGMA läuft auf ${s.url}${open}  (Strg+C beendet)`));
+  start({ port, allowDev: true }).then(s => console.log(`CIPHRO läuft auf ${s.url}${open}  (Strg+C beendet)`));
 }

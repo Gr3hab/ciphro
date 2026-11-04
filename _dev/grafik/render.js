@@ -1,5 +1,5 @@
-/* Rendert die Vorschaubilder og-de.png und og-en.png aus og.html (Playwright). Aufruf im Ordner _dev: node grafik/render.js
-   og.png (englisch) bleibt für Links, die vor der Aufteilung geteilt wurden, unverändert liegen. */
+/* Rendert die Vorschaubilder og-de.png und og-en.png aus og.html und die App-Symbole aus icon.html (Playwright).
+   Aufruf im Ordner _dev: node grafik/render.js */
 'use strict';
 const path = require('path');
 const { pathToFileURL } = require('url');
@@ -15,6 +15,15 @@ const { chromium } = require('playwright');
     if (!ok) throw new Error(`Slogan (${lang}) passt nicht ins Bild`);
     await p.screenshot({ path: path.join(__dirname, '..', '..', `og-${lang}.png`) });
     console.log(`og-${lang}.png geschrieben`);
+  }
+  // App-Symbole (CIPHRO: „3“ über „C“)
+  for (const [file, size, mask] of [['icon-512.png', 512, 0], ['icon-192.png', 192, 0], ['icon.png', 180, 0], ['icon-maskable-512.png', 512, 1]]) {
+    const ip = await b.newPage({ viewport: { width: size, height: size }, deviceScaleFactor: 1 });
+    await ip.goto(pathToFileURL(path.join(__dirname, 'icon.html')).href + `?size=${size}&mask=${mask}`);
+    await ip.evaluate(() => document.fonts.ready);
+    await ip.screenshot({ path: path.join(__dirname, '..', '..', file) });
+    await ip.close();
+    console.log(`${file} geschrieben`);
   }
   await b.close();
 })();

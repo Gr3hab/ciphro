@@ -3,27 +3,28 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>NUMIGMA · Knacke den Code. Entdecke den Fakt.</title>
+<title>CIPHRO · Knacke den Code. Entdecke den Fakt.</title>
 <!-- Linkvorschau (WhatsApp & Co.): Wer den Link bekommt, weiß sonst nicht, was ihn erwartet. Deshalb auf Deutsch, klar und mit „kostenlos“.
      Bild og-de.png mit deutschem Slogan. Englische Links (/en/) haben eine eigene Vorschau mit og-en.png. Neue Bildnamen, weil WhatsApp Bilder zwischenspeichert;
-     ändert sich ein Bild, ?v= erhöhen (seit 27.10.2026 v=2: „Knacke den Code. Entdecke den Fakt.“). -->
+     ändert sich ein Bild, ?v= erhöhen (seit 4.11.2026 v=3: neuer Name CIPHRO, Adresse ciphro.eu). -->
 <meta name="description" content="Das tägliche Zahlenrätsel: Jede Zahl ist ein Buchstabe. Knacke den Code, dahinter steckt ein wahrer Fakt. Kostenlos, ohne Anmeldung, ohne Werbung.">
-<meta property="og:site_name" content="NUMIGMA">
-<meta property="og:title" content="NUMIGMA · Das tägliche Zahlenrätsel">
+<meta property="og:site_name" content="CIPHRO">
+<meta property="og:title" content="CIPHRO · Das tägliche Zahlenrätsel">
 <meta property="og:description" content="Jede Zahl ist ein Buchstabe. Knacke den Code, dahinter steckt ein wahrer Fakt. Kostenlos, ohne Anmeldung, ohne Werbung.">
 <meta property="og:locale" content="de_AT">
 <meta property="og:type" content="website">
-<meta property="og:url" content="https://gr3hab.github.io/numfact/">
-<meta property="og:image" content="https://gr3hab.github.io/numfact/og-de.png?v=2">
+<meta property="og:url" content="https://ciphro.eu/">
+<link rel="canonical" href="https://ciphro.eu/">
+<meta property="og:image" content="https://ciphro.eu/og-de.png?v=3">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="NUMIGMA: Knacke den Code. Entdecke den Fakt.">
+<meta property="og:image:alt" content="CIPHRO: Knacke den Code. Entdecke den Fakt.">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="theme-color" content="#f2f4f7" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#111715" media="(prefers-color-scheme: dark)">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="NUMIGMA">
+<meta name="apple-mobile-web-app-title" content="CIPHRO">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon.png">
@@ -46,7 +47,7 @@
 @font-face{font-family:"Martian Mono";font-style:normal;font-weight:800;font-display:swap;src:url(fonts/martian-mono-latin-800-normal.woff2) format("woff2");unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
 @font-face{font-family:"Martian Mono";font-style:normal;font-weight:800;font-display:swap;src:url(fonts/martian-mono-latin-ext-800-normal.woff2) format("woff2");unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF}
 
-/* NUMIGMA. Layout: App-Bildschirm in einer Spalte. Oben Kopf, Stufen und Uhr, in der Mitte das Rätselblatt (scrollt),
+/* CIPHRO. Layout: App-Bildschirm in einer Spalte. Oben Kopf, Stufen und Uhr, in der Mitte das Rätselblatt (scrollt),
    unten Tipps und eigene Tastatur. Im flachen Querformat stehen Blatt und Tastatur nebeneinander.
    Karopapier mit Ziffern in Königsblau, gelöste Wörter mit grünem Textmarker, Fehler in Rotstift, Tipps in Bleistift. */
 :root{
@@ -392,6 +393,8 @@ dialog::backdrop{background:var(--scrim)}
 textarea{width:100%;font:inherit;font-size:.95rem;padding:10px;border:1px solid var(--line);border-radius:var(--r);background:var(--paper);color:var(--text);resize:vertical}
 .legend{font-size:.84rem;color:var(--muted)}
 .actions-row{display:flex;flex-wrap:wrap;gap:8px}
+.legal{margin:14px 0 0;text-align:center}
+.legal a{color:var(--muted);display:inline-block;padding:8px 4px}
 
 /* Anleitung: kurz, Details zum Aufklappen */
 .more-list{display:flex;flex-direction:column;border-top:1px solid var(--line)}
@@ -449,7 +452,7 @@ textarea{width:100%;font:inherit;font-size:.95rem;padding:10px;border:1px solid 
 
   <header class="top">
     <div class="brand">
-      <h1 id="brandName"><span class="a">NUM</span>IGMA</h1>
+      <h1 id="brandName"><span class="a">CIPH</span>RO</h1>
       <p class="issue" id="issue"></p>
     </div>
     <nav class="icons" id="menu">
@@ -510,8 +513,8 @@ textarea{width:100%;font:inherit;font-size:.95rem;padding:10px;border:1px solid 
     <section class="sheet" id="board">
       <div class="nojs" id="nojs">
         <strong>Hier fehlt das Rätsel? · Puzzle missing?</strong>
-        <p>Du siehst nur die Vorschau der Datei. Die startet das Spiel nicht. Öffne NUMIGMA über den Link im Browser.</p>
-        <p lang="en">You are looking at a file preview, which cannot run the game. Open NUMIGMA from the link in your browser.</p>
+        <p>Du siehst nur die Vorschau der Datei. Die startet das Spiel nicht. Öffne CIPHRO über den Link im Browser.</p>
+        <p lang="en">You are looking at a file preview, which cannot run the game. Open CIPHRO from the link in your browser.</p>
       </div>
     </section>
     <section class="result" id="result" hidden></section>
@@ -594,6 +597,8 @@ const STR = {
     futureSoon: (n, t) => `Rätsel #${n} erscheint bei dir in ${t}. Bis dahin: das heutige.`,
     futureLater: (n, d) => `Rätsel #${n} erscheint erst am ${d}. Hier ist das heutige.`,
     badLink: 'Diesen Link kennen wir nicht. Hier ist das heutige Rätsel.',
+    moved: 'NUMIGMA heißt jetzt CIPHRO. Dein Spielstand ist mitgekommen.', movedEmpty: 'NUMIGMA heißt jetzt CIPHRO. Neue Adresse: ciphro.eu',
+    movedBad: 'NUMIGMA heißt jetzt CIPHRO. Dein alter Spielstand ließ sich leider nicht übernehmen.',
     menu: { archive: 'Archiv', stats: 'Statistik', settings: 'Einstellungen', help: 'Anleitung' }, menuAria: 'Menü', close: 'Schließen', dismiss: 'Hinweis schließen',
     modesAria: 'Stufe', ruleAria: 'Regel anzeigen', timer: 'Zeit für dieses Rätsel', timerSr: 'Zeit', pause: 'Pause', board: 'Zahlencode', stage: 'Rätsel',
     words: n => n === 1 ? '1 Wort' : `${n} Wörter`, revealedShort: 'aufgelöst', solvedSr: 'gelöst',
@@ -649,6 +654,7 @@ const STR = {
       streakNote: 'Die Serie wächst mit jedem Tag, an dem du ein Rätsel des Tages löst. Nächste Codes in', empty: 'Noch nichts gelöst. Dein erstes Rätsel wartet.' },
     archive: { title: 'Archiv', intro: 'Alle bisherigen Rätsel zum Nachspielen. Sie zählen für die Statistik, aber nicht für die Serie.', today: 'Heute',
       st: { solved: 'gelöst', revealed: 'aufgelöst', playing: 'angefangen', open: 'offen' }, repeat: r => `Wiederholung von #${r}` },
+    legal: { imprint: 'Impressum', privacy: 'Datenschutz', hash: '' },
     settings: { title: 'Einstellungen', theme: 'Design', system: 'System', light: 'Hell', dark: 'Dunkel', themeNote: 'System: hell oder dunkel, je nachdem, wie dein Handy oder Computer eingestellt ist.', language: 'Sprache',
       haptics: 'Haptisches Feedback', hapticsNote: 'Am Handy bei jedem Tastendruck. Auf Android zusätzlich bei richtigen und falschen Wörtern.',
       privacy: 'Kein Konto, keine Werbung, kein Tracking. Dein Fortschritt bleibt nur in diesem Browser. Auf einem anderen Gerät oder als App am Home-Bildschirm beginnt die Statistik neu.',
@@ -700,6 +706,8 @@ const STR = {
     futureSoon: (n, t) => `Puzzle #${n} arrives for you in ${t}. Until then, here is today’s.`,
     futureLater: (n, d) => `Puzzle #${n} is not out until ${d}. Here is today’s.`,
     badLink: 'That link did not work. Here is today’s puzzle.',
+    moved: 'NUMIGMA is now CIPHRO. Your progress came with you.', movedEmpty: 'NUMIGMA is now CIPHRO. New address: ciphro.eu',
+    movedBad: 'NUMIGMA is now CIPHRO. Sadly, your old progress could not be carried over.',
     menu: { archive: 'Archive', stats: 'Statistics', settings: 'Settings', help: 'How to play' }, menuAria: 'Menu', close: 'Close', dismiss: 'Dismiss',
     modesAria: 'Level', ruleAria: 'Show rule', timer: 'Time for this puzzle', timerSr: 'Time', pause: 'Pause', board: 'Number code', stage: 'Puzzle',
     words: n => n === 1 ? '1 word' : `${n} words`, revealedShort: 'revealed', solvedSr: 'solved',
@@ -754,6 +762,7 @@ const STR = {
       streakNote: 'Your streak grows every day you solve at least one of that day’s puzzles. Next codes in', empty: 'Nothing solved yet. Your first puzzle is waiting.' },
     archive: { title: 'Archive', intro: 'Every puzzle so far, ready to replay. They count towards your statistics but not your streak.', today: 'Today',
       st: { solved: 'solved', revealed: 'revealed', playing: 'started', open: 'open' }, repeat: r => `Repeat of #${r}` },
+    legal: { imprint: 'Legal notice', privacy: 'Privacy', hash: '#en' },
     settings: { title: 'Settings', theme: 'Theme', system: 'System', light: 'Light', dark: 'Dark', themeNote: 'System: light or dark, matching the setting on your phone or computer.', language: 'Language',
       haptics: 'Haptic feedback', hapticsNote: 'On phones with every key press. On Android also for right and wrong words.',
       privacy: 'No account, no ads, no tracking. Your progress stays in this browser only. On another device or as a home screen app, your statistics start fresh.',
@@ -827,6 +836,54 @@ function loadStore() {
   return { v: 2, seenHelp: false, days: {} };
 }
 let store = loadStore();
+/* Umzug von gr3hab.github.io/numfact nach ciphro.eu (November 2026): Der Browser speichert pro Adresse.
+   Die alte Adresse schickt den Spielstand deshalb einmal im Link-Anker mit (#import=…, Base64url von JSON).
+   Der Anker geht nie an einen Server und wird sofort aus der Adresse entfernt.
+   Zusammenführen: Was hier schon steht, bleibt. Von alt kommt nur, was hier fehlt oder weiter ist
+   (gelöst vor aufgelöst vor angefangen vor offen). Einstellungen von alt nur, wenn hier noch keine gewählt ist. */
+const RANK = { open: 0, playing: 1, revealed: 2, solved: 3 };
+const rankOf = s => s && typeof s === 'object' && RANK[s.status] != null ? RANK[s.status] : -1;
+function mergeMoved(inc) {
+  ['days', 'daysEn'].forEach(f => {
+    const src = inc[f];
+    if (!src || typeof src !== 'object') return;
+    if (!store[f] || typeof store[f] !== 'object') store[f] = {};
+    Object.keys(src).forEach(k => {
+      const a = store[f][k], b = src[k];
+      if (!b || typeof b !== 'object') return;
+      if (!a || typeof a !== 'object') { store[f][k] = b; return; }
+      Object.keys(b).forEach(id => { if (rankOf(b[id]) > rankOf(a[id])) a[id] = b[id]; });
+    });
+  });
+  if (inc.seenHelp) store.seenHelp = true;
+  if (inc.coach && typeof inc.coach === 'object') {
+    if (!store.coach || typeof store.coach !== 'object') store.coach = {};
+    Object.keys(inc.coach).forEach(k => { if (inc.coach[k]) store.coach[k] = inc.coach[k]; });
+  }
+  Object.keys(inc).forEach(k => {
+    if (k === 'v' || k === 'days' || k === 'daysEn' || k === 'seenHelp' || k === 'coach' || k === 'moved') return;
+    if (store[k] === undefined) store[k] = inc[k];
+  });
+}
+function importMoved() {
+  let h = '';
+  try { h = location.hash || ''; } catch (e) { return null; }
+  const m = /^#(?:import=([A-Za-z0-9_-]*)|moved)$/.exec(h);
+  if (!m) return null;
+  try { history.replaceState(null, '', location.pathname + location.search); } catch (e) { /* Anker bleibt halt stehen */ }
+  if (m[1] == null || m[1] === '') return 'empty';
+  try {
+    const b = m[1].replace(/-/g, '+').replace(/_/g, '/');
+    const bin = atob(b + '==='.slice((b.length + 3) % 4));
+    const inc = JSON.parse(new TextDecoder().decode(Uint8Array.from(bin, c => c.charCodeAt(0))));
+    if (!inc || inc.v !== 2 || !inc.days || typeof inc.days !== 'object') return 'bad';
+    const first = !store.moved;
+    mergeMoved(inc);
+    store.moved = true;
+    return first ? 'ok' : 'again';
+  } catch (e) { return 'bad'; }
+}
+const moved = importMoved();
 function fixStore() {
   if (store.haptics === undefined) store.haptics = true;
   if (!store.theme) store.theme = 'system';
@@ -836,6 +893,7 @@ function fixStore() {
 }
 fixStore();
 function save() { try { localStorage.setItem(CONFIG.storageKey, JSON.stringify(store)); } catch (e) { /* ignorieren */ } }
+if (moved === 'ok' || moved === 'again') save();
 
 /* ============================================================ Sprache und Link */
 function navLang() {
@@ -1038,7 +1096,7 @@ function renderStatic() {
 
 function renderHeader() {
   const name = CONFIG.name, t = T();
-  $('#brandName').innerHTML = `<span class="a">${esc(name.slice(0, 3))}</span>${esc(name.slice(3))}`;
+  $('#brandName').innerHTML = `<span class="a">${esc(name.slice(0, 4))}</span>${esc(name.slice(4))}`;   // CIPH|RO
   $('#issue').textContent = t.issue(day.number, dateLabel(day.key));
   $('#archiveBar').hidden = !archive && !day.repeatOf;
   $('#backToday').hidden = !archive;
@@ -1822,6 +1880,11 @@ function langSeg(name, slim) {
     [['de', 'Deutsch'], ['en', 'English']].map(([v, l]) => `<label><input type="radio" name="${name}" value="${v}" data-lang="${v}"${lang === v ? ' checked' : ''}><span lang="${v}">${l}</span></label>`).join('') + '</div>';
 }
 
+// Impressum und Datenschutz (in den Einstellungen unter dem Satz zum Datenschutz): eigene Seiten, auf Englisch mit Sprung zum englischen Teil
+function legalLinks() {
+  const l = T().legal;
+  return `<p class="small legal"><a href="impressum.html${l.hash}">${esc(l.imprint)}</a> · <a href="datenschutz.html${l.hash}">${esc(l.privacy)}</a></p>`;
+}
 function renderHelp() {
   const h = T().help, secs = h.sections;
   $('#helpBody').innerHTML =
@@ -1846,7 +1909,7 @@ function renderSettings() {
     '<div class="actions-row">' +
       `<button class="btn primary" type="button" data-close>${esc(t.done)}</button>` +
       `<button class="btn" type="button" data-act="replayIntro">${esc(t.intro)}</button>` +
-    '</div>';
+    '</div>' + legalLinks();
 }
 
 // Kurz-Einstieg: ein Übungswort, das nichts vom heutigen Rätsel verrät
@@ -2112,6 +2175,8 @@ renderStatic(); buildKeyboard();
     if (link.n - 1 > tIdx) notice = { future: link.n };
     else key = keyOfNumber(link.n);
   }
+  // Umzug: einmal sagen, dass NUMIGMA jetzt CIPHRO heißt (wichtiger als die anderen Hinweise)
+  if (moved === 'ok' || moved === 'empty' || moved === 'bad') notice = { text: T()[moved === 'ok' ? 'moved' : moved === 'bad' ? 'movedBad' : 'movedEmpty'] };
   setView(key, key !== today, link.m, false);
   syncUrl();
   if (!store.seenHelp) openIntro();

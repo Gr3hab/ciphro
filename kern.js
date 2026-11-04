@@ -1,10 +1,10 @@
-/* NUMIGMA – Spiellogik für Spiel, Tests und Redaktion.
+/* CIPHRO – Spiellogik für Spiel, Tests und Redaktion.
    Hier muss normalerweise niemand etwas ändern. Die Fakten stehen in fakten.js. */
 (function () {
 'use strict';
 
 const CONFIG = {
-  name: 'NUMIGMA',
+  name: 'CIPHRO',
   tagline: 'Crack the code. Reveal the fact.',
   languages: ['de', 'en'],
   launchDate: '2026-10-21',   // Tag von Rätsel #1
