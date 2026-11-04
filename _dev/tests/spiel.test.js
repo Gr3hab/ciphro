@@ -951,9 +951,17 @@ test('Umzug: englischer Link, alter Link ohne Spielstand und kaputter Anker', as
 /* ------------------------------------------------------------ Impressum und Datenschutz */
 test('Impressum und Datenschutz: aus den Einstellungen erreichbar, Deutsch und Englisch, ohne fremde Server', async () => {
   let page = await openPage(env);
+  // Ständig leicht erreichbar: auf der Startkarte, im Ergebnis und in den Einstellungen
+  const legal = sel => page.$$eval(sel + ' .legal a', as => as.map(a => [a.textContent, a.getAttribute('href')]));
+  const DE = [['Impressum', 'impressum.html'], ['Datenschutz', 'datenschutz.html']];
+  assert.ok(await page.isVisible('#startCard .legal a[href="impressum.html"]'));
+  assert.deepEqual(await legal('#startCard'), DE);
+  await page.click('#startBtn');
+  for (const w of solution(4, 'de', 'easy')) await typeWord(page, w);
+  await page.waitForSelector('#result:not([hidden])');
+  assert.deepEqual(await legal('#result'), DE);
   await page.click('#settingsBtn');
-  assert.deepEqual(await page.$$eval('#settingsBody .legal a', as => as.map(a => [a.textContent, a.getAttribute('href')])),
-    [['Impressum', 'impressum.html'], ['Datenschutz', 'datenschutz.html']]);
+  assert.deepEqual(await legal('#settingsBody'), DE);
   await page.click('#settingsBody .legal a[href="impressum.html"]');
   await page.waitForURL(/impressum\.html$/);
   const imp = (await page.textContent('main')).replace(/\s+/g, ' ');
@@ -961,7 +969,7 @@ test('Impressum und Datenschutz: aus den Einstellungen erreichbar, Deutsch und E
   await page.click('main a[href="datenschutz.html"]');
   await page.waitForURL(/datenschutz\.html$/);
   const ds = (await page.textContent('main')).replace(/\s+/g, ' ');
-  for (const t of ['keine Cookies', 'GitHub, Inc.', 'Datenschutzbehörde', 'Websitedaten von ciphro.eu löschen', 'nach dem #-Zeichen']) assert.ok(ds.includes(t), t);
+  for (const t of ['keine Cookies', 'GitHub, Inc.', 'Datenschutzbehörde', 'Websitedaten von ciphro.eu löschen', 'nach dem #-Zeichen', 'Wie lange: bis du sie löschst', 'Wenn du uns schreibst', 'kein Profiling']) assert.ok(ds.includes(t), t);
   // Zurück zum Rätsel
   await page.click('.top .back');
   await page.waitForFunction(() => document.querySelector('#issue') && document.querySelector('#issue').textContent);

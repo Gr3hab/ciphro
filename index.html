@@ -1177,7 +1177,7 @@ function renderStart() {
     (current !== 'easy' && ms('easy').status === 'open' && !everPlayed() ? `<button class="btn link toeasy" type="button" data-act="toEasy" id="toEasy">${esc(t.toEasy)}${ICON.next}</button>` : '') +
     ruleHtml(true) +
     `<button class="btn primary big" type="button" data-act="start" id="startBtn">${ICON.play}${esc(t.start)}</button>` +
-    `<p class="small">${esc(t.startNote)}</p>`;
+    `<p class="small">${esc(t.startNote)}</p>` + legalLinks();
 }
 
 function renderPause() {
@@ -1351,7 +1351,7 @@ function renderResult() {
       `<button class="btn primary" type="button" data-act="share">${ICON.share}${esc(t.share)}</button>` +
       (next ? `<button class="btn" type="button" data-act="next">${esc(t.next(next.name))}${ICON.next}</button>` : '') +
       (allDone ? `<button class="btn" type="button" data-act="stats">${esc(t.statsBtn)}</button>` : '') +
-    '</div>';
+    '</div>' + legalLinks();
   box.hidden = false;
   tick();
 }
@@ -1880,7 +1880,7 @@ function langSeg(name, slim) {
     [['de', 'Deutsch'], ['en', 'English']].map(([v, l]) => `<label><input type="radio" name="${name}" value="${v}" data-lang="${v}"${lang === v ? ' checked' : ''}><span lang="${v}">${l}</span></label>`).join('') + '</div>';
 }
 
-// Impressum und Datenschutz (in den Einstellungen unter dem Satz zum Datenschutz): eigene Seiten, auf Englisch mit Sprung zum englischen Teil
+// Impressum und Datenschutz: auf der Startkarte, im Ergebnis und in den Einstellungen (ständig leicht erreichbar). Eigene Seiten, auf Englisch mit Sprung zum englischen Teil
 function legalLinks() {
   const l = T().legal;
   return `<p class="small legal"><a href="impressum.html${l.hash}">${esc(l.imprint)}</a> · <a href="datenschutz.html${l.hash}">${esc(l.privacy)}</a></p>`;
