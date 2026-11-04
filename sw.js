@@ -1,8 +1,8 @@
-/* NUMIGMA – Offline-Hilfe.
+/* CIPHRO – Offline-Hilfe.
    Immer zuerst das Netz fragen (so kommen neue Rätsel und Korrekturen sofort an).
    Nur wenn keine Verbindung da ist, wird die zuletzt geladene Fassung aus dem Zwischenspeicher genommen.
    Die Rätsel werden im Browser berechnet, deshalb funktioniert auch ein neuer Tag offline. */
-const CACHE = 'numigma-v15';
+const CACHE = 'ciphro-v1';
 const CORE = [
   './', 'index.html', 'kern.js?v=10', 'fakten.js?v=10', 'manifest.webmanifest', 'en/',
   'icon.png', 'icon-192.png',
@@ -16,7 +16,7 @@ self.addEventListener('install', e => {
 
 self.addEventListener('activate', e => {
   e.waitUntil(caches.keys()
-    .then(keys => Promise.all(keys.filter(k => k.startsWith('numigma-') && k !== CACHE).map(k => caches.delete(k))))
+    .then(keys => Promise.all(keys.filter(k => (k.startsWith('ciphro-') || k.startsWith('numigma-')) && k !== CACHE).map(k => caches.delete(k))))
     .then(() => self.clients.claim()));
 });
 

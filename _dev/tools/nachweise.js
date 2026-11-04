@@ -68,7 +68,7 @@ const R = {};
       for (const L of hw[wi]) await page.click(`#kb .k[data-k="${L}"] button`);
     }
     await page.click('#result [data-act=share]');
-    R['Hilfe-Farben: Teilen-Text nach Schlüssel (Wort 1) und überschriebenem Tipp (Wort 2)'] = (await page.evaluate(() => navigator.clipboard.readText())).replace(/http:\/\/127\.0\.0\.1:\d+\//, 'https://gr3hab.github.io/numfact/');
+    R['Hilfe-Farben: Teilen-Text nach Schlüssel (Wort 1) und überschriebenem Tipp (Wort 2)'] = (await page.evaluate(() => navigator.clipboard.readText())).replace(/http:\/\/127\.0\.0\.1:\d+\//, 'https://ciphro.eu/');
     await page.context().close();
   }
   // Prüfseite: wie GitHub Pages ausgeliefert?

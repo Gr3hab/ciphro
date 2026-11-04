@@ -9,7 +9,7 @@ Das Werkzeug erfindet nichts: Es zeigt nur, was tatsächlich im Artikel steht. D
 """
 import json, os, random, re, sys, time, urllib.error, urllib.parse, urllib.request
 
-UA = 'NUMIGMA-Faktencheck/1.0 (https://github.com/Gr3hab/numfact)'
+UA = 'CIPHRO-Faktencheck/1.0 (https://github.com/Gr3hab/ciphro)'
 CACHE = os.path.join(os.path.dirname(__file__), '..', '.cache', 'wiki')
 os.makedirs(CACHE, exist_ok=True)
 
