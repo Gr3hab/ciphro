@@ -1019,12 +1019,12 @@ test('Impressum und Datenschutz: aus den Einstellungen erreichbar, Deutsch und E
   await page.click('#settingsBody .legal a[href="impressum.html"]');
   await page.waitForURL(/impressum\.html$/);
   const imp = (await page.textContent('main')).replace(/\s+/g, ' ');
-  for (const t of ['Lukas Greil', 'Hatzenbacher Straße 2a', '2003 Leitzersdorf', 'Österreich', 'kontakt@ciphro.eu', '§ 25 Mediengesetz']) assert.ok(imp.includes(t), t);
+  for (const t of ['Lukas Greil', 'Hatzenbacher Straße 2a', '2003 Leitzersdorf', 'Ervin Curic', 'Reisenbauer-Ring 6/3/12', '2351 Wiener Neudorf', 'Österreich', 'kontakt@ciphro.eu', '§ 25 Mediengesetz']) assert.ok(imp.includes(t), t);
   assert.equal(await page.locator('#en a[href^="mailto:"]').first().getAttribute('href'), 'mailto:contact@ciphro.eu');
   await page.click('main a[href="datenschutz.html"]');
   await page.waitForURL(/datenschutz\.html$/);
   const ds = (await page.textContent('main')).replace(/\s+/g, ' ');
-  for (const t of ['keine Cookies', 'GitHub, Inc.', 'Datenschutzbehörde', 'Websitedaten von ciphro.eu löschen', 'nach dem #-Zeichen', 'Wie lange: bis du sie löschst', 'Wenn du uns schreibst', 'Cloudflare Email Routing', 'kein Profiling']) assert.ok(ds.includes(t), t);
+  for (const t of ['keine Cookies', 'GitHub, Inc.', 'Datenschutzbehörde', 'Websitedaten von ciphro.eu löschen', 'nach dem #-Zeichen', 'Wie lange: bis du sie löschst', 'gemeinsam verantwortlich (Art. 26 DSGVO)', 'Ervin Curic, Reisenbauer-Ring 6/3/12, 2351 Wiener Neudorf', 'Wenn du uns schreibst', 'Cloudflare Email Routing', 'kein Profiling']) assert.ok(ds.includes(t), t);
   assert.equal(await page.locator('#en a[href^="mailto:"]').first().getAttribute('href'), 'mailto:contact@ciphro.eu');
   // Zurück zum Rätsel
   await page.click('.top .back');
