@@ -18,6 +18,7 @@ const check = today => plain(NF.checkFacts(today));
 // Ab #9 stehen Umlaute als AE, OE, UE, SS in den Kästchen. So sieht ein älterer Code-Stand nach der Umstellung aus:
 const az = sig => sig.replace(/[ÄÖÜß]/g, c => NF.DIGRAPH[c]);
 const AZ_FROM = NF.dayIndex(NF.CONFIG.lettersFrom) + 1;   // Rätselnummer, ab der nur A–Z gilt (#9)
+const LANGS = NF.CONFIG.languages;
 
 test('Faktenliste lädt und hat feste, fortlaufende IDs', () => {
   assert.ok(Array.isArray(F) && F.length >= 64, 'NUMIGMA_FACTS fehlt oder ist zu kurz');
@@ -58,7 +59,7 @@ test('Veröffentlichte Rätsel #1–#8 behalten Sätze, Stufen und Verschiebung 
 
 test('Nur A–Z an allen Tagen, Zahlen 1 bis 26 in jeder Stufe; ab #9 deutsche Sätze ganz ohne Ä, Ö, Ü, ß', () => {
   for (let i = 0; i < NF.plannedDays(); i++) {
-    for (const lang of ['de', 'en']) {
+    for (const lang of LANGS) {
       const d = NF.buildDay(NF.addDays(NF.CONFIG.launchDate, i), lang);
       assert.equal(d.az, true, `#${i + 1}`);
       MODES.forEach(m => {
@@ -86,7 +87,8 @@ test('Rätsel, die schon irgendwo auf der Welt live sind, gleichen dem letzten S
   const until = Math.min(NF.dayIndex(latestLiveKey()), base.NF.plannedDays ? base.NF.plannedDays() - 1 : 9999);
   for (let i = 0; i <= until; i++) {
     const key = NF.addDays(NF.CONFIG.launchDate, i);
-    for (const lang of ['de', 'en']) {
+    // Nur Sprachen, die es im Vergleichsstand schon gab (Französisch und Italienisch seit November 2026)
+    for (const lang of base.NF.CONFIG.languages || ['de', 'en']) {
       let b;
       try { b = base.NF.buildDay(key, lang); } catch (e) { continue; }
       const c = NF.buildDay(key, lang);
@@ -99,11 +101,38 @@ test('Rätsel, die schon irgendwo auf der Welt live sind, gleichen dem letzten S
   }
 });
 
-test('Ab #9 steckt in beiden Sprachen derselbe Fakt in derselben Stufe', () => {
+test('Ab #9 steckt in allen Sprachen derselbe Fakt in derselben Stufe', () => {
   for (let i = NF.CONFIG.frozenDays; i < NF.plannedDays(); i++) {
-    const key = NF.addDays(NF.CONFIG.launchDate, i), de = NF.buildDay(key, 'de'), en = NF.buildDay(key, 'en');
-    MODES.forEach(m => assert.equal(de.puzzles[m].fact.id, en.puzzles[m].fact.id, `#${i + 1} ${m}`));
+    const key = NF.addDays(NF.CONFIG.launchDate, i), de = NF.buildDay(key, 'de');
+    for (const lang of LANGS) {
+      const d = NF.buildDay(key, lang);
+      assert.equal(d.shift, de.shift, `#${i + 1} ${lang}: Verschiebung`);
+      MODES.forEach(m => assert.equal(d.puzzles[m].fact.id, de.puzzles[m].fact.id, `#${i + 1} ${lang} ${m}`));
+    }
   }
+});
+
+test('Französisch und Italienisch: alle Fakten übersetzt, #1–#8 wie Deutsch, Akzente fallen im Code weg', () => {
+  assert.deepEqual(Array.from(LANGS), ['de', 'en', 'fr', 'it']);
+  F.forEach(f => ['fr', 'it'].forEach(l => {
+    assert.ok(Array.isArray(f[l]) && f[l].length === 2 && f[l][0].trim() && f[l][1].trim(), `${f.id}: ${l} fehlt`);
+    assert.match(f[l][0], /\.$/, `${f.id} ${l}: Satz ohne Punkt`);
+    assert.doesNotMatch(f[l][0], /[’'\-,0-9]/, `${f.id} ${l}: Apostroph, Bindestrich, Komma oder Ziffer im Satz`);
+  }));
+  for (let i = 0; i < NF.CONFIG.frozenDays; i++) {
+    const key = NF.addDays(NF.CONFIG.launchDate, i), de = NF.buildDay(key, 'de');
+    for (const lang of ['fr', 'it']) {
+      const d = NF.buildDay(key, lang);
+      MODES.forEach(m => assert.equal(d.puzzles[m].fact.id, de.puzzles[m].fact.id, `#${i + 1} ${lang} ${m}`));
+    }
+  }
+  assert.equal(NF.symStr('Œuf, café, città, Noël, ex æquo'), 'OEUFCAFECITTANOELEXAEQUO');
+  // Im Fakt steht der Satz mit Akzenten, im Code nur A–Z
+  const n = NF.buildDay(NF.keyOfNumber(1), 'fr').puzzles.hard;
+  assert.equal(n.fact.t, 'Certains bambous poussent de presque un mètre par jour.');
+  assert.equal(n.words.map(w => w.plain).join(' '), 'CERTAINS BAMBOUS POUSSENT DE PRESQUE UN METRE PAR JOUR');
+  // Unbekannte Sprache fällt auf Deutsch zurück
+  assert.equal(NF.buildDay(NF.keyOfNumber(9), 'xx').puzzles.easy.fact.t, NF.buildDay(NF.keyOfNumber(9), 'de').puzzles.easy.fact.t);
 });
 
 test('Ab #9 kein Thema doppelt am selben Tag', () => {
@@ -119,12 +148,12 @@ test('Easy ist ab #9 der zweitkürzeste Satz, Impossible der kürzeste', () => {
   }
 });
 
-test('Ab #9 hat Easy in beiden Sprachen höchstens 8 Wörter, meist 5 bis 7', () => {
+test('Ab #9 hat Easy in jeder Sprache höchstens 8 Wörter, meist 5 bis 7', () => {
   const words = s => s.split(/\s+/).filter(w => NF.symStr(w)).length;
   const counts = [];
   for (let i = NF.CONFIG.frozenDays; i < NF.plannedDays(); i++) {
     const key = NF.addDays(NF.CONFIG.launchDate, i);
-    for (const lang of ['de', 'en']) {
+    for (const lang of LANGS) {
       const n = NF.buildDay(key, lang).puzzles.easy.words.length;
       assert.ok(n <= 8, `#${i + 1} ${lang.toUpperCase()}: Easy hat ${n} Wörter`);
       counts.push(n);

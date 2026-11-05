@@ -47,7 +47,7 @@ function puzzle(n, lang, mode) { return NF.buildDay(keyOf(n), lang).puzzles[mode
 async function store(page) { return page.evaluate(() => JSON.parse(localStorage.getItem('numfact.v2'))); }
 async function state(page, key, mode, lang = 'de') {
   const s = await store(page);
-  return (lang === 'en' ? s.daysEn : s.days)[key][mode];
+  return s[{ de: 'days', en: 'daysEn', fr: 'daysFr', it: 'daysIt' }[lang]][key][mode];
 }
 async function timer(page) { return (await page.textContent('#timerText')).trim(); }
 // Tippt ein Wort wie ein Mensch: Buchstaben über die echte Tastatur, Ä Ö Ü ß über die Bildschirmtastatur

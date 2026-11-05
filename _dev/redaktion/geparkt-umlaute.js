@@ -9,8 +9,9 @@
    1. Den deutschen Satz so umformulieren, dass kein Ä, Ö, Ü, ß mehr vorkommt
       (z. B. „über hundert“ → „mehr als hundert“). Bedeutung und Quelle müssen weiter passen,
       der englische Satz soll dasselbe sagen. Die Erklärung darf Umlaute behalten.
-   2. Den ganzen Eintrag (ID bleibt) in fakten.js ganz unten anhängen und hier löschen.
-   3. Im Ordner _dev: npm test
+   2. Französisch und Italienisch ergänzen (fr, it; Regeln in ANLEITUNG.md), hier gibt es nur de und en.
+   3. Den ganzen Eintrag (ID bleibt) in fakten.js ganz unten anhängen und hier löschen.
+   4. Im Ordner _dev: npm test
    Diese Datei wird vom Spiel nicht geladen.
    ================================================================ */
 window.NUMIGMA_GEPARKT = [

@@ -1,5 +1,5 @@
 <!doctype html><html><head><meta charset="utf-8">
-<!-- Vorschaubilder für geteilte Links, 1200×630: og-de.png (?lang=de) und og-en.png (?lang=en), gleiches Design, nur der Slogan in der Sprache.
+<!-- Vorschaubilder für geteilte Links, 1200×630: og-de.png, og-en.png, og-fr.png, og-it.png (?lang=…), gleiches Design, nur der Slogan in der Sprache.
      Erzeugen im Ordner _dev: node grafik/render.js -->
 <style>
 @font-face{font-family:"Martian Mono";font-weight:800;src:url(../../fonts/martian-mono-latin-800-normal.woff2) format("woff2")}
@@ -24,6 +24,8 @@ body{width:1200px;height:630px;box-sizing:border-box;padding:0 60px;background:#
 </div>
 <div class="tag" id="tag"><span>CRACK THE CODE.</span><span><em>REVEAL THE FACT.</em></span></div>
 <script>
-  if (/[?&]lang=de\b/.test(location.search)) document.getElementById('tag').innerHTML = '<span>KNACKE DEN CODE.</span><span><em>ENTDECKE DEN FAKT.</em></span>';
+  var TAG = { de: ['KNACKE DEN CODE.', 'ENTDECKE DEN FAKT.'], fr: ['DÉCHIFFRE LE CODE.', 'DÉCOUVRE LE FAIT.'], it: ['DECIFRA IL CODICE.', 'SCOPRI IL FATTO.'] };
+  var l = (/[?&]lang=(\w+)/.exec(location.search) || [])[1];
+  if (TAG[l]) document.getElementById('tag').innerHTML = '<span>' + TAG[l][0] + '</span><span><em>' + TAG[l][1] + '</em></span>';
 </script>
 </body></html>

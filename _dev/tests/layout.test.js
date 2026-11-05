@@ -58,11 +58,12 @@ async function measure(page) {
   });
 }
 
-for (const lang of ['de', 'en']) {
+const LOCALE = { de: 'de-AT', en: 'en-GB', fr: 'fr-FR', it: 'it-IT' };
+for (const lang of NF.CONFIG.languages) {
   test(`Layout ${lang.toUpperCase()}: alle Bildschirmgrößen, Start, Spiel in allen Stufen, Ergebnis, Dialoge`, async () => {
     const problems = [];
     for (const [width, height] of SIZES) {
-      const page = await openPage(env, { width, height, locale: lang === 'de' ? 'de-AT' : 'en-GB', mobile: width < 560 || height < 560 });
+      const page = await openPage(env, { width, height, locale: LOCALE[lang], mobile: width < 560 || height < 560 });
       const tag = `${width}×${height}`;
       const check = async what => (await measure(page)).forEach(p => problems.push(`${tag} ${what}: ${p}`));
       await check('Start');
@@ -112,18 +113,21 @@ test('Layout: sehr kleines Handy quer bittet ums Drehen und hält die Uhr an', a
   await page.context().close();
 });
 
-test('Layout: Kurz-Einstieg passt ohne Scrollen auf ein kleines Handy (320×568)', async () => {
-  const page = await openPage(env, { width: 320, height: 568, store: null, mobile: true });
-  const fits = await page.evaluate(() => { const d = document.getElementById('introDlg'); return d.scrollHeight <= d.clientHeight + 1; });
-  assert.ok(fits, 'Kurz-Einstieg muss ohne Scrollen sichtbar sein');
-  for (const L of 'EIS') await page.click(`#introBody [data-demo="${L}"]`);
-  const fits2 = await page.evaluate(() => { const d = document.getElementById('introDlg'); return d.scrollHeight <= d.clientHeight + 1; });
-  assert.ok(fits2, 'Erfolgsmeldung muss ohne Scrollen sichtbar sein');
-  await page.context().close();
+test('Layout: Kurz-Einstieg passt ohne Scrollen auf ein kleines Handy (320×568), in jeder Sprache', async () => {
+  for (const [lang, word] of [['de', 'EIS'], ['en', 'CAT'], ['fr', 'MER'], ['it', 'SOLE']]) {
+    const page = await openPage(env, { width: 320, height: 568, store: null, mobile: true, locale: LOCALE[lang] });
+    const fits = await page.evaluate(() => { const d = document.getElementById('introDlg'); return d.scrollHeight <= d.clientHeight + 1; });
+    assert.ok(fits, `${lang}: Kurz-Einstieg muss ohne Scrollen sichtbar sein`);
+    assert.deepEqual(await measure(page), [], lang);
+    for (const L of word) await page.click(`#introBody [data-demo="${L}"]`);
+    const fits2 = await page.evaluate(() => { const d = document.getElementById('introDlg'); return d.scrollHeight <= d.clientHeight + 1; });
+    assert.ok(fits2, `${lang}: Erfolgsmeldung muss ohne Scrollen sichtbar sein`);
+    await page.context().close();
+  }
 });
 
-test('Layout: Anleitung passt zugeklappt ohne Scrollen auf ein kleines Handy (320×568), Deutsch und Englisch', async () => {
-  for (const locale of ['de-AT', 'en-GB']) {
+test('Layout: Anleitung passt zugeklappt ohne Scrollen auf ein kleines Handy (320×568), in jeder Sprache', async () => {
+  for (const locale of Object.values(LOCALE)) {
     const page = await openPage(env, { width: 320, height: 568, locale, mobile: true });
     await page.click('#helpBtn');
     const fits = await page.evaluate(() => { const d = document.getElementById('helpDlg'); return d.scrollHeight <= d.clientHeight + 1; });
@@ -137,7 +141,7 @@ test('Layout: die längsten Wörter des ganzen Vorrats passen auf 320 px in eine
   const worst = {};
   for (let i = 0; i < NF.plannedDays(); i++) {
     const key = NF.addDays(NF.CONFIG.launchDate, i);
-    for (const lang of ['de', 'en']) {
+    for (const lang of NF.CONFIG.languages) {
       const d = NF.buildDay(key, lang);
       NF.MODES.forEach(m => {
         const u = Math.max(...d.puzzles[m.id].words.map(w => NF.wordUnits(w, m.id)));
@@ -149,7 +153,7 @@ test('Layout: die längsten Wörter des ganzen Vorrats passen auf 320 px in eine
   const problems = [];
   for (const w of Object.values(worst)) {
     const time = NF.addDays(NF.CONFIG.launchDate, w.n - 1) + 'T10:00:00+01:00';
-    const page = await openPage(env, { width: 320, height: 568, time, locale: w.lang === 'de' ? 'de-AT' : 'en-GB', mobile: true });
+    const page = await openPage(env, { width: 320, height: 568, time, locale: LOCALE[w.lang], mobile: true });
     await page.click(`#tab-${w.mode}`);
     await page.click('#startBtn');
     (await measure(page)).forEach(p => problems.push(`#${w.n} ${w.lang} ${w.mode} (${w.u} Kästchen): ${p}`));
@@ -160,8 +164,8 @@ test('Layout: die längsten Wörter des ganzen Vorrats passen auf 320 px in eine
 
 test('Layout: Karopapier geht mit ganzen Kästchen auf (gleicher Rand links und rechts), Trennstrich mittig, Buchstabentasten gleich breit', async () => {
   for (const [width, height] of [[320, 568], [360, 740], [411, 836], [844, 390], [1280, 800]]) {
-    for (const lang of ['de', 'en']) {
-      const page = await openPage(env, { width, height, mobile: width < 800, url: (lang === 'en' ? 'en/' : '') + '?n=4&m=impossible' });
+    for (const lang of NF.CONFIG.languages) {
+      const page = await openPage(env, { width, height, mobile: width < 800, url: (lang === 'de' ? '' : lang + '/') + '?n=4&m=impossible' });
       await page.click('#startBtn');
       await page.click('#hintBtn');
       if (await page.isVisible('#confirmYes')) await page.click('#confirmYes');

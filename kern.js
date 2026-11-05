@@ -6,7 +6,7 @@
 const CONFIG = {
   name: 'CIPHRO',
   tagline: 'Crack the code. Reveal the fact.',
-  languages: ['de', 'en'],
+  languages: ['de', 'en', 'fr', 'it'],
   launchDate: '2026-10-21',   // Tag von Rätsel #1
   siteUrl: '',                // leer = Adresse der Seite wird automatisch erkannt
   storageKey: 'numfact.v2',   // nicht ändern, sonst gehen Spielstände verloren
@@ -32,29 +32,34 @@ const MODES = [
 ];
 
 const TOPICS = {
-  tiere: { de: 'Tiere', en: 'Animals' },
-  pflanzen: { de: 'Pflanzen & Essen', en: 'Plants & food' },
-  weltall: { de: 'Weltall', en: 'Space' },
-  wissenschaft: { de: 'Wissenschaft', en: 'Science' },
-  koerper: { de: 'Menschlicher Körper', en: 'Human body' },
-  geschichte: { de: 'Geschichte', en: 'History' },
-  geografie: { de: 'Geografie', en: 'Geography' },
-  technik: { de: 'Technik', en: 'Technology' },
-  kultur: { de: 'Kultur & Sprache', en: 'Culture & language' },
-  oesterreich: { de: 'Österreich', en: 'Austria' }
+  tiere: { de: 'Tiere', en: 'Animals', fr: 'Animaux', it: 'Animali' },
+  pflanzen: { de: 'Pflanzen & Essen', en: 'Plants & food', fr: 'Plantes et cuisine', it: 'Piante e cibo' },
+  weltall: { de: 'Weltall', en: 'Space', fr: 'Espace', it: 'Spazio' },
+  wissenschaft: { de: 'Wissenschaft', en: 'Science', fr: 'Science', it: 'Scienza' },
+  koerper: { de: 'Menschlicher Körper', en: 'Human body', fr: 'Corps humain', it: 'Corpo umano' },
+  geschichte: { de: 'Geschichte', en: 'History', fr: 'Histoire', it: 'Storia' },
+  geografie: { de: 'Geografie', en: 'Geography', fr: 'Géographie', it: 'Geografia' },
+  technik: { de: 'Technik', en: 'Technology', fr: 'Technologie', it: 'Tecnologia' },
+  kultur: { de: 'Kultur & Sprache', en: 'Culture & language', fr: 'Culture et langue', it: 'Cultura e lingua' },
+  oesterreich: { de: 'Österreich', en: 'Austria', fr: 'Autriche', it: 'Austria' }
 };
 
 // Alphabet: nur A–Z. Umlaute in älteren Sätzen (#1–#8) stehen wie im Kreuzworträtsel als AE, OE, UE, SS.
+// Französisch und Italienisch: Akzente fallen wie im Kreuzworträtsel weg (É → E, À → A), Œ → OE, Æ → AE.
+// Im aufgedeckten Fakt steht der Satz mit allen Akzenten.
 const ALPHABET = [...'ABCDEFGHIJKLMNOPQRSTUVWXYZ'];
 const DIGRAPH = { 'Ä': 'AE', 'Ö': 'OE', 'Ü': 'UE', 'ß': 'SS' };
 
-// Text → Symbole: Großbuchstaben A–Z, Ä, Ö, Ü, ß; Akzente weg, alles andere raus (auch für Satzlängen und die Prüfung)
+// Text → Symbole: Großbuchstaben A–Z, Ä, Ö, Ü, ß; Akzente weg, Œ/Æ als zwei Buchstaben, alles andere raus
+// (auch für Satzlängen und die Prüfung)
 function symStr(str) {
   let out = '';
   for (const c0 of String(str).normalize('NFC')) {
     if (c0 === 'ß' || c0 === 'ẞ') { out += 'ß'; continue; }
     const c = c0.toUpperCase();
     if (c === 'Ä' || c === 'Ö' || c === 'Ü') { out += c; continue; }
+    if (c === 'Œ') { out += 'OE'; continue; }
+    if (c === 'Æ') { out += 'AE'; continue; }
     const base = c.normalize('NFD').replace(/[̀-ͯ]/g, '');
     if (/^[A-Z]$/.test(base)) out += base;
   }
@@ -99,8 +104,9 @@ const keyOfNumber = n => addDays(CONFIG.launchDate, n - 1);
 
 /* ------------------------------------------------------------ Fakten */
 function list() { return Array.isArray(window.NUMIGMA_FACTS) ? window.NUMIGMA_FACTS : []; }
+const langOf = l => CONFIG.languages.includes(l) ? l : 'de';
 function view(f, lang) {
-  const v = f[lang === 'en' ? 'en' : 'de'] || ['', ''];
+  const v = f[langOf(lang)] || ['', ''];
   return { id: f.id, topic: f.thema, t: v[0], m: v[1], src: f.quellen || [] };
 }
 // Liste in einer Sprache (auch von älteren Seitenständen genutzt)
@@ -115,12 +121,15 @@ function lastPlannedDay() {
 /* ------------------------------------------------------------ Zuordnung zu Tagen und Stufen
    Tag #n nimmt die Fakten 4n-3 bis 4n der Liste.
    #1–#8: Zuordnung exakt wie bei der Veröffentlichung, je Sprache (eingefroren).
-   Ab #9: in beiden Sprachen gleich, nach gemeinsamer Länge (Deutsch + Englisch):
+   Ab #9: in allen Sprachen gleich, nach gemeinsamer Länge (Deutsch + Englisch):
            kürzester Satz → Impossible, zweitkürzester → Easy, drittkürzester → Mirror, längster → Hard. */
 const FROZEN = {
   de: [["n001","n002","n003","n004"],["n005","n006","n007","n008"],["n012","n009","n011","n010"],["n014","n013","n015","n016"],["n018","n017","n020","n019"],["n021","n023","n022","n024"],["n025","n026","n027","n028"],["n029","n032","n031","n030"]],
   en: [["n001","n002","n003","n004"],["n005","n006","n007","n008"],["n009","n011","n012","n010"],["n014","n013","n015","n016"],["n018","n017","n020","n019"],["n021","n023","n022","n024"],["n025","n026","n027","n028"],["n029","n032","n031","n030"]]
 };
+// Französisch und Italienisch (seit November 2026): #1–#8 wie Deutsch
+FROZEN.fr = FROZEN.de;
+FROZEN.it = FROZEN.de;
 const sentLen = f => [...symStr(f.de[0])].length + [...symStr(f.en[0])].length;
 function assignment(dayIdx, lang) {
   const L = list();
@@ -151,7 +160,7 @@ function sourceOf(idx) {
   return { src: slot, repeat: false };
 }
 function buildDay(key, lang) {
-  lang = lang === 'en' ? 'en' : 'de';
+  lang = langOf(lang);
   const idx = Math.max(0, dayIndex(key));
   const so = sourceOf(idx), src = so.src, repeatOf = so.repeat ? src + 1 : null;
   const picks = assignment(src, lang);
@@ -177,7 +186,10 @@ function worstUnits(word) {
   return worst;
 }
 function checkFacts(today) {
-  const L = list(), out = [], seen = { de: new Map(), en: new Map() }, ids = new Set();
+  const L = list(), out = [], ids = new Set(), seen = {};
+  CONFIG.languages.forEach(l => { seen[l] = new Map(); });
+  // Erlaubte Zeichen im Satz je Sprache (Akzente fallen im Rätsel weg); keine Ziffern, Kommas, Bindestriche, Apostrophe
+  const OK = { de: /[A-Za-zÄÖÜäöüß ]/g, en: /[A-Za-z ]/g, fr: /[A-Za-zÀÂÇÉÈÊËÎÏÔÙÛŸŒÆàâçéèêëîïôùûÿœæ ]/g, it: /[A-Za-zÀÈÉÌÍÎÒÓÙÚàèéìíîòóùú ]/g };
   L.forEach((f, i) => {
     const add = (level, msg) => out.push({ i, id: f && f.id, level, msg });
     if (!f || !/^n\d{3,}$/.test(f.id || '')) { add('fehler', 'ID fehlt oder hat das falsche Format (z. B. n165)'); return; }
@@ -185,13 +197,13 @@ function checkFacts(today) {
     ids.add(f.id);
     if (!TOPICS[f.thema]) add('fehler', `Unbekanntes Thema „${f.thema}“ (erlaubt: ${Object.keys(TOPICS).join(', ')})`);
     if (!Array.isArray(f.quellen) || !f.quellen.length) add('hinweis', 'Keine Quelle angegeben');
-    ['de', 'en'].forEach(lang => {
+    CONFIG.languages.forEach(lang => {
       const v = f[lang];
       if (!Array.isArray(v) || typeof v[0] !== 'string' || !v[0].trim()) { add('fehler', `${lang.toUpperCase()}: Satz fehlt`); return; }
-      const bad = v[0].replace(lang === 'en' ? /[A-Za-z ]/g : /[A-Za-zÄÖÜäöüß ]/g, '').replace(/\.$/, '');
+      const bad = v[0].replace(OK[lang], '').replace(/\.$/, '');
       // Ab #9 nur A–Z: deutsche Sätze ohne Umlaute und ß (Erklärungen dürfen sie haben)
       if (lang === 'de' && i >= dayIndex(CONFIG.lettersFrom) * 4 && /[ÄÖÜäöüßẞ]/.test(v[0])) add('fehler', `DE: Satz mit Ä, Ö, Ü oder ß („${v[0].split(/\s+/).filter(w => /[ÄÖÜäöüßẞ]/.test(w)).join(' ')}“). Ab #9 nur Sätze ohne Umlaute: umformulieren oder nach _dev/redaktion/geparkt-umlaute.js verschieben.`);
-      if (bad) add('fehler', `${lang.toUpperCase()}: Zeichen, die im Code verschwinden: „${bad}“ (keine Ziffern, Kommas, Bindestriche oder Apostrophe${lang === 'en' ? ', keine Umlaute' : ''})`);
+      if (bad) add('fehler', `${lang.toUpperCase()}: Zeichen, die im Code verschwinden: „${bad}“ (keine Ziffern, Kommas, Bindestriche oder Apostrophe${lang === 'de' ? '' : ', keine Umlaute'})`);
       if (!/\.$/.test(v[0])) add('hinweis', `${lang.toUpperCase()}: Satz endet nicht mit Punkt`);
       if (typeof v[1] !== 'string' || v[1].trim().length < 15) add('fehler', `${lang.toUpperCase()}: Erklärung fehlt oder ist sehr kurz`);
       const k = symStr(v[0]);
@@ -209,12 +221,12 @@ function checkFacts(today) {
     const four = L.slice(d * 4, d * 4 + 4), topics = four.map(f => f && f.thema);
     topics.forEach((t, j) => { if (topics.indexOf(t) !== j) out.push({ i: d * 4 + j, id: four[j].id, level: 'hinweis', msg: `#${d + 1}: Thema „${t}“ kommt an diesem Tag mehrfach vor` }); });
   }
-  // Ab #9: Easy ist der Einstieg und soll kurz sein. Ziel 5 bis 7 Wörter, höchstens 8, in beiden Sprachen.
+  // Ab #9: Easy ist der Einstieg und soll kurz sein. Ziel 5 bis 7 Wörter, höchstens 8, in jeder Sprache.
   const words = s => String(s).split(/\s+/).filter(w => symStr(w)).length;
   for (let d = CONFIG.frozenDays; d < plannedDays(); d++) {
     const e = assignment(d, 'de')[0];
     if (!e || !Array.isArray(e.de) || !Array.isArray(e.en)) continue;
-    const n = Math.max(words(e.de[0]), words(e.en[0]));
+    const n = Math.max(...CONFIG.languages.map(l => Array.isArray(e[l]) ? words(e[l][0]) : 0));
     if (n > 8) out.push({ i: L.indexOf(e), id: e.id, level: 'fehler', msg: `#${d + 1}: Der Easy-Satz hat ${n} Wörter (Ziel 5 bis 7, höchstens 8). Einen Fakt dieses Tages gegen einen mit weniger Wörtern tauschen.` });
     else if (n === 8) out.push({ i: L.indexOf(e), id: e.id, level: 'hinweis', msg: `#${d + 1}: Der Easy-Satz hat 8 Wörter (Ziel 5 bis 7).` });
   }

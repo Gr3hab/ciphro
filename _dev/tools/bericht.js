@@ -38,7 +38,7 @@ if (base) {
   const until = Math.max(NF.plannedDays(), base.NF.plannedDays ? base.NF.plannedDays() : 0);
   for (let i = 0; i < until; i++) {
     const key = NF.addDays(NF.CONFIG.launchDate, i);
-    for (const lang of ['de', 'en']) {
+    for (const lang of base.NF.CONFIG.languages || ['de', 'en']) {   // nur Sprachen, die es dort schon gab
       let a, b;
       try { a = base.NF.buildDay(key, lang); b = NF.buildDay(key, lang); } catch (e) { continue; }
       const diff = NF.MODES.filter(m => a.puzzles[m.id].sig !== b.puzzles[m.id].sig).map(m => m.name);

@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>CIPHRO · Knacke den Code. Entdecke den Fakt.</title>
 <!-- Linkvorschau (WhatsApp & Co.): Wer den Link bekommt, weiß sonst nicht, was ihn erwartet. Deshalb auf Deutsch, klar und mit „kostenlos“.
-     Bild og-de.png mit deutschem Slogan. Englische Links (/en/) haben eine eigene Vorschau mit og-en.png. Neue Bildnamen, weil WhatsApp Bilder zwischenspeichert;
+     Bild og-de.png mit deutschem Slogan. Links auf /en/, /fr/ und /it/ haben eine eigene Vorschau mit og-en.png, og-fr.png und og-it.png. Neue Bildnamen, weil WhatsApp Bilder zwischenspeichert;
      ändert sich ein Bild, ?v= erhöhen (seit 4.11.2026 v=3: neuer Name CIPHRO, Adresse ciphro.eu). -->
 <meta name="description" content="Das tägliche Zahlenrätsel: Jede Zahl ist ein Buchstabe. Knacke den Code, dahinter steckt ein wahrer Fakt. Kostenlos, ohne Anmeldung, ohne Werbung.">
 <meta property="og:site_name" content="CIPHRO">
@@ -377,6 +377,9 @@ dialog::backdrop{background:var(--scrim)}
 .seg label:has(input:checked){background:var(--curbg);box-shadow:inset 0 0 0 1.5px var(--ink)}
 .seg label:has(input:focus-visible){outline:2px solid var(--ink);outline-offset:-3px}
 .seg.two{grid-template-columns:repeat(2, minmax(0,1fr))}
+.seg.four{grid-template-columns:repeat(4, minmax(0,1fr))}
+.seg.four label{padding-inline:2px;text-align:center;font-size:.86rem}
+.seg.four.slim label{font-size:.84rem}
 .seg.slim label{min-height:36px;font-size:.88rem}
 .row{display:flex;align-items:center;justify-content:space-between;gap:12px}
 .row input[type="checkbox"]{width:44px;height:26px;accent-color:var(--ink);cursor:pointer;flex:none}
@@ -558,8 +561,8 @@ textarea{width:100%;font:inherit;font-size:.95rem;padding:10px;border:1px solid 
 
 <div class="toast" id="toast" role="status" hidden></div>
 
-<script src="fakten.js?v=10"></script>
-<script src="kern.js?v=10"></script>
+<script src="fakten.js?v=11"></script>
+<script src="kern.js?v=11"></script>
 <script>
 (function () {
 'use strict';
@@ -650,7 +653,7 @@ const STR = {
     copied: 'Ergebnis kopiert. Jetzt in WhatsApp & Co. einfügen', copiedBtn: 'Kopiert ✓',
     stats: { title: 'Statistik', played: 'Rätseltage', streak: 'Serie', best: 'Beste Serie', cracked: 'Codes geknackt', byMode: 'Nach Stufe', solved: 'Gelöst', clean: 'Ohne Hilfe', bestTime: 'Bestzeit*', week: 'Letzte 7 Tage',
       weekSr: (d, s) => `${d}: ${s} von 4 am selben Tag gelöst`,
-      note: '* Schnellste Lösung ohne Tipp, Schlüssel oder Trennung. Die Zahlen bei Easy sind gratis und zählen nicht als Hilfe. Deutsch und Englisch, auch Archivrätsel.',
+      note: '* Schnellste Lösung ohne Tipp, Schlüssel oder Trennung. Die Zahlen bei Easy sind gratis und zählen nicht als Hilfe. Alle Sprachen, auch Archivrätsel.',
       streakNote: 'Die Serie wächst mit jedem Tag, an dem du ein Rätsel des Tages löst. Nächste Codes in', empty: 'Noch nichts gelöst. Dein erstes Rätsel wartet.' },
     archive: { title: 'Archiv', intro: 'Alle bisherigen Rätsel zum Nachspielen. Sie zählen für die Statistik, aber nicht für die Serie.', today: 'Heute',
       st: { solved: 'gelöst', revealed: 'aufgelöst', playing: 'angefangen', open: 'offen' }, repeat: r => `Wiederholung von #${r}` },
@@ -758,7 +761,7 @@ const STR = {
     copied: 'Result copied. Paste it into WhatsApp or anywhere else', copiedBtn: 'Copied ✓',
     stats: { title: 'Statistics', played: 'Puzzle days', streak: 'Streak', best: 'Best streak', cracked: 'Codes cracked', byMode: 'By level', solved: 'Solved', clean: 'No help', bestTime: 'Best time*', week: 'Last 7 days',
       weekSr: (d, s) => `${d}: ${s} of 4 solved on the day`,
-      note: '* Fastest solve with no hint, key or split. The free numbers in Easy do not count as help. German and English, archive puzzles included.',
+      note: '* Fastest solve with no hint, key or split. The free numbers in Easy do not count as help. All languages, archive puzzles included.',
       streakNote: 'Your streak grows every day you solve at least one of that day’s puzzles. Next codes in', empty: 'Nothing solved yet. Your first puzzle is waiting.' },
     archive: { title: 'Archive', intro: 'Every puzzle so far, ready to replay. They count towards your statistics but not your streak.', today: 'Today',
       st: { solved: 'solved', revealed: 'revealed', playing: 'started', open: 'open' }, repeat: r => `Repeat of #${r}` },
@@ -801,8 +804,230 @@ const STR = {
     keyrows: [[...'QWERTYUIOP'], [...'ASDFGHJKL'], ['next', ...'ZXCVBNM', 'back']],
     shareHead: (n, a) => `${CONFIG.name} #${n}${a ? ' (archive)' : ''}`, dec: '.', shareStreak: n => `🔥 Streak: ${n} days`,
     beatOne: 'Can you beat my time?', beatMany: 'Can you beat my times?', crackIt: 'Can you crack it?', notCracked: a => a ? 'Not cracked 😅' : 'Not cracked today 😅'
+  },
+  // Französisch: Vor : ? ! steht ein geschütztes Leerzeichen ( ), wie im Französischen üblich.
+  fr: {
+    locale: 'fr-FR',
+    tagline: 'Déchiffre le code. Découvre le fait.',
+    helpEyebrow: 'L’énigme chiffrée du jour',
+    issue: (n, d) => `#${n} · ${d}`,
+    archiveBar: (n, d, r) => `Archives : #${n} du ${d}${r ? ` (reprise du #${r})` : ''}`,
+    repeatBar: r => `Aujourd’hui : reprise du #${r}. De nouveaux faits sont en préparation.`,
+    backToday: 'Énigme du jour', newday: 'Une nouvelle énigme est là.', newdayBtn: 'Jouer', newdayAuto: n => `Nouveau jour, nouvelle énigme : #${n}`,
+    futureSoon: (n, t) => `L’énigme #${n} arrive chez toi dans ${t}. En attendant, voici celle du jour.`,
+    futureLater: (n, d) => `L’énigme #${n} ne sort que le ${d}. Voici celle du jour.`,
+    badLink: 'Ce lien n’a pas fonctionné. Voici l’énigme du jour.',
+    moved: 'NUMIGMA s’appelle désormais CIPHRO. Ta progression a suivi.', movedEmpty: 'NUMIGMA s’appelle désormais CIPHRO. Nouvelle adresse : ciphro.eu',
+    movedBad: 'NUMIGMA s’appelle désormais CIPHRO. Ta progression n’a malheureusement pas pu être reprise.',
+    menu: { archive: 'Archives', stats: 'Statistiques', settings: 'Réglages', help: 'Règles du jeu' }, menuAria: 'Menu', close: 'Fermer', dismiss: 'Fermer le message',
+    modesAria: 'Niveau', ruleAria: 'Afficher la règle', timer: 'Temps pour cette énigme', timerSr: 'Temps', pause: 'Pause', board: 'Code chiffré', stage: 'Énigme',
+    words: n => n === 1 ? '1 mot' : `${n} mots`, revealedShort: 'dévoilé', solvedSr: 'résolu',
+    startMeta: (w, l) => `${w === 1 ? '1 mot' : w + ' mots'} · ${l} lettres`, start: 'Démarrer',
+    startNote: 'Le code apparaît quand tu appuies sur Démarrer. Le chrono ne tourne que tant que tu le vois. Le bouton pause à côté du chrono l’arrête.',
+    toEasy: 'Tu débutes ? Commence plutôt par Easy',
+    noNumbers: 'Ici, le clavier n’affiche pas de chiffres. La clé les montre pour une lettre et coûte 1 indice.',
+    impTip: 'Astuce : commence par un mot court. Si tu devines une lettre, tu connais le décalage pour toutes. N’hésite pas à essayer des lettres dans les cases, tu peux toutes les remplacer.',
+    rotateTitle: 'Tiens ton téléphone à la verticale', rotateText: 'En mode paysage, cet écran est trop petit pour le code et le clavier. Le chrono reste arrêté en attendant.',
+    paused: 'En pause', pausedAt: t => `Le chrono est arrêté à ${t}. Le code reste caché jusqu’à ce que tu continues.`,
+    pausedTab: 'Cette énigme était ouverte en dernier dans un autre onglet.', pausedProgress: (c, n) => `${c} mots sur ${n} trouvés`, resume: 'Continuer',
+    hint: 'Indice', cut: 'Coupure', key: 'Clé', reveal: 'Révéler',
+    hintTitle: 'Dévoile la case choisie (1 indice)', cutTitle: 'Montre où les lettres se séparent dans un mot (1 indice)',
+    hintAria: (cut, l, m) => `${cut ? 'Montrer la coupure' : 'Dévoiler une lettre'}, ${l} indices sur ${m} restants`,
+    keyEasy: on => on ? 'Masquer les chiffres du clavier (gratuit)' : 'Afficher les chiffres du clavier (gratuit)',
+    keyPaid: open => open ? 'Clé ouverte : les chiffres valent pour ta prochaine lettre' : 'Clé : afficher les chiffres pour une lettre, coûte 1 indice',
+    keyForbidden: 'Pas de clé en Impossible',
+    keyShown: 'Les chiffres du clavier sont de retour', keyHidden: 'Chiffres masqués. « Clé » les fait réapparaître.',
+    keyExplain: 'La clé affiche les chiffres sur le clavier jusqu’à ta prochaine lettre. Elle coûte 1 indice et le mot compte comme 🟨 au partage.',
+    keyYes: 'Utiliser la clé', cancel: 'Annuler',
+    hintQ: left => `Utiliser un indice ? Une lettre du mot surligné sera dévoilée. Cela coûte ${left === 1 ? 'ton dernier indice' : `1 de tes ${left} indices`} et le mot compte comme 🟨 au partage.`,
+    hintYes: 'Dévoiler',
+    cutQ: left => `Montrer la coupure ? Tu verras où les lettres se séparent dans le mot surligné. Cela coûte ${left === 1 ? 'ton dernier indice' : `1 de tes ${left} indices`} et le mot compte comme 🟨 au partage.`,
+    cutYes: 'Montrer la coupure',
+    keyOpened: 'Clé ouverte : les chiffres valent pour ta prochaine lettre.',
+    revealQ: 'Afficher la solution ? Cette énigme ne comptera alors pas comme résolue.', revealYes: 'Oui, révéler', revealNo: 'Continuer à chercher',
+    kb: 'Clavier', nextWord: 'Mot suivant', backspace: 'Effacer',
+    coach: {
+      first: 'Écris avec le clavier en bas. Les mots justes deviennent verts.',
+      fix: 'Une lettre est fausse ? Touche la case et écris par-dessus.',
+      hint: 'Les mots trouvés avec de l’aide deviennent jaunes 🟨 au partage. Ils restent jaunes même si tu remplaces la lettre ensuite.'
+    },
+    gotIt: 'Compris',
+    noTips: 'Plus d’indices pour cette énigme', allCut: 'Tous les mots sont déjà coupés', cutDone: n => `Mot ${n} : coupure affichée`,
+    sayWordOk: (n, w) => `Mot ${n} juste : ${w}`, sayWordBad: n => `Le mot ${n} est complet mais pas encore juste`,
+    sayHint: L => `Dévoilé : ${L}`, saySolved: t => `Bravo. Résolu en ${t}.`, sayRevealed: 'Solution affichée.',
+    wordLabel: (i, n, L, code, typed) => `Mot ${i} sur ${n}, ${L} lettres, code ${code}, saisi : ${typed}`,
+    wordDone: (i, n, w) => `Mot ${i} sur ${n} : ${w}`,
+    empty: 'vide',
+    resSolved: 'Déchiffré', resRevealed: 'Dévoilé',
+    noHelp: 'sans aide', withHelp: n => n === 1 ? 'avec 1 indice' : `avec ${n} indices`,
+    summary: (g, y, r) => [g && `${g} sans aide`, y && `${y} avec aide`, r && `${r} ${r === 1 ? 'dévoilé' : 'dévoilés'}`].filter(Boolean).join(' · '),
+    legend: '🟩 sans aide · 🟨 avec aide · 🟥 dévoilé',
+    source: 'Source', sources: 'Sources',
+    share: 'Partager le résultat', next: m => `Suite : ${m}`, statsBtn: 'Statistiques',
+    dayDone: 'Les quatre codes du jour sont faits. Nouveaux codes dans',
+    streak: n => n === 1 ? 'Ta série : 1 jour' : `Ta série : ${n} jours`, archiveNoStreak: 'Les énigmes des archives ne comptent pas pour la série.',
+    copied: 'Résultat copié. Colle-le dans WhatsApp ou ailleurs', copiedBtn: 'Copié ✓',
+    stats: { title: 'Statistiques', played: 'Jours joués', streak: 'Série', best: 'Meilleure série', cracked: 'Codes déchiffrés', byMode: 'Par niveau', solved: 'Résolus', clean: 'Sans aide', bestTime: 'Record*', week: '7 derniers jours',
+      weekSr: (d, s) => `${d} : ${s} sur 4 résolus le jour même`,
+      note: '* Résolution la plus rapide sans indice, clé ni coupure. Les chiffres gratuits en Easy ne comptent pas comme aide. Toutes les langues, archives comprises.',
+      streakNote: 'Ta série grandit chaque jour où tu résous au moins une énigme du jour. Prochains codes dans', empty: 'Rien de résolu pour l’instant. Ta première énigme t’attend.' },
+    archive: { title: 'Archives', intro: 'Toutes les énigmes passées, à rejouer. Elles comptent pour les statistiques, mais pas pour la série.', today: 'Aujourd’hui',
+      st: { solved: 'résolu', revealed: 'dévoilé', playing: 'commencé', open: 'à faire' }, repeat: r => `Reprise du #${r}` },
+    legal: { imprint: 'Mentions légales', privacy: 'Confidentialité', hash: '#fr' },
+    settings: { title: 'Réglages', theme: 'Apparence', system: 'Système', light: 'Clair', dark: 'Sombre', themeNote: 'Système : clair ou sombre, selon le réglage de ton téléphone ou de ton ordinateur.', language: 'Langue',
+      haptics: 'Retour haptique', hapticsNote: 'Sur téléphone à chaque touche. Sur Android aussi pour les mots justes et faux.',
+      privacy: 'Pas de compte, pas de pub, pas de pistage. Ta progression reste uniquement dans ce navigateur. Sur un autre appareil ou en appli sur l’écran d’accueil, tes statistiques repartent de zéro.',
+      intro: 'Revoir la prise en main', done: 'OK' },
+    shareDlg: { title: 'Partager le résultat', note: 'La copie automatique ne fonctionne pas ici. Le texte est sélectionné, tu peux le copier toi-même.', done: 'OK' },
+    intro: {
+      eyebrow: 'L’énigme chiffrée du jour', free: 'Gratuit, sans inscription, sans pub.',
+      title: 'Déchiffre le code', lead: 'Chaque nombre est une lettre : A = 1, B = 2, C = 3 …',
+      task: 'Essaie : quel est ce mot ? Les petits chiffres sur les touches t’aident.', word: 'MER', keys: [...'AEIMRS'], wrong: c => `Il faut trouver le ${c}. Regarde les petits chiffres.`,
+      won: 'Déchiffré ! C’est aussi simple que ça.', wonMore: 'Chaque jour, quatre nouveaux codes, d’Easy à Impossible. Chacun cache un fait court et vrai.',
+      go: 'Jouer l’énigme du jour', goTo: n => `Jouer l’énigme #${n}`, skip: 'Passer', rules: 'Toutes les règles', aria: n => `Code d’essai ${n}`
+    },
+    help: {
+      title: 'Comment jouer',
+      lead: 'Chaque nombre représente une lettre. Déchiffre le code et découvre un fait vrai. Quatre nouveaux chaque jour.',
+      sections: [
+        ['Les quatre niveaux', '<ul><li><strong>Easy&nbsp;:</strong> A&nbsp;=&nbsp;1 … Z&nbsp;=&nbsp;26. Chaque nombre a sa propre case.</li><li><strong>Hard&nbsp;:</strong> les mêmes nombres, mais sans séparation. 1 1 peut être K ou AA.</li><li><strong>Mirror&nbsp;:</strong> à l’envers, A&nbsp;=&nbsp;26 … Z&nbsp;=&nbsp;1, sans séparation.</li><li><strong>Impossible&nbsp;:</strong> l’alphabet est décalé d’un nombre secret, sans séparation.</li></ul><p>Les cases indiquent toujours combien de lettres compte un mot. Il n’y a que les 26&nbsp;lettres de A à&nbsp;Z&nbsp;: les accents disparaissent, É devient E et Œ devient OE.</p>'],
+        ['Écrire et corriger', '<p>Touche une case et écris avec le clavier. Chaque case peut être remplacée séparément. Un mot complet mais faux est entouré de rouge en pointillés. Les mots justes sont surlignés en vert. La flèche passe au mot suivant.</p><p>Sur ordinateur&nbsp;: tape les lettres, utilise les flèches, Entrée pour le mot suivant et Retour arrière pour effacer.</p>'],
+        ['Indices, clé, solution', '<p>Tu as trois indices par énigme. Un indice dévoile la case choisie. En Impossible, il montre plutôt où les lettres se séparent dans un mot. Avant d’utiliser un indice, le jeu te demande de confirmer.</p><p>La <strong>clé</strong> affiche les chiffres sur le clavier&nbsp;: gratuite et activée dès le départ en Easy (tu peux la désactiver), pour 1 indice jusqu’à ta prochaine lettre en Hard et Mirror. Il n’y en a pas en Impossible.</p><p><strong>Révéler</strong> affiche toute la solution. L’énigme ne compte alors pas comme résolue.</p>'],
+        ['Vert, jaune, rouge', '<p>Dans ton résultat, chaque carré représente un mot&nbsp;: 🟩 résolu sans aide, 🟨 avec indice, clé ou coupure, 🟥 dévoilé. Jaune une fois, jaune pour toujours. Un petit point sur un mot vert te montre déjà dans l’énigme où tu as eu de l’aide.</p><p>Seuls les niveaux que tu as vraiment déchiffrés sont partagés. Le partage ne révèle jamais la solution.</p>'],
+        ['Temps et pause', '<p>Le chrono démarre avec Démarrer et ne tourne que tant que le code est visible. Il s’arrête quand tu ouvres un menu, changes d’onglet, quittes l’appli ou touches le bouton pause. Le code est alors caché. Continuer reprend exactement où tu en étais. Chaque niveau a son propre chrono.</p>'],
+        ['Série, archives, statistiques', '<p>Ta série grandit chaque jour où tu résous au moins une énigme du jour. Les nouveaux codes arrivent à minuit, à ton heure locale. Tu peux rejouer les anciennes énigmes dans les archives. Elles comptent pour les statistiques, pas pour la série.</p>']
+      ],
+      replay: 'Prise en main', go: 'C’est parti'
+    },
+    rules: {
+      easy: { short: 'A = 1 … Z = 26', sub: null, text: 'Chaque nombre représente une lettre : A = 1, B = 2 … Z = 26.', ex: 'CHAT → 3 · 8 · 1 · 20' },
+      hard: { short: 'A = 1 … Z = 26', sub: 'sans séparation', text: 'Les mêmes nombres qu’en Easy, mais sans séparation. Où finit une lettre ? 1 1 peut être K ou AA. Le nombre de cases indique combien il y a de lettres.', ex: 'CHAT → 38120' },
+      mirror: { short: 'A = 26 … Z = 1', sub: 'inversé, sans séparation', text: 'L’alphabet est à l’envers : A = 26, B = 25 … Z = 1. Sans séparation non plus.', ex: 'CHAT → 2419267' },
+      impossible: { short: 'A = ? … Z = ?', sub: 'secret, sans séparation', text: 'L’alphabet est décalé d’un nombre secret, sans séparation. Les indices montrent seulement où les lettres se séparent dans un mot.', ex: null }
+    },
+    ruleTitle: m => `Règle : ${m}`,
+    shiftShort: s => [`A = ${s + 1} … Z = ${s}`, `décalé de ${s}`],
+    shiftLong: (s, past) => `Aujourd’hui ${past ? 'c’était' : 'c’est'} décalé de ${s} : A = ${s + 1}, B = ${s + 2} … Z = ${s}`,
+    // Nur A–Z: Akzente fallen im Code weg. Der Hinweis erscheint, wenn der Satz welche hat.
+    umlauts: 'Les accents disparaissent dans le code, comme dans les mots croisés : É devient E, Ç devient C, Œ devient OE.',
+    accentRe: /[À-ÖØ-öø-ÿŒœÆæ]/,
+    keyrows: [[...'AZERTYUIOP'], [...'QSDFGHJKLM'], ['next', ...'WXCVBN', 'back']],
+    shareHead: (n, a) => `${CONFIG.name} #${n}${a ? ' (archives)' : ''}`, dec: ',', shareStreak: n => `🔥 Série : ${n} jours`,
+    beatOne: 'Tu bats mon temps ?', beatMany: 'Tu bats mes temps ?', crackIt: 'Tu y arrives ?', notCracked: a => a ? 'Pas déchiffré 😅' : 'Pas déchiffré aujourd’hui 😅'
+  },
+  it: {
+    locale: 'it-IT',
+    tagline: 'Decifra il codice. Scopri il fatto.',
+    helpEyebrow: 'Il rompicapo del giorno',   // passt so auch auf schmalen Handys in eine Zeile
+    issue: (n, d) => `#${n} · ${d}`,
+    archiveBar: (n, d, r) => `Archivio: #${n} del ${d}${r ? ` (ripetizione del #${r})` : ''}`,
+    repeatBar: r => `Oggi: ripetizione del #${r}. Nuovi fatti in arrivo.`,
+    backToday: 'All’enigma di oggi', newday: 'C’è un nuovo enigma.', newdayBtn: 'Gioca ora', newdayAuto: n => `Nuovo giorno, nuovo enigma: #${n}`,
+    futureSoon: (n, t) => `L’enigma #${n} arriva tra ${t}. Nel frattempo, ecco quello di oggi.`,
+    futureLater: (n, d) => `L’enigma #${n} esce solo il ${d}. Ecco quello di oggi.`,
+    badLink: 'Questo link non ha funzionato. Ecco l’enigma di oggi.',
+    moved: 'NUMIGMA ora si chiama CIPHRO. I tuoi progressi sono stati trasferiti.', movedEmpty: 'NUMIGMA ora si chiama CIPHRO. Nuovo indirizzo: ciphro.eu',
+    movedBad: 'NUMIGMA ora si chiama CIPHRO. Purtroppo non è stato possibile trasferire i tuoi vecchi progressi.',
+    menu: { archive: 'Archivio', stats: 'Statistiche', settings: 'Impostazioni', help: 'Come si gioca' }, menuAria: 'Menu', close: 'Chiudi', dismiss: 'Chiudi avviso',
+    modesAria: 'Livello', ruleAria: 'Mostra la regola', timer: 'Tempo per questo enigma', timerSr: 'Tempo', pause: 'Pausa', board: 'Codice numerico', stage: 'Enigma',
+    words: n => n === 1 ? '1 parola' : `${n} parole`, revealedShort: 'svelato', solvedSr: 'risolto',
+    startMeta: (w, l) => `${w === 1 ? '1 parola' : w + ' parole'} · ${l} lettere`, start: 'Inizia',
+    startNote: 'Il codice appare quando premi Inizia. Il cronometro gira solo finché lo vedi. Il tasto pausa accanto al cronometro lo ferma.',
+    toEasy: 'Prima volta qui? Meglio iniziare con Easy',
+    noNumbers: 'Qui la tastiera non mostra numeri. La chiave li mostra per una lettera e costa 1 indizio.',
+    impTip: 'Consiglio: inizia da una parola corta. Se indovini una lettera, conosci lo spostamento per tutte. Prova pure le lettere nelle caselle, puoi sovrascriverle tutte.',
+    rotateTitle: 'Tieni il telefono in verticale', rotateText: 'In orizzontale questo schermo è troppo piccolo per codice e tastiera. Nel frattempo il cronometro resta fermo.',
+    paused: 'In pausa', pausedAt: t => `Il cronometro è fermo a ${t}. Il codice resta nascosto finché non continui.`,
+    pausedTab: 'Questo enigma era aperto per ultimo in un’altra scheda.', pausedProgress: (c, n) => `${c} parole su ${n} risolte`, resume: 'Continua',
+    hint: 'Indizio', cut: 'Divisione', key: 'Chiave', reveal: 'Svela',
+    hintTitle: 'Svela la casella scelta (1 indizio)', cutTitle: 'Mostra dove si dividono le lettere in una parola (1 indizio)',
+    hintAria: (cut, l, m) => `${cut ? 'Mostra la divisione' : 'Svela una lettera'}, ${l} indizi su ${m} rimasti`,
+    keyEasy: on => on ? 'Nascondi i numeri sulla tastiera (gratis)' : 'Mostra i numeri sulla tastiera (gratis)',
+    keyPaid: open => open ? 'Chiave aperta: i numeri valgono per la tua prossima lettera' : 'Chiave: mostra i numeri per una lettera, costa 1 indizio',
+    keyForbidden: 'In Impossible non c’è la chiave',
+    keyShown: 'I numeri sulla tastiera sono tornati', keyHidden: 'Numeri nascosti. «Chiave» li fa riapparire.',
+    keyExplain: 'La chiave mostra i numeri sulla tastiera finché non scrivi la prossima lettera. Costa 1 indizio e la parola conta come 🟨 quando condividi.',
+    keyYes: 'Usa la chiave', cancel: 'Annulla',
+    hintQ: left => `Usare un indizio? Verrà svelata una lettera della parola evidenziata. Costa ${left === 1 ? 'il tuo ultimo indizio' : `1 dei tuoi ${left} indizi`} e la parola conta come 🟨 quando condividi.`,
+    hintYes: 'Svela',
+    cutQ: left => `Mostrare la divisione? Vedrai dove si dividono le lettere nella parola evidenziata. Costa ${left === 1 ? 'il tuo ultimo indizio' : `1 dei tuoi ${left} indizi`} e la parola conta come 🟨 quando condividi.`,
+    cutYes: 'Mostra divisione',
+    keyOpened: 'Chiave aperta: i numeri valgono per la tua prossima lettera.',
+    revealQ: 'Mostrare la soluzione? Allora questo enigma non conta come risolto.', revealYes: 'Sì, svela', revealNo: 'Continua a provare',
+    kb: 'Tastiera', nextWord: 'Parola successiva', backspace: 'Cancella',
+    coach: {
+      first: 'Scrivi con la tastiera qui sotto. Le parole giuste diventano verdi.',
+      fix: 'Una lettera è sbagliata? Tocca la casella e scrivici sopra.',
+      hint: 'Le parole risolte con un aiuto diventano gialle 🟨 quando condividi. Restano gialle anche se poi sovrascrivi la lettera.'
+    },
+    gotIt: 'Capito',
+    noTips: 'Nessun indizio rimasto per questo enigma', allCut: 'Tutte le parole sono già divise', cutDone: n => `Parola ${n}: divisione mostrata`,
+    sayWordOk: (n, w) => `Parola ${n} giusta: ${w}`, sayWordBad: n => `La parola ${n} è piena ma non ancora giusta`,
+    sayHint: L => `Svelata: ${L}`, saySolved: t => `Fatto. Risolto in ${t}.`, sayRevealed: 'Soluzione mostrata.',
+    wordLabel: (i, n, L, code, typed) => `Parola ${i} di ${n}, ${L} lettere, codice ${code}, scritto: ${typed}`,
+    wordDone: (i, n, w) => `Parola ${i} di ${n}: ${w}`,
+    empty: 'vuota',
+    resSolved: 'Decifrato', resRevealed: 'Svelato',
+    noHelp: 'senza aiuti', withHelp: n => n === 1 ? 'con 1 indizio' : `con ${n} indizi`,
+    summary: (g, y, r) => [g && `${g} senza aiuti`, y && `${y} con aiuti`, r && `${r} ${r === 1 ? 'svelata' : 'svelate'}`].filter(Boolean).join(' · '),
+    legend: '🟩 senza aiuti · 🟨 con aiuti · 🟥 svelata',
+    source: 'Fonte', sources: 'Fonti',
+    share: 'Condividi il risultato', next: m => `Avanti con ${m}`, statsBtn: 'Statistiche',
+    dayDone: 'Tutti e quattro i codici di oggi sono fatti. Nuovi codici tra',
+    streak: n => n === 1 ? 'La tua serie: 1 giorno' : `La tua serie: ${n} giorni`, archiveNoStreak: 'Gli enigmi dell’archivio non contano per la serie.',
+    copied: 'Risultato copiato. Ora incollalo su WhatsApp o altrove', copiedBtn: 'Copiato ✓',
+    stats: { title: 'Statistiche', played: 'Giorni giocati', streak: 'Serie', best: 'Serie migliore', cracked: 'Codici decifrati', byMode: 'Per livello', solved: 'Risolti', clean: 'Senza aiuti', bestTime: 'Record*', week: 'Ultimi 7 giorni',
+      weekSr: (d, s) => `${d}: ${s} su 4 risolti in giornata`,
+      note: '* Soluzione più veloce senza indizi, chiave o divisione. I numeri gratuiti in Easy non contano come aiuto. Tutte le lingue, archivio compreso.',
+      streakNote: 'La tua serie cresce ogni giorno in cui risolvi almeno un enigma del giorno. Prossimi codici tra', empty: 'Ancora niente di risolto. Il tuo primo enigma ti aspetta.' },
+    archive: { title: 'Archivio', intro: 'Tutti gli enigmi finora, da rigiocare. Contano per le statistiche, ma non per la serie.', today: 'Oggi',
+      st: { solved: 'risolto', revealed: 'svelato', playing: 'iniziato', open: 'da fare' }, repeat: r => `Ripetizione del #${r}` },
+    legal: { imprint: 'Note legali', privacy: 'Privacy', hash: '#it' },
+    settings: { title: 'Impostazioni', theme: 'Tema', system: 'Sistema', light: 'Chiaro', dark: 'Scuro', themeNote: 'Sistema: chiaro o scuro, come impostato sul tuo telefono o computer.', language: 'Lingua',
+      haptics: 'Feedback aptico', hapticsNote: 'Sul telefono a ogni tasto. Su Android anche per parole giuste e sbagliate.',
+      privacy: 'Nessun account, nessuna pubblicità, nessun tracciamento. I tuoi progressi restano solo in questo browser. Su un altro dispositivo o come app nella schermata Home, le statistiche ripartono da zero.',
+      intro: 'Rivedi l’introduzione', done: 'Fatto' },
+    shareDlg: { title: 'Condividi il risultato', note: 'La copia automatica qui non funziona. Il testo è selezionato, puoi copiarlo tu.', done: 'Fatto' },
+    intro: {
+      eyebrow: 'Il rompicapo del giorno', free: 'Gratis, senza account né pubblicità.',
+      title: 'Decifra il codice', lead: 'Ogni numero è una lettera: A = 1, B = 2, C = 3 …',
+      task: 'Prova: che parola è? I numerini sui tasti ti aiutano.', word: 'SOLE', keys: [...'AELORS'], wrong: c => `Cerchi il ${c}. Guarda i numerini.`,
+      won: 'Decifrato! Funziona proprio così.', wonMore: 'Ogni giorno ci sono quattro nuovi codici, da Easy a Impossible. Ognuno nasconde un fatto breve e vero.',
+      go: 'All’enigma di oggi', goTo: n => `All’enigma #${n}`, skip: 'Salta', rules: 'Tutte le regole', aria: n => `Codice di prova ${n}`
+    },
+    help: {
+      title: 'Come si gioca',
+      lead: 'Ogni numero sta per una lettera. Decifra il codice e scopri un fatto vero. Quattro nuovi ogni giorno.',
+      sections: [
+        ['I quattro livelli', '<ul><li><strong>Easy:</strong> A&nbsp;=&nbsp;1 … Z&nbsp;=&nbsp;26. Ogni numero ha la sua casella.</li><li><strong>Hard:</strong> gli stessi numeri, ma senza divisione. 1 1 può essere K o AA.</li><li><strong>Mirror:</strong> al contrario, A&nbsp;=&nbsp;26 … Z&nbsp;=&nbsp;1, senza divisione.</li><li><strong>Impossible:</strong> l’alfabeto è spostato di un numero segreto, senza divisione.</li></ul><p>Le caselle dicono sempre quante lettere ha una parola. Ci sono solo le 26&nbsp;lettere dalla A alla&nbsp;Z: gli accenti spariscono, È diventa E.</p>'],
+        ['Scrivere e correggere', '<p>Tocca una casella e scrivi con la tastiera. Ogni casella si può sovrascrivere da sola. Una parola piena ma sbagliata ha un bordo rosso tratteggiato. Le parole giuste sono evidenziate in verde. La freccia passa alla parola successiva.</p><p>Al computer: scrivi le lettere, usa le frecce, Invio per la parola successiva e Backspace per cancellare.</p>'],
+        ['Indizi, chiave, soluzione', '<p>Per ogni enigma hai tre indizi. Un indizio svela la casella scelta. In Impossible mostra invece dove si dividono le lettere in una parola. Prima di usare un indizio, il gioco chiede conferma.</p><p>La <strong>chiave</strong> mostra i numeri sulla tastiera: gratis e attiva fin dall’inizio in Easy (puoi spegnerla), per 1 indizio fino alla prossima lettera in Hard e Mirror. In Impossible non c’è.</p><p><strong>Svela</strong> mostra tutta la soluzione. Allora l’enigma non conta come risolto.</p>'],
+        ['Verde, giallo, rosso', '<p>Nel risultato ogni quadratino rappresenta una parola: 🟩 risolta senza aiuti, 🟨 con indizio, chiave o divisione, 🟥 svelata. Una volta gialla, resta gialla. Un puntino su una parola verde ti mostra già nell’enigma dove hai avuto aiuto.</p><p>Si condividono solo i livelli che hai davvero decifrato. La condivisione non svela mai la soluzione.</p>'],
+        ['Tempo e pausa', '<p>Il cronometro parte con Inizia e gira solo finché il codice è visibile. Si ferma quando apri un menu, cambi scheda, esci dall’app o tocchi il tasto pausa. Allora il codice è nascosto. Con Continua riprendi esattamente da dove eri. Ogni livello ha il suo cronometro.</p>'],
+        ['Serie, archivio, statistiche', '<p>La tua serie cresce ogni giorno in cui risolvi almeno un enigma del giorno. I nuovi codici arrivano a mezzanotte, secondo la tua ora locale. Gli enigmi passati si possono rigiocare nell’archivio. Contano per le statistiche, non per la serie.</p>']
+      ],
+      replay: 'Introduzione', go: 'Si comincia'
+    },
+    rules: {
+      easy: { short: 'A = 1 … Z = 26', sub: null, text: 'Ogni numero sta per una lettera: A = 1, B = 2 … Z = 26.', ex: 'CANE → 3 · 1 · 14 · 5' },
+      hard: { short: 'A = 1 … Z = 26', sub: 'senza divisione', text: 'Gli stessi numeri di Easy, ma senza divisione. Dove finisce una lettera? 1 1 può essere K o AA. Il numero di caselle dice quante lettere ci sono.', ex: 'CANE → 31145' },
+      mirror: { short: 'A = 26 … Z = 1', sub: 'inverso, senza divisione', text: 'L’alfabeto va al contrario: A = 26, B = 25 … Z = 1. Anche qui senza divisione.', ex: 'CANE → 24261322' },
+      impossible: { short: 'A = ? … Z = ?', sub: 'segreto, senza divisione', text: 'L’alfabeto è spostato di un numero segreto, senza divisione. Qui gli indizi mostrano solo dove si dividono le lettere in una parola.', ex: null }
+    },
+    ruleTitle: m => `Regola: ${m}`,
+    shiftShort: s => [`A = ${s + 1} … Z = ${s}`, `spostato di ${s}`],
+    shiftLong: (s, past) => `Oggi ${past ? 'era' : 'è'} spostato di ${s}: A = ${s + 1}, B = ${s + 2} … Z = ${s}`,
+    umlauts: 'Gli accenti spariscono nel codice, come nei cruciverba: È diventa E, À diventa A.',
+    accentRe: /[À-ÖØ-öø-ÿ]/,
+    keyrows: [[...'QWERTYUIOP'], [...'ASDFGHJKL'], ['next', ...'ZXCVBNM', 'back']],
+    shareHead: (n, a) => `${CONFIG.name} #${n}${a ? ' (archivio)' : ''}`, dec: ',', shareStreak: n => `🔥 Serie: ${n} giorni`,
+    beatOne: 'Batti il mio tempo?', beatMany: 'Batti i miei tempi?', crackIt: 'Ce la fai?', notCracked: a => a ? 'Non decifrato 😅' : 'Oggi non decifrato 😅'
   }
 };
+// Spielstände je Sprache (Deutsch heißt aus alten Zeiten nur „days“)
+const DAYKEY = { de: 'days', en: 'daysEn', fr: 'daysFr', it: 'daysIt' };
+const LANGS = CONFIG.languages;
+const LANG_NAMES = { de: 'Deutsch', en: 'English', fr: 'Français', it: 'Italiano' };
 
 /* ============================================================ Hilfen */
 const mq = q => !!(window.matchMedia && window.matchMedia(q).matches);
@@ -850,7 +1075,7 @@ let store = loadStore();
 const RANK = { open: 0, playing: 1, revealed: 2, solved: 3 };
 const rankOf = s => s && typeof s === 'object' && RANK[s.status] != null ? RANK[s.status] : -1;
 function mergeMoved(inc) {
-  ['days', 'daysEn'].forEach(f => {
+  Object.values(DAYKEY).forEach(f => {
     const src = inc[f];
     if (!src || typeof src !== 'object') return;
     if (!store[f] || typeof store[f] !== 'object') store[f] = {};
@@ -870,7 +1095,7 @@ function mergeMoved(inc) {
   // deshalb gewinnt dort die Einstellung von der alten Adresse.
   const DEFAULTS = { theme: 'system', haptics: true };
   Object.keys(inc).forEach(k => {
-    if (k === 'v' || k === 'days' || k === 'daysEn' || k === 'seenHelp' || k === 'coach' || k === 'moved') return;
+    if (k === 'v' || Object.values(DAYKEY).includes(k) || k === 'seenHelp' || k === 'coach' || k === 'moved') return;
     if (store[k] === undefined || (k in DEFAULTS && store[k] === DEFAULTS[k])) store[k] = inc[k];
   });
 }
@@ -896,8 +1121,7 @@ const moved = importMoved();
 function fixStore() {
   if (store.haptics === undefined) store.haptics = true;
   if (!store.theme) store.theme = 'system';
-  if (!store.days || typeof store.days !== 'object') store.days = {};
-  if (!store.daysEn || typeof store.daysEn !== 'object') store.daysEn = {};
+  Object.values(DAYKEY).forEach(f => { if (!store[f] || typeof store[f] !== 'object') store[f] = {}; });
   if (!store.coach || typeof store.coach !== 'object') store.coach = {};
 }
 fixStore();
@@ -906,17 +1130,17 @@ if (moved === 'ok' || moved === 'again') save();
 
 /* ============================================================ Sprache und Link */
 function navLang() {
-  const nav = ((navigator.languages && navigator.languages[0]) || navigator.language || 'de').toLowerCase();
-  return nav.startsWith('de') ? 'de' : 'en';
+  const nav = ((navigator.languages && navigator.languages[0]) || navigator.language || 'de').toLowerCase().slice(0, 2);
+  return LANGS.includes(nav) ? nav : 'en';
 }
-const defaultLang = () => (store.lang === 'de' || store.lang === 'en') ? store.lang : navLang();
-// Links: ?n=Nummer &m=Stufe &lang=de|en  (alte Links ohne Angaben öffnen einfach das heutige Rätsel)
+const defaultLang = () => LANGS.includes(store.lang) ? store.lang : navLang();
+// Links: ?n=Nummer &m=Stufe &lang=de|en|fr|it  (alte Links ohne Angaben öffnen einfach das heutige Rätsel)
 function readLink() {
   const out = {};
   let q;
   try { q = new URLSearchParams(location.search); } catch (e) { return out; }
   const l = (q.get('lang') || '').toLowerCase();
-  if (l === 'de' || l === 'en') out.lang = l;
+  if (LANGS.includes(l)) out.lang = l;
   const n = q.get('n');
   if (n != null && n !== '') out.n = /^\s*\d{1,5}\s*$/.test(n) && +n >= 1 ? +n : -1;
   const m = (q.get('m') || '').toLowerCase();
@@ -926,9 +1150,9 @@ function readLink() {
 const link = readLink();
 let lang = link.lang || defaultLang();
 // Wer zum ersten Mal über einen Link kommt, behält dessen Sprache. Wer schon eine Sprache gewählt hat, bekommt sie nur für diesen Besuch.
-if (link.lang && store.lang !== 'de' && store.lang !== 'en') { store.lang = link.lang; save(); }
+if (link.lang && !LANGS.includes(store.lang)) { store.lang = link.lang; save(); }
 const T = () => STR[lang];
-const daysMap = l => (l || lang) === 'en' ? store.daysEn : store.days;
+const daysMap = l => store[DAYKEY[l || lang] || 'days'];
 
 /* ============================================================ Zustand */
 const realToday = () => todayKey();
@@ -1172,7 +1396,7 @@ function ruleHtml(withTip) {
   const t = T(), r = t.rules[current], s = ms(current), p = puz();
   let ex = r.ex;
   if (current === 'impossible' && (finished(s) || s.shiftShown)) ex = t.shiftLong(day.shift, finished(s));
-  const um = /[äöüÄÖÜßẞ]/.test(p.fact.t);
+  const um = (t.accentRe || /[äöüÄÖÜßẞ]/).test(p.fact.t);
   return `<p>${esc(r.text)}</p>` + (ex ? `<p class="ex">${esc(ex)}</p>` : '') +
     (withTip && current === 'impossible' && !finished(s) ? `<p class="tip">${esc(t.impTip)}</p>` : '') +
     (withTip && (current === 'hard' || current === 'mirror') && !finished(s) ? `<p class="tip">${esc(t.noNumbers)}</p>` : '') +
@@ -1272,10 +1496,14 @@ function updateWord(wi) {
 
 function buildKeyboard() {
   const t = T();
-  const half = row => row.length === t.keyrows[0].length - 1 && row.every(k => k.length === 1);   // mittlere Buchstabenreihe
+  const max = t.keyrows[0].length;
+  const half = row => row.length === max - 1 && row.every(k => k.length === 1);   // mittlere Buchstabenreihe
+  // Weiter- und Löschtaste füllen die untere Reihe so auf, dass alle Buchstabentasten gleich breit sind
+  // (QWERTZ/QWERTY: 7 Buchstaben, AZERTY: 6). Die Grundbreite gleicht die fehlenden Abstände aus.
+  const wide = row => { const letters = row.filter(k => k.length === 1).length; return `flex:${(max - letters) / 2} 1 calc(var(--kgap) * ${(max - row.length) / 2})`; };
   $('#kb').innerHTML = t.keyrows.map(row => `<div class="kr${half(row) ? ' half' : ''}">` + row.map(k => {
-    if (k === 'next') return `<div class="k wide" data-k="next"><button type="button" aria-label="${esc(t.nextWord)}">${ICON.next}</button></div>`;
-    if (k === 'back') return `<div class="k wide" data-k="back"><button type="button" aria-label="${esc(t.backspace)}">${ICON.back}</button></div>`;
+    if (k === 'next') return `<div class="k wide" style="${wide(row)}" data-k="next"><button type="button" aria-label="${esc(t.nextWord)}">${ICON.next}</button></div>`;
+    if (k === 'back') return `<div class="k wide" style="${wide(row)}" data-k="back"><button type="button" aria-label="${esc(t.backspace)}">${ICON.back}</button></div>`;
     return `<div class="k" data-k="${k}"><button type="button"><b>${k}</b><i aria-hidden="true"></i></button></div>`;
   }).join('') + '</div>').join('');
   $$('#kb .k').forEach(addHapticSwitch);
@@ -1431,7 +1659,7 @@ function setView(key, isArchive, mode, resume) {
 }
 
 function setLang(l, keepStore) {
-  if (l !== 'de' && l !== 'en' || l === lang) return;
+  if (!LANGS.includes(l) || l === lang) return;
   stopClock();
   lang = l;
   if (!keepStore) { store.lang = l; save(); }
@@ -1441,7 +1669,7 @@ function setLang(l, keepStore) {
 
 // Hat diese Person in diesem Browser schon irgendein Rätsel angefangen?
 function everPlayed() {
-  return [store.days, store.daysEn].some(map => Object.keys(map || {}).some(k => {
+  return Object.values(DAYKEY).map(f => store[f]).some(map => Object.keys(map || {}).some(k => {
     const d = map[k];
     return !!d && typeof d === 'object' && MODES.some(m => d[m.id] && typeof d[m.id] === 'object' && d[m.id].status && d[m.id].status !== 'open');
   }));
@@ -1765,7 +1993,7 @@ function computeStats() {
   MODES.forEach(m => { per[m.id] = { solved: 0, clean: 0, best: null }; });
   const onDay = new Set(), played = new Set(), week = {};
   let total = 0;
-  [store.days, store.daysEn].forEach(map => Object.keys(map || {}).forEach(k => {
+  Object.values(DAYKEY).map(f => store[f]).forEach(map => Object.keys(map || {}).forEach(k => {
     const d = map[k];
     if (!d || typeof d !== 'object' || !/^\d{4}-\d{2}-\d{2}$/.test(k)) return;
     MODES.forEach((m, mi) => {
@@ -1827,7 +2055,7 @@ function siteBase() {
 function shareUrl(mode) {
   const base = siteBase();
   if (!base) return '';
-  return base + (lang === 'en' ? 'en/' : '') + `?n=${day.number}` + (mode ? `&m=${mode}` : '');
+  return base + (lang === 'de' ? '' : lang + '/') + `?n=${day.number}` + (mode ? `&m=${mode}` : '');
 }
 // Geteilt werden nur tatsächlich gelöste Stufen. Aufgelöste und nicht gespielte fehlen, das Ergebnis im Spiel bleibt vollständig.
 // Eine gelöste Stufe: drei Zeilen. Mehrere: eine Zeile je Stufe mit Zeit und Kästchen. Keine: kurze Herausforderung ohne Kästchen.
@@ -1891,8 +2119,8 @@ function renderArchive() {
 }
 
 function langSeg(name, slim) {
-  return `<div class="seg two${slim ? ' slim' : ''}" role="radiogroup" aria-label="${esc(T().settings.language)}">` +
-    [['de', 'Deutsch'], ['en', 'English']].map(([v, l]) => `<label><input type="radio" name="${name}" value="${v}" data-lang="${v}"${lang === v ? ' checked' : ''}><span lang="${v}">${l}</span></label>`).join('') + '</div>';
+  return `<div class="seg four${slim ? ' slim' : ''}" role="radiogroup" aria-label="${esc(T().settings.language)}">` +
+    LANGS.map(v => [v, LANG_NAMES[v]]).map(([v, l]) => `<label><input type="radio" name="${name}" value="${v}" data-lang="${v}"${lang === v ? ' checked' : ''}><span lang="${v}">${l}</span></label>`).join('') + '</div>';
 }
 
 // Impressum und Datenschutz: auf der Startkarte, im Ergebnis und in den Einstellungen (ständig leicht erreichbar). Eigene Seiten, auf Englisch mit Sprung zum englischen Teil

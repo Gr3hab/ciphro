@@ -57,7 +57,7 @@ tr.repeat td{color:var(--muted)}
     <h1>CIPHRO · Fakten prüfen</h1>
     <p class="lead">Arbeitsseite für die Redaktion. Liest <code>fakten.js</code> und <code>kern.js</code> aus dem Hauptordner und zeigt, ob alles passt, wie lange der Vorrat reicht und welche Rätsel kommen. Sie liegt in <code>_dev/</code> und wird deshalb <strong>nicht veröffentlicht</strong>. Öffnen: Datei im Browser doppelklicken oder <code>npm run pruefen</code> im Ordner <code>_dev</code>. Enthält die Lösungen.</p>
   </header>
-  <div class="langs" role="group" aria-label="Sprache"><button type="button" data-l="de" aria-pressed="true">Deutsch</button><button type="button" data-l="en" aria-pressed="false">English</button></div>
+  <div class="langs" role="group" aria-label="Sprache"><button type="button" data-l="de" aria-pressed="true">Deutsch</button><button type="button" data-l="en" aria-pressed="false">English</button><button type="button" data-l="fr" aria-pressed="false">Français</button><button type="button" data-l="it" aria-pressed="false">Italiano</button></div>
   <section class="tiles" id="tiles"></section>
   <section>
     <h2>Prüfergebnis</h2>
@@ -76,7 +76,7 @@ tr.repeat td{color:var(--muted)}
   const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   if (!NF || typeof NF.list !== 'function' || !NF.list().length) { $('#tiles').innerHTML = '<div class="tile bad"><div class="n">Fehler</div><div class="l">fakten.js oder kern.js konnte nicht geladen werden. Oft fehlt ein Komma, eine Klammer oder ein Anführungszeichen.</div></div>'; return; }
   const today = NF.todayKey(), L = NF.list();
-  const fmt = (k, l) => { const [y, m, d] = NF.parseKey(k); return new Date(y, m - 1, d).toLocaleDateString(l === 'en' ? 'en-GB' : 'de-AT', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' }); };
+  const fmt = (k, l) => { const [y, m, d] = NF.parseKey(k); return new Date(y, m - 1, d).toLocaleDateString({ de: 'de-AT', en: 'en-GB', fr: 'fr-FR', it: 'it-IT' }[l] || 'de-AT', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' }); };
   function render(lang) {
     document.querySelectorAll('.langs button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.l === lang)));
     const last = NF.lastPlannedDay();
@@ -84,7 +84,7 @@ tr.repeat td{color:var(--muted)}
     const probs = NF.checkFacts(today), errs = probs.filter(p => p.level === 'fehler');
     const withSrc = L.filter(f => Array.isArray(f.quellen) && f.quellen.length).length;
     $('#tiles').innerHTML =
-      `<div class="tile"><div class="n">${L.length}</div><div class="l">Fakten (je Deutsch und Englisch) = ${NF.plannedDays()} Tage</div></div>` +
+      `<div class="tile"><div class="n">${L.length}</div><div class="l">Fakten (je Deutsch, Englisch, Französisch, Italienisch) = ${NF.plannedDays()} Tage</div></div>` +
       `<div class="tile ${daysLeft < 0 ? 'bad' : daysLeft < NF.CONFIG.warnDays ? 'warn' : 'good'}"><div class="n">${esc(fmt(last, 'de'))}</div><div class="l">${daysLeft < 0 ? 'Vorrat aufgebraucht, frühere Tage werden sichtbar wiederholt' : `reicht noch ${daysLeft + 1} Tage ohne Wiederholung`}</div></div>` +
       `<div class="tile ${errs.length ? 'bad' : 'good'}"><div class="n">${errs.length}</div><div class="l">Fehler (müssen behoben werden)</div></div>` +
       `<div class="tile ${probs.length - errs.length ? 'warn' : 'good'}"><div class="n">${probs.length - errs.length}</div><div class="l">Hinweise</div></div>` +
