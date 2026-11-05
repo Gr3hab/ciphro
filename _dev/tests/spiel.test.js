@@ -494,13 +494,19 @@ test('Zeit: Ergebnis, Stufen-Reiter, Teilen und Statistik zeigen dieselbe Zeit',
   await typeWord(page, sol[sol.length - 1]);
   const t = await timer(page);
   assert.match(t, /^1:2\d$/);
-  assert.ok((await page.textContent('#result .res-time')).includes(t));
+  // Ergebnis, Teilen und Statistik auf Hundertstel, Uhr und Reiter in ganzen Sekunden (abgeschnitten, nicht gerundet)
+  const exact = (await page.textContent('#result .res-time')).trim();
+  assert.match(exact, /^1:2\d,\d\d$/);
+  assert.ok(exact.startsWith(t + ','), exact + ' passt zu ' + t);
+  const ms = await page.evaluate(() => JSON.parse(localStorage.getItem('numfact.v2')).days[NF.keyOfNumber(4)].easy.elapsed);
+  const cs = Math.floor(ms / 10);
+  assert.equal(exact, `${Math.floor(cs / 6000)}:${String(Math.floor(cs / 100) % 60).padStart(2, '0')},${String(cs % 100).padStart(2, '0')}`);
   assert.ok((await page.textContent('#tab-easy')).includes(t));
   await page.click('#result [data-act="share"]');
   const text = await page.evaluate(() => navigator.clipboard.readText());
-  assert.ok(text.startsWith(`CIPHRO #4 · Easy ⏱ ${t}\n`));
+  assert.ok(text.startsWith(`CIPHRO #4 · Easy ⏱ ${exact}\n`), text);
   await page.click('#statsBtn');
-  assert.ok((await page.textContent('#statsBody .table')).includes(t));
+  assert.ok((await page.textContent('#statsBody .table')).includes(exact));
   await page.context().close();
 });
 
@@ -518,7 +524,7 @@ test('Teilen: nur gelöste Stufen, drei Zeilen bei einer, eine Zeile je Stufe be
   let text = await read();
   let lines = text.split('\n');
   assert.equal(lines.length, 3);
-  assert.match(lines[0], /^CIPHRO #4 · Easy ⏱ \d+:\d\d$/);
+  assert.match(lines[0], /^CIPHRO #4 · Easy ⏱ \d+:\d\d,\d\d$/);
   assert.match(lines[1], /^(🟩|🟨|🟥)+$/u);
   assert.match(lines[2], /^Schlägst du meine Zeit\? http:\/\/127\.0\.0\.1:\d+\/\?n=4&m=easy$/);
   noSolution(text, 4);
@@ -530,8 +536,8 @@ test('Teilen: nur gelöste Stufen, drei Zeilen bei einer, eine Zeile je Stufe be
   lines = text.split('\n');
   assert.equal(lines.length, 4, text);
   assert.equal(lines[0], 'CIPHRO #4');
-  assert.match(lines[1], /^Easy ⏱ \d+:\d\d (🟩|🟨|🟥)+$/u);
-  assert.match(lines[2], /^Hard ⏱ \d+:\d\d (🟩|🟨|🟥)+$/u);
+  assert.match(lines[1], /^Easy ⏱ \d+:\d\d,\d\d (🟩|🟨|🟥)+$/u);
+  assert.match(lines[2], /^Hard ⏱ \d+:\d\d,\d\d (🟩|🟨|🟥)+$/u);
   assert.match(lines[3], /^Schlägst du meine Zeiten\? http:\/\/127\.0\.0\.1:\d+\/\?n=4$/);
   const twoSolved = text;
   // dritte Stufe aufgelöst: taucht im geteilten Text gar nicht auf, das Ergebnis im Spiel zeigt sie aber
@@ -573,7 +579,7 @@ test('Teilen: nur gelöste Stufen, drei Zeilen bei einer, eine Zeile je Stufe be
   text = await p2.evaluate(() => navigator.clipboard.readText());
   lines = text.split('\n');
   assert.equal(lines.length, 3, text);
-  assert.match(lines[0], /^CIPHRO #4 · Hard ⏱ \d+:\d\d$/);
+  assert.match(lines[0], /^CIPHRO #4 · Hard ⏱ \d+:\d\d,\d\d$/);
   assert.match(lines[2], /\?n=4&m=hard$/);
   await p2.context().close();
   // Englisch: eine Stufe und nichts gelöst
@@ -620,7 +626,7 @@ test('Statistik: Bestzeit nur ohne Hilfe, Archiv zählt nicht für die Serie', a
   assert.deepEqual(nums, ['3', '2', '2', '4']);   // Rätseltage, Serie, beste Serie, Codes
   const table = await page.$$eval('#statsBody .table span', els => els.map(e => e.textContent));
   const row = name => table.slice(table.indexOf(name), table.indexOf(name) + 4);
-  assert.deepEqual(row('Easy'), ['Easy', '3', '3', '0:30']);
+  assert.deepEqual(row('Easy'), ['Easy', '3', '3', '0:30,00']);
   assert.deepEqual(row('Hard'), ['Hard', '1', '0', '–']);
   await page.context().close();
 });
@@ -912,7 +918,8 @@ test('Umzug: Wer auf ciphro.eu schon gespielt hat, behält seinen Stand; von alt
   assert.equal(s.days[K4].hard.status, 'solved', 'neu gelöst bleibt gelöst');
   assert.equal(s.days[K4].hard.elapsed, 42000, 'neue Zeit bleibt');
   assert.equal(s.days[keyOf(2)].easy.status, 'solved', 'fehlender Tag kommt dazu');
-  assert.deepEqual([s.theme, s.haptics, s.easyKey, s.coach.first], ['light', true, false, true], 'eigene Einstellungen bleiben, fehlende kommen dazu');
+  // „light“ ist eine eigene Wahl und bleibt; Vibration „an“ ist nur der Standard, da gewinnt „aus“ von der alten Adresse
+  assert.deepEqual([s.theme, s.haptics, s.easyKey, s.coach.first], ['light', false, false, true], 'eigene Einstellungen bleiben, Standardwerte und fehlende kommen von alt');
   assert.match(await page.textContent('#noticeText'), /Spielstand ist mitgekommen/);
   await page.context().close();
   // Zweites Mal über die alte Adresse (z. B. altes Lesezeichen): nichts geht verloren, kein Hinweis mehr
@@ -944,6 +951,53 @@ test('Umzug: englischer Link, alter Link ohne Spielstand und kaputter Anker', as
   const s = await store(page);
   assert.equal(s.days[keyOf(3)].easy.status, 'solved');
   assert.equal(s.moved, undefined);
+  noErrors(page);
+  await page.context().close();
+});
+
+test('Umzug: ciphro.eu vorher schon geöffnet (nur Standardwerte) – Hell/Dunkel, Vibration und Easy-Zahlen kommen von alt', async () => {
+  // So sieht der Speicher aus, wenn jemand ciphro.eu einmal geöffnet hat, ohne etwas einzustellen
+  const local = { v: 2, seenHelp: true, theme: 'system', haptics: true, coach: {}, days: {}, daysEn: {} };
+  const page = await openPage(env, { store: local, url: packMoved(oldStore()) });
+  const s = await store(page);
+  assert.deepEqual([s.theme, s.haptics, s.easyKey], ['dark', false, false]);
+  assert.equal(await page.evaluate(() => document.documentElement.getAttribute('data-theme')), 'dark');
+  assert.equal(s.days[keyOf(3)].hard.status, 'solved');
+  await page.context().close();
+});
+
+/* ------------------------------------------------------------ Serie beim Teilen */
+test('Teilen: Serie ab 2 Tagen in Folge, nicht bei 1 Tag und nicht im Archiv, auch auf Englisch', async () => {
+  const days = n => Object.fromEntries(n.map(i => [keyOf(i), { easy: solvedState(i, 'easy') }]));
+  const read = async page => { await page.click('#result [data-act="share"]'); return page.evaluate(() => navigator.clipboard.readText()); };
+  // #2 und #3 am jeweiligen Tag gelöst, heute #4 gelöst → 3 Tage
+  let page = await openPage(env, { clipboard: true, store: { ...SEEN, days: days([2, 3]) } });
+  await page.click('#startBtn');
+  for (const w of solution(4, 'de', 'easy')) await typeWord(page, w);
+  let lines = (await read(page)).split('\n');
+  assert.equal(lines.length, 4, lines.join('\n'));
+  assert.equal(lines[2], '🔥 Serie: 3 Tage');
+  assert.match(lines[3], /^Schlägst du meine Zeit\?/);
+  // dasselbe Archivrätsel (#3) geteilt: keine Serie
+  await page.goto(env.srv.url + '?n=3&m=easy');
+  await page.waitForSelector('#result:not([hidden])');
+  lines = (await read(page)).split('\n');
+  assert.match(lines[0], /\(Archiv\)/);
+  assert.ok(!lines.some(l => l.includes('🔥')), lines.join('\n'));
+  await page.context().close();
+  // nur heute gelöst: 1 Tag, keine Zeile
+  page = await openPage(env, { clipboard: true });
+  await page.click('#startBtn');
+  for (const w of solution(4, 'de', 'easy')) await typeWord(page, w);
+  assert.ok(!(await read(page)).includes('🔥'));
+  await page.context().close();
+  // Englisch
+  page = await openPage(env, { clipboard: true, locale: 'en-GB', store: { ...SEEN, daysEn: Object.fromEntries([2, 3].map(i => [keyOf(i), { easy: solvedState(i, 'easy', 'en') }])) } });
+  await page.click('#startBtn');
+  for (const w of solution(4, 'en', 'easy')) await typeWord(page, w);
+  lines = (await read(page)).split('\n');
+  assert.equal(lines[2], '🔥 Streak: 3 days');
+  assert.match(lines[0], /^CIPHRO #4 · Easy ⏱ \d+:\d\d\.\d\d$/);
   noErrors(page);
   await page.context().close();
 });

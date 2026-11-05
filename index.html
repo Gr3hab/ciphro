@@ -692,7 +692,7 @@ const STR = {
     // Nur A–Z. Ab #9 haben die Sätze keine Umlaute; in #1–#8 (Archiv) stehen sie wie im Kreuzworträtsel da.
     umlauts: 'In diesem Satz stecken Umlaute oder ß. Sie stehen wie im Kreuzworträtsel als AE, OE, UE und SS.',
     keyrows: [[...'QWERTZUIOP'], [...'ASDFGHJKL'], ['next', ...'YXCVBNM', 'back']],
-    shareHead: (n, a) => `${CONFIG.name} #${n}${a ? ' (Archiv)' : ''}`,
+    shareHead: (n, a) => `${CONFIG.name} #${n}${a ? ' (Archiv)' : ''}`, dec: ',', shareStreak: n => `🔥 Serie: ${n} Tage`,
     beatOne: 'Schlägst du meine Zeit?', beatMany: 'Schlägst du meine Zeiten?', crackIt: "Schaffst du's?", notCracked: a => a ? 'Nicht geknackt 😅' : 'Heute nicht geknackt 😅'
   },
   en: {
@@ -799,7 +799,7 @@ const STR = {
     shiftLong: (s, past) => `Today ${past ? 'it was' : 'it is'} shifted by ${s}: A = ${s + 1}, B = ${s + 2} … Z = ${s}`,
     umlauts: null,
     keyrows: [[...'QWERTYUIOP'], [...'ASDFGHJKL'], ['next', ...'ZXCVBNM', 'back']],
-    shareHead: (n, a) => `${CONFIG.name} #${n}${a ? ' (archive)' : ''}`,
+    shareHead: (n, a) => `${CONFIG.name} #${n}${a ? ' (archive)' : ''}`, dec: '.', shareStreak: n => `🔥 Streak: ${n} days`,
     beatOne: 'Can you beat my time?', beatMany: 'Can you beat my times?', crackIt: 'Can you crack it?', notCracked: a => a ? 'Not cracked 😅' : 'Not cracked today 😅'
   }
 };
@@ -809,10 +809,15 @@ const mq = q => !!(window.matchMedia && window.matchMedia(q).matches);
 const reduceMotion = () => mq('(prefers-reduced-motion: reduce)');
 // Maskiert Text für HTML. „A = 1“ bleibt dabei zusammen (geschützte Leerzeichen).
 function esc(s) { return String(s).replace(/ = /g, '\u00a0=\u00a0').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
-// Eine Regel für alle Anzeigen (Uhr, Ergebnis, Teilen, Statistik): auf ganze Sekunden runden
+// Zeit: Uhr, Pause und Stufen-Reiter in ganzen Sekunden, Ergebnis, Teilen und Statistik auf Hundertstel.
+// Beide schneiden ab statt zu runden, so passt die Uhr immer zum genauen Wert (1:35 → 1:35,42).
 function fmtTime(ms) {
-  const t = Math.max(0, Math.round(ms / 1000)), h = Math.floor(t / 3600), m = Math.floor(t % 3600 / 60), s = t % 60;
+  const t = Math.max(0, Math.floor(ms / 1000)), h = Math.floor(t / 3600), m = Math.floor(t % 3600 / 60), s = t % 60;
   return h ? `${h}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}` : `${m}:${String(s).padStart(2, '0')}`;
+}
+function fmtExact(ms) {
+  const c = Math.max(0, Math.floor(ms / 10));
+  return fmtTime(c * 10) + T().dec + String(c % 100).padStart(2, '0');
 }
 function fmtHMS(ms) { const t = Math.max(0, Math.floor(ms / 1000)); return [Math.floor(t / 3600), Math.floor(t % 3600 / 60), t % 60].map(v => String(v).padStart(2, '0')).join(':'); }
 function dateLabel(key, style) {
@@ -840,7 +845,8 @@ let store = loadStore();
    Die alte Adresse schickt den Spielstand deshalb einmal im Link-Anker mit (#import=…, Base64url von JSON).
    Der Anker geht nie an einen Server und wird sofort aus der Adresse entfernt.
    Zusammenführen: Was hier schon steht, bleibt. Von alt kommt nur, was hier fehlt oder weiter ist
-   (gelöst vor aufgelöst vor angefangen vor offen). Einstellungen von alt nur, wenn hier noch keine gewählt ist. */
+   (gelöst vor aufgelöst vor angefangen vor offen). Einstellungen von alt nur, wenn hier noch keine gewählt ist
+   (Standardwerte wie Hell/Dunkel „System“ zählen nicht als gewählt). */
 const RANK = { open: 0, playing: 1, revealed: 2, solved: 3 };
 const rankOf = s => s && typeof s === 'object' && RANK[s.status] != null ? RANK[s.status] : -1;
 function mergeMoved(inc) {
@@ -860,9 +866,12 @@ function mergeMoved(inc) {
     if (!store.coach || typeof store.coach !== 'object') store.coach = {};
     Object.keys(inc.coach).forEach(k => { if (inc.coach[k]) store.coach[k] = inc.coach[k]; });
   }
+  // Hell/Dunkel und Vibration trägt das Spiel beim ersten Öffnen als Standard ein. Das ist keine eigene Wahl,
+  // deshalb gewinnt dort die Einstellung von der alten Adresse.
+  const DEFAULTS = { theme: 'system', haptics: true };
   Object.keys(inc).forEach(k => {
     if (k === 'v' || k === 'days' || k === 'daysEn' || k === 'seenHelp' || k === 'coach' || k === 'moved') return;
-    if (store[k] === undefined) store[k] = inc[k];
+    if (store[k] === undefined || (k in DEFAULTS && store[k] === DEFAULTS[k])) store[k] = inc[k];
   });
 }
 function importMoved() {
@@ -1007,7 +1016,7 @@ function nextOpenMode(from) {
    Regeln: Die Uhr startet mit „Start“. Sie läuft nur, solange der Code sichtbar ist, und steht,
    sobald ein Dialog offen ist, der Tab versteckt ist, die Seite geschlossen wird, ⏸ gedrückt wurde
    oder ein anderer Tab übernimmt. Steht sie, ist der Code verdeckt. Alle 5 Sekunden wird gespeichert. */
-let clock = null, paused = false, pauseWhy = '', lastCommit = 0;
+let clock = null, paused = false, pauseWhy = '', lastCommit = 0, clockTicker = 0;
 const TAB = Math.random().toString(36).slice(2);
 const OWNER = 'numfact.owner';
 const dialogOpen = () => !!document.querySelector('dialog[open]');
@@ -1028,6 +1037,9 @@ function startClock() {
   clock = { mode: current, key: day.key, lang, start: Date.now() };
   lastCommit = clock.start;
   try { localStorage.setItem(OWNER, TAB + ':' + clock.start); } catch (e) { /* egal */ }
+  // Eigener Takt ab dem Start: Die Uhr schneidet Sekunden ab und hinkt so höchstens eine Viertelsekunde nach
+  clearInterval(clockTicker);
+  clockTicker = setInterval(() => { if (clock) renderTimer(); else { clearInterval(clockTicker); clockTicker = 0; } }, 250);
 }
 function elapsedOf(id) {
   const s = ms(id);
@@ -1338,7 +1350,7 @@ function renderResult() {
   const streak = !archive && solved ? computeStats().streak : 0;
   box.innerHTML =
     `<div class="res-label">${esc(solved ? t.resSolved : t.resRevealed)} · #${day.number} ${esc(modeName(current))}</div>` +
-    (solved ? `<div class="res-score"><span class="res-time">${ICON.check}${fmtTime(s.elapsed)}</span><span class="res-help">${esc(help ? t.withHelp(help) : t.noHelp)}</span></div>` : '') +
+    (solved ? `<div class="res-score"><span class="res-time">${ICON.check}${fmtExact(s.elapsed)}</span><span class="res-help">${esc(help ? t.withHelp(help) : t.noHelp)}</span></div>` : '') +
     `<div class="res-squares"><span class="sq" aria-hidden="true">${squaresOf(current)}</span><span class="res-sum">${esc(t.summary(c.g, c.y, c.r))}</span></div>` +
     '<div>' + (topic ? `<div class="eyebrow">${esc(topic[lang])}</div>` : '') + `<p class="fact"><span>${esc(p.fact.t)}</span></p></div>` +
     `<p class="more">${esc(p.fact.m)}</p>` +
@@ -1693,7 +1705,7 @@ function complete(status) {
   closeConfirm(); $('#coach').hidden = true;
   save();
   renderAll();
-  announce(status === 'solved' ? t.saySolved(fmtTime(s.elapsed)) : t.sayRevealed);
+  announce(status === 'solved' ? t.saySolved(fmtExact(s.elapsed)) : t.sayRevealed);
   if (status === 'solved') { burst(); buzz('win'); }
   requestAnimationFrame(() => $('#result').scrollIntoView({ behavior: reduceMotion() ? 'auto' : 'smooth', block: 'start' }));
 }
@@ -1799,7 +1811,7 @@ function renderStats() {
     }).join('') + '</div></div>' : '') +
     `<div><h3>${esc(t.byMode)}</h3>` + (st.total ? '<div class="table">' +
       `<span class="h"></span><span class="h r">${esc(t.solved)}</span><span class="h r">${esc(t.clean)}</span><span class="h r">${esc(t.bestTime)}</span>` +
-      MODES.map(m => { const p = st.per[m.id]; return `<span>${m.name}</span><span class="r">${p.solved}</span><span class="r">${p.clean}</span><span class="r">${p.best == null ? '–' : fmtTime(p.best)}</span>`; }).join('') +
+      MODES.map(m => { const p = st.per[m.id]; return `<span>${m.name}</span><span class="r">${p.solved}</span><span class="r">${p.clean}</span><span class="r">${p.best == null ? '–' : fmtExact(p.best)}</span>`; }).join('') +
       `</div><p class="small" style="margin-top:8px">${esc(t.note)}</p>` : `<p class="small">${esc(t.empty)}</p>`) + '</div>' +
     `<p class="small">${esc(t.streakNote)} <span class="countdown" data-countdown></span>.</p>` +
     `<button class="btn primary" type="button" data-act="share">${ICON.share}${esc(T().share)}</button>`;
@@ -1821,7 +1833,7 @@ function shareUrl(mode) {
 // Eine gelöste Stufe: drei Zeilen. Mehrere: eine Zeile je Stufe mit Zeit und Kästchen. Keine: kurze Herausforderung ohne Kästchen.
 function shareText() {
   const t = T(), won = MODES.filter(m => ms(m.id).status === 'solved');
-  const head = t.shareHead(day.number, archive), time = m => `${m.name} ⏱ ${fmtTime(ms(m.id).elapsed)}`;
+  const head = t.shareHead(day.number, archive), time = m => `${m.name} ⏱ ${fmtExact(ms(m.id).elapsed)}`;
   const lines = [];
   if (won.length === 1) lines.push(`${head} · ${time(won[0])}`, squaresOf(won[0].id));
   else {
@@ -1829,6 +1841,9 @@ function shareText() {
     if (!won.length) lines.push(t.notCracked(archive));
     won.forEach(m => lines.push(`${time(m)} ${squaresOf(m.id)}`));
   }
+  // Serie ab 2 Tagen in Folge (Archivrätsel zählen nicht für die Serie)
+  const streak = archive ? 0 : computeStats().streak;
+  if (streak >= 2) lines.push(t.shareStreak(streak));
   const call = won.length > 1 ? t.beatMany : won.length === 1 ? t.beatOne : t.crackIt;
   const url = shareUrl(won.length === 1 ? won[0].id : null);
   lines.push(url ? `${call} ${url}` : call);
