@@ -29,6 +29,7 @@ li{margin-bottom:4px}
 dl{display:grid;grid-template-columns:max-content 1fr;gap:4px 14px}
 dt{color:var(--muted)}
 dd{margin:0}
+dl.person{margin-bottom:14px}
 a{color:var(--ink);overflow-wrap:anywhere}
 .lead{font-size:1.04rem}
 .small{color:var(--muted);font-size:.92rem}
