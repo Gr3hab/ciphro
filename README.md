@@ -2,9 +2,9 @@
 
 **Crack the code. Reveal the fact.**
 
-Jeden Tag vier Zahlencodes von Easy bis Impossible. Hinter jedem steckt ein kurzer, wahrer Fakt. Auf Deutsch und Englisch. Kein Konto, keine Werbung, kein Tracking.
+Jeden Tag vier Zahlencodes von Easy bis Impossible. Hinter jedem steckt ein kurzer, wahrer Fakt. Auf Deutsch, Englisch, Französisch und Italienisch. Kein Konto, keine Werbung, kein Tracking.
 
-Spielen: https://ciphro.eu/ · English: https://ciphro.eu/en/
+Spielen: https://ciphro.eu/ · English: https://ciphro.eu/en/ · Français: https://ciphro.eu/fr/ · Italiano: https://ciphro.eu/it/
 
 Bis November 2026 hieß das Spiel NUMIGMA und lag unter `gr3hab.github.io/numfact`. Die alte Adresse (Repository `Gr3hab/numfact`) leitet nur noch hierher weiter und nimmt den Spielstand mit, siehe „Umzug“ unten.
 
@@ -13,13 +13,13 @@ Bis November 2026 hieß das Spiel NUMIGMA und lag unter `gr3hab.github.io/numfac
 | Datei | Inhalt | Öffentlich |
 | --- | --- | --- |
 | `index.html` | Das Spiel | ja |
-| `fakten.js` | Alle Fakten, Deutsch und Englisch, mit ID, Thema und Quellen | ja |
+| `fakten.js` | Alle Fakten auf Deutsch, Englisch, Französisch und Italienisch, mit ID, Thema und Quellen | ja |
 | `kern.js` | Spiellogik: Codes, Tagesrätsel, Prüfungen | ja |
-| `en/index.html` | Englischer Einstieg für geteilte Links (englische Vorschau in WhatsApp & Co.) | ja |
+| `en/`, `fr/`, `it/` | Einstieg je Sprache für geteilte Links (eigene Vorschau in WhatsApp & Co.) | ja |
 | `sw.js` | Offline-Hilfe: zuletzt geladene Fassung, wenn keine Verbindung da ist | ja |
 | `fonts/` | Schriften (lokal, keine Anfragen an fremde Server) | ja |
-| `og-de.png`, `og-en.png`, `icon*.png`, `manifest.webmanifest` | Vorschaubilder für geteilte Links (Deutsch und Englisch, gleiches Design), App-Icons, Home-Bildschirm-App. Alle erzeugt mit `_dev/grafik/render.js` | ja |
-| `impressum.html`, `datenschutz.html`, `recht.css` | Impressum und Datenschutz (Deutsch, darunter Englisch). Verlinkt in den Einstellungen | ja |
+| `og-de.png`, `og-en.png`, `og-fr.png`, `og-it.png`, `icon*.png`, `manifest.webmanifest` | Vorschaubilder für geteilte Links (je Sprache, gleiches Design), App-Icons, Home-Bildschirm-App. Alle erzeugt mit `_dev/grafik/render.js` | ja |
+| `impressum.html`, `datenschutz.html`, `recht.css` | Impressum und Datenschutz (Deutsch, darunter Englisch, Französisch, Italienisch). Verlinkt in den Einstellungen | ja |
 | `CNAME` | Eigene Adresse `ciphro.eu` für GitHub Pages | ja |
 | `_dev/` | Prüfseite, Tests, Redaktionsunterlagen, Nachweise | **nein** |
 
@@ -31,10 +31,10 @@ GitHub Pages veröffentlicht Ordner, die mit `_` beginnen, nicht. Die Prüfseite
 
 - `https://ciphro.eu/` öffnet das heutige Rätsel.
 - `https://ciphro.eu/?n=4&m=easy` öffnet #4, Stufe Easy. `m` ist `easy`, `hard`, `mirror` oder `impossible`.
-- `https://ciphro.eu/en/?n=4&m=easy` dasselbe auf Englisch. `?lang=en` funktioniert weiterhin.
+- `https://ciphro.eu/en/?n=4&m=easy` dasselbe auf Englisch, `fr/` auf Französisch, `it/` auf Italienisch. `?lang=en` (oder `fr`, `it`) funktioniert weiterhin.
 - Alte Links auf `gr3hab.github.io/numfact/…` landen mit denselben Angaben hier.
 - Ein Link auf ein Rätsel, das in der eigenen Zeitzone noch nicht erschienen ist, öffnet das heutige Rätsel mit einem Hinweis, wann es erscheint.
-- Die Linkvorschau (WhatsApp & Co.) sagt auf Deutsch, was CIPHRO ist und dass es kostenlos ist, ohne Anmeldung und ohne Werbung. Das Bild `og-de.png` hat den deutschen Slogan „Knacke den Code. Entdecke den Fakt.“ `en/` hat eine eigene englische Vorschau mit `og-en.png`.
+- Die Linkvorschau (WhatsApp & Co.) sagt auf Deutsch, was CIPHRO ist und dass es kostenlos ist, ohne Anmeldung und ohne Werbung. Das Bild `og-de.png` hat den deutschen Slogan „Knacke den Code. Entdecke den Fakt.“ `en/`, `fr/` und `it/` haben eine eigene Vorschau in ihrer Sprache (`og-en.png`, `og-fr.png`, `og-it.png`).
 
 ## Regeln für die Uhr
 
@@ -86,11 +86,11 @@ Der Schlüssel `numfact.v2` bleibt, damit nichts umbenannt werden muss.
 
 Ausführlich in [`_dev/redaktion/ANLEITUNG.md`](_dev/redaktion/ANLEITUNG.md). Kurz:
 
-1. In `fakten.js` **ganz unten** einen neuen Eintrag mit der nächsten ID anhängen (Deutsch, Englisch, Thema, Quelle).
+1. In `fakten.js` **ganz unten** einen neuen Eintrag mit der nächsten ID anhängen (Deutsch, Englisch, Französisch, Italienisch, Thema, Quelle).
 2. Bestehende Fakten von Tagen, die schon erschienen sind, nie ändern, umsortieren oder löschen. Die Tests prüfen das.
 3. Als Pull Request einreichen. Die Tests laufen automatisch, der Faktenbericht steht in der Zusammenfassung des Laufs.
 
-Satzregeln: nur Buchstaben und Leerzeichen, am Ende ein Punkt. Keine Ziffern, Kommas, Bindestriche oder Apostrophe. Ä, Ö, Ü und ß nur im Deutschen.
+Satzregeln: nur Buchstaben und Leerzeichen, am Ende ein Punkt. Keine Ziffern, Kommas, Bindestriche oder Apostrophe. Seit #9 nur A bis Z, auch im Deutschen kein Ä, Ö, Ü, ß. Im Französischen und Italienischen sind Akzente im Satz erlaubt, im Code fallen sie weg (É → E, Œ → OE).
 
 ## Tests
 

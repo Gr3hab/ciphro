@@ -108,17 +108,23 @@ test('Linkvorschau: Deutsch sagt klar, was das ist und dass es kostenlos ist; je
   assert.equal(meta('index.html', 'og:locale'), 'de_AT');
   assert.match(meta('en/index.html', 'og:description'), /each number is a letter.*Free, no sign-up, no ads\.$/);
   assert.equal(meta('en/index.html', 'og:locale'), 'en_GB');
+  assert.match(meta('fr/index.html', 'og:description'), /chaque nombre est une lettre.*Gratuit, sans inscription, sans pub\.$/);
+  assert.equal(meta('fr/index.html', 'og:locale'), 'fr_FR');
+  assert.match(meta('it/index.html', 'og:description'), /ogni numero è una lettera.*Gratis, senza registrazione, senza pubblicità\.$/);
+  assert.equal(meta('it/index.html', 'og:locale'), 'it_IT');
   // Jede Sprache hat ihr eigenes Bild (deutscher bzw. englischer Slogan), beide 1200×630 und tatsächlich vorhanden
   const base = 'https://ciphro.eu/';
   assert.equal(meta('index.html', 'og:image'), base + 'og-de.png?v=3');   // ?v= erhöhen, wenn sich das Bild ändert
   assert.equal(meta('en/index.html', 'og:image'), base + 'og-en.png?v=3');
+  assert.equal(meta('fr/index.html', 'og:image'), base + 'og-fr.png?v=1');
+  assert.equal(meta('it/index.html', 'og:image'), base + 'og-it.png?v=1');
   assert.equal(meta('index.html', 'og:image:alt'), 'CIPHRO: Knacke den Code. Entdecke den Fakt.');
   assert.equal(meta('en/index.html', 'og:image:alt'), 'CIPHRO: Crack the code. Reveal the fact.');
-  for (const f of ['og-de.png', 'og-en.png']) {
+  for (const f of ['og-de.png', 'og-en.png', 'og-fr.png', 'og-it.png']) {
     const png = fs.readFileSync(path.join(root, f));
     assert.equal(png.toString('latin1', 1, 4), 'PNG', f);
     assert.deepEqual([png.readUInt32BE(16), png.readUInt32BE(20)], [1200, 630], f);
-    for (const file of ['index.html', 'en/index.html']) {
+    for (const file of ['index.html', 'en/index.html', 'fr/index.html', 'it/index.html']) {
       assert.equal(meta(file, 'og:image:width'), '1200'); assert.equal(meta(file, 'og:image:height'), '630');
     }
   }
@@ -203,6 +209,71 @@ test('Links: englische Einstiegsseite en/ leitet mit Nummer und Stufe weiter', a
   await page.waitForFunction(() => document.documentElement.lang === 'en');
   assert.equal(await issueNumber(page), 2);
   assert.equal(await page.getAttribute('#tab-hard', 'aria-selected'), 'true');
+  noErrors(page);
+  await page.context().close();
+});
+
+test('Französisch und Italienisch: Einstieg über fr/ und it/, eigene Tastatur, Akzente nur im Fakt, Spielstand je Sprache, Teilen', async () => {
+  let page = await openPage(env, { url: 'fr/?n=4&m=easy', clipboard: true });
+  await page.waitForFunction(() => document.documentElement.lang === 'fr');
+  assert.equal((await store(page)).lang, 'fr');
+  assert.equal(await issueNumber(page), 4);
+  assert.equal((await page.textContent('#startBtn')).trim(), 'Démarrer');
+  // AZERTY wie auf französischen Tastaturen
+  const rows = () => page.$$eval('#kb .kr', rs => rs.map(r => [...r.querySelectorAll('.k[data-k]')].map(k => k.dataset.k).join(' ')));
+  assert.deepEqual(await rows(), ['A Z E R T Y U I O P', 'Q S D F G H J K L M', 'next W X C V B N back']);
+  await page.click('#startBtn');
+  for (const w of solution(4, 'fr', 'easy')) await typeWord(page, w);
+  await page.waitForSelector('#result:not([hidden])');
+  assert.equal((await page.textContent('#result .fact')).trim(), puzzle(4, 'fr', 'easy').fact.t);
+  assert.equal((await state(page, K4, 'easy', 'fr')).status, 'solved');
+  assert.equal((await store(page)).days[K4], undefined, 'Deutsch bleibt unberührt');
+  await page.click('#result [data-act="share"]');
+  const lines = (await page.evaluate(() => navigator.clipboard.readText())).split('\n');
+  assert.match(lines[0], /^CIPHRO #4 · Easy ⏱ \d+:\d\d,\d\d$/);
+  assert.match(lines[2], /^Tu bats mon temps \? http:\/\/127\.0\.0\.1:\d+\/fr\/\?n=4&m=easy$/);
+  // Rechtliches auf Französisch
+  await page.click('#settingsBtn');
+  assert.deepEqual(await page.$$eval('#settingsBody .legal a', as => as.map(a => [a.textContent, a.getAttribute('href')])),
+    [['Mentions légales', 'impressum.html#fr'], ['Confidentialité', 'datenschutz.html#fr']]);
+  // Sprache wechseln: Italiano, QWERTY, eigener Spielstand, Statistik zählt alle Sprachen
+  assert.deepEqual(await page.$$eval('#settingsBody [data-lang]', els => els.map(e => e.dataset.lang)), ['de', 'en', 'fr', 'it']);
+  await page.click('#settingsBody label:has(input[data-lang="it"])');
+  await page.waitForFunction(() => document.documentElement.lang === 'it');
+  assert.equal((await store(page)).lang, 'it');
+  await page.keyboard.press('Escape');
+  assert.deepEqual(await rows(), ['Q W E R T Y U I O P', 'A S D F G H J K L', 'next Z X C V B N M back']);
+  assert.equal((await page.textContent('#startBtn')).trim(), 'Inizia');
+  await page.click('#startBtn');
+  for (const w of solution(4, 'it', 'easy')) await typeWord(page, w);
+  await page.waitForSelector('#result:not([hidden])');
+  assert.equal((await page.textContent('#result .fact')).trim(), puzzle(4, 'it', 'easy').fact.t);
+  assert.equal((await state(page, K4, 'easy', 'it')).status, 'solved');
+  assert.equal((await state(page, K4, 'easy', 'fr')).status, 'solved');
+  await page.click('#statsBtn');
+  assert.deepEqual(await page.$$eval('#statsBody .stats .n', els => els.map(e => e.textContent)), ['1', '1', '1', '2']);
+  noErrors(page);
+  await page.context().close();
+  // it/ leitet mit Nummer und Stufe weiter
+  page = await openPage(env, { url: 'it/?n=2&m=hard' });
+  await page.waitForFunction(() => document.documentElement.lang === 'it');
+  assert.equal(await issueNumber(page), 2);
+  assert.equal(await page.getAttribute('#tab-hard', 'aria-selected'), 'true');
+  noErrors(page);
+  await page.context().close();
+});
+
+test('Französisch und Italienisch: Browsersprache entscheidet beim ersten Besuch, sonst Englisch', async () => {
+  for (const [locale, lang, title] of [['fr-FR', 'fr', /Déchiffre le code/], ['fr-BE', 'fr', /Déchiffre le code/], ['it-IT', 'it', /Decifra il codice/], ['it-CH', 'it', /Decifra il codice/], ['es-ES', 'en', /Crack the code/], ['de-CH', 'de', /Knacke den Code/]]) {
+    const page = await openPage(env, { store: null, locale });
+    assert.equal(await page.getAttribute('html', 'lang'), lang, locale);
+    assert.match(await page.textContent('#introBody'), title, locale);
+    await page.context().close();
+  }
+  // Übungswort auf Französisch: MER
+  const page = await openPage(env, { store: null, locale: 'fr-FR' });
+  for (const L of 'MER') await page.keyboard.press(L);
+  assert.match(await page.textContent('#introBody'), /Déchiffré/);
   noErrors(page);
   await page.context().close();
 });
@@ -1003,7 +1074,7 @@ test('Teilen: Serie ab 2 Tagen in Folge, nicht bei 1 Tag und nicht im Archiv, au
 });
 
 /* ------------------------------------------------------------ Impressum und Datenschutz */
-test('Impressum und Datenschutz: aus den Einstellungen erreichbar, Deutsch und Englisch, ohne fremde Server', async () => {
+test('Impressum und Datenschutz: aus den Einstellungen erreichbar, in allen vier Sprachen, ohne fremde Server', async () => {
   let page = await openPage(env);
   // Ständig leicht erreichbar: auf der Startkarte, im Ergebnis und in den Einstellungen
   const legal = sel => page.$$eval(sel + ' .legal a', as => as.map(a => [a.textContent, a.getAttribute('href')]));
@@ -1021,11 +1092,21 @@ test('Impressum und Datenschutz: aus den Einstellungen erreichbar, Deutsch und E
   const imp = (await page.textContent('main')).replace(/\s+/g, ' ');
   for (const t of ['Lukas Greil', 'Hatzenbacher Straße 2a', '2003 Leitzersdorf', 'Ervin Curic', 'Reisenbauer-Ring 6/3/12', '2351 Wiener Neudorf', 'Österreich', 'kontakt@ciphro.eu', '§ 25 Mediengesetz']) assert.ok(imp.includes(t), t);
   assert.equal(await page.locator('#en a[href^="mailto:"]').first().getAttribute('href'), 'mailto:contact@ciphro.eu');
+  // Kontaktadresse in der Sprache des Abschnitts, alle landen im selben Postfach
+  assert.equal(await page.locator('#fr a[href^="mailto:"]').first().getAttribute('href'), 'mailto:contact@ciphro.eu');
+  assert.equal(await page.locator('#it a[href^="mailto:"]').first().getAttribute('href'), 'mailto:contatto@ciphro.eu');
+  assert.match(await page.textContent('#fr'), /Mentions légales[\s\S]*Ervin Curic[\s\S]*Autriche/);
+  assert.match(await page.textContent('#it'), /Note legali[\s\S]*Ervin Curic[\s\S]*Austria/);
+  assert.deepEqual(await page.$$eval('main > .lang a', as => as.map(a => a.getAttribute('href'))), ['#en', '#fr', '#it']);
   await page.click('main a[href="datenschutz.html"]');
   await page.waitForURL(/datenschutz\.html$/);
   const ds = (await page.textContent('main')).replace(/\s+/g, ' ');
   for (const t of ['keine Cookies', 'GitHub, Inc.', 'Datenschutzbehörde', 'Websitedaten von ciphro.eu löschen', 'nach dem #-Zeichen', 'Wie lange: bis du sie löschst', 'gemeinsam verantwortlich (Art. 26 DSGVO)', 'Ervin Curic, Reisenbauer-Ring 6/3/12, 2351 Wiener Neudorf', 'Wenn du uns schreibst', 'Cloudflare Email Routing', 'kein Profiling']) assert.ok(ds.includes(t), t);
   assert.equal(await page.locator('#en a[href^="mailto:"]').first().getAttribute('href'), 'mailto:contact@ciphro.eu');
+  assert.equal(await page.locator('#fr a[href^="mailto:"]').first().getAttribute('href'), 'mailto:contact@ciphro.eu');
+  assert.equal(await page.locator('#it a[href^="mailto:"]').first().getAttribute('href'), 'mailto:contatto@ciphro.eu');
+  assert.match(await page.textContent('#fr'), /responsables conjoints[\s\S]*Cloudflare Email Routing[\s\S]*Datenschutzbehörde/);
+  assert.match(await page.textContent('#it'), /contitolari del trattamento[\s\S]*Cloudflare Email Routing[\s\S]*Datenschutzbehörde/);
   // Zurück zum Rätsel
   await page.click('.top .back');
   await page.waitForFunction(() => document.querySelector('#issue') && document.querySelector('#issue').textContent);
@@ -1049,13 +1130,13 @@ test('Impressum und Datenschutz: aus den Einstellungen erreichbar, Deutsch und E
     await page.context().close();
   }
   // Keine Telefonnummer veröffentlichen (Entscheidung vom 5. November 2026)
-  for (const f of ['index.html', 'impressum.html', 'datenschutz.html', 'en/index.html']) {
+  for (const f of ['index.html', 'impressum.html', 'datenschutz.html', 'en/index.html', 'fr/index.html', 'it/index.html']) {
     const src = fs.readFileSync(path.join(__dirname, '..', '..', f), 'utf8');
     assert.ok(!/href="tel:|\+43[\s\u00a0&nbsp;]*\d|\b0664/.test(src), f + ' enthält eine Telefonnummer');
   }
   // Keine Skripte, Stylesheets, Bilder oder Schriften von fremden Servern auf irgendeiner Seite
   const root = path.join(__dirname, '..', '..');
-  for (const f of ['index.html', 'en/index.html', 'impressum.html', 'datenschutz.html', 'recht.css']) {
+  for (const f of ['index.html', 'en/index.html', 'fr/index.html', 'it/index.html', 'impressum.html', 'datenschutz.html', 'recht.css']) {
     const src = fs.readFileSync(path.join(root, f), 'utf8');
     const ext = [...src.matchAll(/(?:<script[^>]+src|<link[^>]+href|<img[^>]+src|url\()\s*=?\s*["']?(https?:)?\/\//gi)];
     assert.deepEqual(ext.map(m => m[0]).filter(x => !/rel="canonical"/.test(x)), [], f);
