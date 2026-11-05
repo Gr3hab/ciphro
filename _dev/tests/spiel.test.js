@@ -965,11 +965,11 @@ test('Impressum und Datenschutz: aus den Einstellungen erreichbar, Deutsch und E
   await page.click('#settingsBody .legal a[href="impressum.html"]');
   await page.waitForURL(/impressum\.html$/);
   const imp = (await page.textContent('main')).replace(/\s+/g, ' ');
-  for (const t of ['Lukas Greil', 'Hatzenbacher Straße 2a', '2003 Leitzersdorf', 'Österreich', 'kontakt@lohnkeil.at', '§ 25 Mediengesetz']) assert.ok(imp.includes(t), t);
+  for (const t of ['Lukas Greil', 'Hatzenbacher Straße 2a', '2003 Leitzersdorf', 'Österreich', 'kontakt@lohnkeil.at', '[entfernt]', '§ 25 Mediengesetz']) assert.ok(imp.includes(t), t);
   await page.click('main a[href="datenschutz.html"]');
   await page.waitForURL(/datenschutz\.html$/);
   const ds = (await page.textContent('main')).replace(/\s+/g, ' ');
-  for (const t of ['keine Cookies', 'GitHub, Inc.', 'Datenschutzbehörde', 'Websitedaten von ciphro.eu löschen', 'nach dem #-Zeichen', 'Wie lange: bis du sie löschst', 'Wenn du uns schreibst', 'kein Profiling']) assert.ok(ds.includes(t), t);
+  for (const t of ['keine Cookies', 'GitHub, Inc.', 'Datenschutzbehörde', 'Websitedaten von ciphro.eu löschen', 'nach dem #-Zeichen', 'Wie lange: bis du sie löschst', 'Wenn du uns schreibst oder anrufst', 'E-Mail-Anbieter', 'kein Profiling']) assert.ok(ds.includes(t), t);
   // Zurück zum Rätsel
   await page.click('.top .back');
   await page.waitForFunction(() => document.querySelector('#issue') && document.querySelector('#issue').textContent);
