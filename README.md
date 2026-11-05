@@ -42,7 +42,7 @@ GitHub Pages veröffentlicht Ordner, die mit `_` beginnen, nicht. Die Prüfseite
 - Sie läuft nur, solange der Code sichtbar ist. Sie steht, wenn ein Menü offen ist, der Tab im Hintergrund liegt, die App verlassen wird, die Pause-Taste gedrückt wurde oder ein anderer Tab dasselbe Rätsel übernimmt. Solange sie steht, ist der Code verdeckt.
 - Nach dem Zurückkommen, Neuladen oder Wieder-Öffnen erscheint „Pausiert“ mit „Weiter“. Wechselt man selbst die Stufe oder Sprache, läuft die Uhr der neuen Stufe sofort.
 - Jede Stufe und jede Sprache hat ihre eigene Uhr. Die Zeit wird alle 5 Sekunden und beim Verlassen gespeichert.
-- Ergebnis, Stufen-Reiter, Teilen-Text und Statistik zeigen dieselbe, auf ganze Sekunden gerundete Zeit.
+- Ergebnis, Teilen-Text und Statistik zeigen die Zeit auf Hundertstel (`1:24,97`, auf Englisch `1:24.97`). Uhr und Stufen-Reiter zeigen ganze Sekunden. Beide schneiden ab statt zu runden, deshalb passt die Uhr immer zum genauen Wert (`1:24` → `1:24,97`).
 
 ## Farben und Teilen
 
@@ -52,15 +52,17 @@ Geteilt werden nur Stufen, die tatsächlich gelöst wurden; aufgelöste und nich
 
 Eine gelöste Stufe:
 ```
-CIPHRO #4 · Easy ⏱ 4:04
+CIPHRO #4 · Easy ⏱ 4:04,37
 🟩🟩🟩🟩🟩🟩🟩
+🔥 Serie: 3 Tage
 Schlägst du meine Zeit? https://ciphro.eu/?n=4&m=easy
 ```
+Die Zeile mit der Serie steht nur ab 2 Tagen in Folge und nie bei Archivrätseln.
 Mehrere gelöste Stufen:
 ```
 CIPHRO #4
-Easy ⏱ 4:04 🟩🟩🟩🟩🟩🟩🟩
-Hard ⏱ 6:12 🟩🟨🟩🟩🟩
+Easy ⏱ 4:04,37 🟩🟩🟩🟩🟩🟩🟩
+Hard ⏱ 6:12,05 🟩🟨🟩🟩🟩
 Schlägst du meine Zeiten? https://ciphro.eu/?n=4
 ```
 Keine gelöst:
