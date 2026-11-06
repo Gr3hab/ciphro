@@ -1,0 +1,41 @@
+# Verbindliche Konfiguration für den datensparsamen Deploy per Wrangler.
+# NICHT über den Dashboard-Editor deployen: dort sind Workers Logs standardmäßig an.
+name = "ciphro-zaehler"
+main = "worker.js"
+compatibility_date = "2026-11-06"
+routes = [{ pattern = "zaehler.ciphro.eu", custom_domain = true }]
+workers_dev = false
+
+# Keine Protokolle einzelner Anfragen (die Datenschutzerklärung sagt: keine einzelnen Aufrufe gespeichert)
+[observability]
+enabled = false
+
+[observability.logs]
+enabled = false
+invocation_logs = false
+
+[observability.traces]
+enabled = false
+
+# Grobe Volumenbremse je Cloudflare-Rechenzentrum; ohne IP- oder Gerätekennung.
+# Nicht streng global und keine Beweissicherung gegen absichtliche Einzel-Fälschungen.
+[[ratelimits]]
+name = "EINGANG_LIMIT"
+namespace_id = "481201"
+[ratelimits.simple]
+limit = 1200
+period = 60
+
+[[ratelimits]]
+name = "ADMIN_LIMIT"
+namespace_id = "481202"
+[ratelimits.simple]
+limit = 20
+period = 60
+
+[[d1_databases]]
+binding = "DB"
+database_name = "ciphro-zaehler"
+database_id = "HIER-DIE-ID-DER-DATENBANK-EINTRAGEN"
+
+# Statistik-Passwort (mindestens 24 zufällige Zeichen): npx wrangler secret put STATISTIK_SCHLUESSEL
