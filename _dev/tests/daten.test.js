@@ -230,15 +230,37 @@ test('Vorrat: mindestens zwei Wochen über den 30. November hinaus', { skip: pro
   assert.ok(NF.lastPlannedDay() >= NF.addDays('2026-11-30', 14), `reicht nur bis ${NF.lastPlannedDay()}`);
 });
 
-test('Geparkte Fakten: nur solche mit Umlaut im deutschen Satz, vollständig, mit Quelle, nicht eingeplant', () => {
+test('Geparkte Fakten: nur solche, die gegen die A–Z-Regeln verstoßen, vollständig, mit Quelle, nicht eingeplant', () => {
   const planned = new Set(F.map(f => f.id));
+  const words = s => s.split(/\s+/).filter(w => NF.symStr(w)).length;
   PARKED.forEach(f => {
     assert.ok(!planned.has(f.id), `${f.id} ist geparkt und eingeplant`);
-    assert.match(f.de[0], /[ÄÖÜäöüßẞ]/, `${f.id} hat keinen Umlaut, gehört in fakten.js`);
+    // geparkt bleibt nur, was ab #19 nicht passt: Zeichen außer A–Z, mehr als 8 Wörter oder Französisch/Italienisch fehlt
+    const blocked = LANGS.some(l => !Array.isArray(f[l]) || /[^A-Za-z .]/.test(f[l][0]) || words(f[l][0]) > NF.CONFIG.maxWords);
+    assert.ok(blocked, `${f.id} erfüllt alle Regeln, gehört in fakten.js`);
     assert.ok(NF.TOPICS[f.thema], `${f.id}: Thema`);
     assert.ok(Array.isArray(f.en) && f.en[0] && f.en[1] && f.de[1], `${f.id}: Text fehlt`);
     assert.ok(Array.isArray(f.quellen) && f.quellen.length, `${f.id}: Quelle fehlt`);
   });
+});
+
+test('Ab #19 in allen Sprachen nur A–Z (auch ohne Akzente) und höchstens 8 Wörter pro Satz', () => {
+  const from = NF.dayIndex(NF.CONFIG.plainFrom);
+  assert.equal(from + 1, 19, 'Stichtag ist #19 (8. November 2026)');
+  assert.equal(NF.CONFIG.maxWords, 8);
+  for (let i = from; i < NF.plannedDays(); i++) {
+    const key = NF.addDays(NF.CONFIG.launchDate, i);
+    for (const lang of LANGS) {
+      const d = NF.buildDay(key, lang);
+      MODES.forEach(m => {
+        const t = d.puzzles[m].fact.t;
+        assert.match(t, /^[A-Za-z]+( [A-Za-z]+)*\.$/, `${lang} #${i + 1} ${m}: ${t}`);
+        assert.ok(d.puzzles[m].words.length <= 8, `${lang} #${i + 1} ${m}: ${d.puzzles[m].words.length} Wörter`);
+      });
+    }
+  }
+  // Der Vorrat reicht bis Jahresende
+  assert.ok(NF.lastPlannedDay() >= '2026-12-31', `reicht nur bis ${NF.lastPlannedDay()}`);
 });
 
 test('Englische Sätze enthalten keine Umlaute, deutsche keine englischen Apostrophe', () => {

@@ -492,6 +492,46 @@ Diese Entwürfe wurden nicht aufgenommen: Entweder trug die abgerufene Quelle di
 | Bienen können Gesichter erkennen. | Gesichtererkennung bei Bienen im abgerufenen Artikel nicht belegt. |
 | Katzen haben in jedem Ohr über dreißig Muskeln. | Zahl der Ohrmuskeln bei Katzen im abgerufenen Artikel nicht belegt. |
 
+## Ergänzung 6. November 2026: nur A–Z ab #19, Fahrplan bis 31. Dezember
+
+Auftrag: alle Rätsel für den Rest von 2026 in allen Sprachen fertig, nur A–Z (auch keine Akzente), höchstens 8 Wörter pro Satz.
+
+- **#19–#72 neu geordnet** (216 Fakten, 4 verschiedene Themen pro Tag, ähnliche Inhalte nicht am selben oder am Nachbartag, Easy meist 5 bis 7 Wörter). #18 war in Zeitzonen ab UTC+12 schon live und blieb unverändert.
+- **Umformuliert:** Viele Sätze wurden gekürzt oder ohne Akzente neu gefasst. Inhalt und Quelle blieben gleich; wo eine Zahl im Satz gerundet wurde, steht die genaue in der Erklärung (z. B. n335 „rund vier Monde breit“: 12.742 km zu 3.474 km = 3,7; n349 „gut eine halbe Stunde mehr“: Sol 24,6 h; n250 „double largement le mont Everest“: rund 21 km zu 8,8 km).
+- **Aus dem Fahrplan genommen (geparkt), weil ein Wort ohne Akzent nicht geht:** n036 n069 n072 n084 n100 n101 n113 n134 n135 n137 n140 n144 n149 n152 n155 n169 n182 n211 n221 n228 n233 n235 n244 n259 n273 n289 n291 n301 n302 n344 n347 n357 n365 n367 n374 n385 n389 n402 (z. B. café, Vénus, planète, éléphant, méduse, comète, bambù, più).
+- **Zurückgeholt aus den geparkten Fakten** (deutsch ohne Umlaut umformuliert, Französisch und Italienisch neu): 82 Fakten, Quellen unverändert.
+- **Thema geändert:** n033 (Hummeln, elektrische Felder), n062 (Haie vor Bäumen), n139 (Hennen und Dinosaurier) von `tiere` zu `wissenschaft`, damit jeder Tag genau ein Tier-Thema hat.
+
+### 21 neue Fakten (n428–n448)
+
+Alle Quellen am 6. November 2026 abgerufen und gelesen.
+
+| ID | Satz | Quelle | Beleg |
+|---|---|---|---|
+| n428 | Der Mars hat zwei kleine Monde. | Wikipedia (en): Moons of Mars | „The two moons of Mars are Phobos and Deimos.“ … „Phobos has a diameter of 22.2 km“ … „Deimos measures 12.6 km … across“ |
+| n429 | Kein Planet hat so schnelle Winde wie Neptun. | Wikipedia (en): Neptune | „driven by the strongest sustained winds of any planet in the Solar System“ … „winds reaching speeds of almost 600 m/s (2,200 km/h …)“ |
+| n430 | Kiwiweibchen legen riesige Eier. | Wikipedia (en): Kiwi (bird) | „Kiwi eggs are one of the largest in proportion to body size (up to 20% of the female's weight).“ (an anderer Stelle „up to one-quarter“; wir nennen das vorsichtigere Fünftel) |
+| n431 | Erdbeeren sind gar keine Beeren. | Wikipedia (en): Strawberry | „Botanically, the strawberry is not a berry, but an aggregate accessory fruit.“ … „Each apparent 'seed' … is actually an achene, a botanical fruit with a seed inside it.“ |
+| n432 | Apfelbaum und Rose sind eng verwandt. | Wikipedia (en): Rosaceae; Apple | „Rosaceae, the rose family …“ … „includes apples, pears, quinces, medlars, loquats, almonds, peaches, apricots, plums, cherries, strawberries“; Apple: „Family: Rosaceae“ |
+| n433 | Das Croissant stammt vom Kipferl ab. | Wikipedia (en): Croissant | „The kipferl, an Austrian crescent-shaped pastry, can be dated back to at least the 13th century in Austria.“ … August Zang, Wiener Bäckerei in Paris 1838 oder 1839 … „French bakers replaced the brioche dough of the kipferl with a yeast-leavened laminated dough.“ |
+| n434 | Hedy Lamarr war auch Erfinderin. | Wikipedia (en): Hedy Lamarr | „born Hedwig Eva Maria Kiesler in 1914 in Vienna“ … „co-invented a radio guidance system for Allied torpedoes“ (Frequenzsprung) … „granted as U.S. patent 2,292,387 on August 11, 1942“ … „Its principles are utilized for secure wireless networking, including Bluetooth“ |
+| n435 | Jeder Schneekristall beginnt als winziges Sechseck. | Wikipedia (en): Snowflake | Sechszählige Symmetrie „arising from the hexagonal crystalline structure of ice“; die Flocke beginnt als kleines Sechseck, die sechs Arme wachsen aus den Ecken; weniger als 0,1 % sind ideal symmetrisch |
+| n436 | Ameisen haben keine Lunge. | Wikipedia (en): Ant | „Insects do not have lungs; oxygen and other gases, such as carbon dioxide, pass through their exoskeleton via tiny valves called spiracles.“ |
+| n437 | Auf dem Mond gibt es Mondbeben. | Wikipedia (en): Moonquake | „A moonquake is the lunar equivalent of an earthquake.“ … „first discovered by the Apollo astronauts“ (Seismometer 1969–1972) … Erschütterung „for up to an hour“ |
+| n438 | Flamingos stehen oft auf einem Bein. | Wikipedia (en): Flamingo | „usually stand on one leg“ … „The reason for this behaviour is not fully understood.“ … Wärme sparen; „the one-legged pose could be held without any muscle activity“ |
+| n439 | Das erste Video auf YouTube zeigt einen Zoo. | Wikipedia (en): Me at the zoo | „recognized as the first video uploaded to the platform“ … „April 23, 2005“ … „shows Karim at the San Diego Zoo in California, in front of two elephants“ |
+| n440 | Der Name Google kommt von der Zahl Googol. | Wikipedia (en): History of Google; Googol | „The name Google is a misspelling of Googol, the number 1 followed by 100 zeros, which was picked to signify that the search engine was intended to provide large quantities of information.“ |
+| n441 | Basketball erfand ein Kanadier. | Wikipedia (en): James Naismith | „Canadian-American physical educator“, geboren in Almonte, Canada West … „in 1891 he designed basketball while teaching at the International YMCA Training School“ … „the goals were a pair of peach baskets“ |
+| n442 | Die heutige Marathondistanz stammt von Olympia in London. | Wikipedia (en): Marathon | 1908: Strecke von Windsor Castle ins White City Stadium, 26 Meilen plus 385 Yards … von der IAAF „in May 1921“ festgelegt, „directly from the length used at the 1908 Summer Olympics in London“ |
+| n443 | Lipizzaner kommen dunkel zur Welt. | Wikipedia (en): Lipizzan | Fohlen meist braun (bay) oder schwarz, das Fell wird jährlich heller, „the process being complete between 6 and 10 years of age“ … „closely associated with the Spanish Riding School of Vienna“ |
+| n444 | Saturns Ringe bestehen fast nur aus Eis. | Wikipedia (en): Rings of Saturn | „composed of 99.9% pure water ice“ … „estimated local thickness of as little as 10 meters“ |
+| n445 | Nebel ist eine Wolke am Boden. | Wikipedia (en): Fog | „Fog can be considered a type of low-lying cloud usually resembling stratus“ … „fog reduces visibility to less than 1 km“ |
+| n446 | Das Schnabeltier legt Eier. | Wikipedia (en): Platypus | „egg-laying mammal“ … „Together with the four species of echidna, it is one of the five extant species of monotremes“ … „The female normally lays two small, leathery eggs“ … Elektroortung von Beute |
+| n447 | Das Horn des Narwals ist ein langer Zahn. | Wikipedia (en): Narwhal | „a canine tooth that projects from the left side of the upper jaw“ … „reaching lengths of 1.5 to 3 m“ … „Females rarely grow tusks“ |
+| n448 | Big Ben ist eigentlich der Name der Glocke. | Wikipedia (en): Big Ben | „Big Ben is the nickname for the Great Bell of the Great Clock of Westminster“ … „renamed the Elizabeth Tower in 2012“ … „the term Big Ben is overwhelmingly used by the general public“ |
+
+Verworfen: „Beethoven komponierte taub“ (laut Quelle war er nie ganz taub), „Papiergeld stammt aus China“ (im abgerufenen Artikel nicht belegt).
+
 ## Reserve
 
-Geprüft und am Ende von `fakten.js` eingetragen, aber noch kein voller Tag: n425, n426, n427. Sie werden mit den nächsten angehängten Fakten eingeplant.
+Keine. Der Fahrplan endet genau mit #72 am 31. Dezember 2026.

@@ -17,7 +17,11 @@ const CONFIG = {
   // kein Ä, Ö, Ü, ß mehr (die Prüfung meldet sonst einen Fehler). In #1–#8 stehen Umlaute seit dem 28.10.2026
   // wie im Kreuzworträtsel als AE, OE, UE, SS (vorher hatten sie die Zahlen 27–30).
   lettersFrom: '2026-10-29',
-  warnDays: 14,               // Warnung, wenn der Faktenvorrat für weniger Tage reicht
+  // Ab diesem Tag (#19) gilt in allen vier Sprachen: Satz nur aus A–Z (auch keine Akzente wie é, è, à, ç, œ)
+  // und höchstens 8 Wörter, damit die Kästchen beim Teilen am Handy in eine Zeile passen.
+  plainFrom: '2026-11-08',
+  maxWords: 8,
+  warnDays: 14,              // Warnung, wenn der Faktenvorrat für weniger Tage reicht
   // Nur nötig, falls der Vorrat einmal ausgegangen ist: Zeiträume, in denen Wiederholungen liefen.
   // Vor dem Anhängen neuer Fakten hier eintragen, z. B. [['2027-02-01', '2027-02-04']],
   // damit diese Tage im Archiv unverändert bleiben. Die Tests melden, wenn das vergessen wurde.
@@ -204,6 +208,13 @@ function checkFacts(today) {
       // Ab #9 nur A–Z: deutsche Sätze ohne Umlaute und ß (Erklärungen dürfen sie haben)
       if (lang === 'de' && i >= dayIndex(CONFIG.lettersFrom) * 4 && /[ÄÖÜäöüßẞ]/.test(v[0])) add('fehler', `DE: Satz mit Ä, Ö, Ü oder ß („${v[0].split(/\s+/).filter(w => /[ÄÖÜäöüßẞ]/.test(w)).join(' ')}“). Ab #9 nur Sätze ohne Umlaute: umformulieren oder nach _dev/redaktion/geparkt-umlaute.js verschieben.`);
       if (bad) add('fehler', `${lang.toUpperCase()}: Zeichen, die im Code verschwinden: „${bad}“ (keine Ziffern, Kommas, Bindestriche oder Apostrophe${lang === 'de' ? '' : ', keine Umlaute'})`);
+      // Ab #19 in allen Sprachen nur A–Z und höchstens 8 Wörter
+      if (i >= dayIndex(CONFIG.plainFrom) * 4) {
+        const odd = v[0].replace(/\.$/, '').replace(/[A-Za-z ]/g, '');
+        if (odd && !bad && !(lang === 'de' && /[ÄÖÜäöüßẞ]/.test(odd))) add('fehler', `${lang.toUpperCase()}: Ab #19 nur A–Z, auch ohne Akzente und Umlaute („${[...new Set(odd)].join('')}“). Anders formulieren oder nach _dev/redaktion/geparkt-umlaute.js verschieben.`);
+        const n = v[0].split(/\s+/).filter(w => symStr(w)).length;
+        if (n > CONFIG.maxWords) add('fehler', `${lang.toUpperCase()}: Satz hat ${n} Wörter, ab #19 höchstens ${CONFIG.maxWords} (sonst brechen die Kästchen beim Teilen am Handy um)`);
+      }
       if (!/\.$/.test(v[0])) add('hinweis', `${lang.toUpperCase()}: Satz endet nicht mit Punkt`);
       if (typeof v[1] !== 'string' || v[1].trim().length < 15) add('fehler', `${lang.toUpperCase()}: Erklärung fehlt oder ist sehr kurz`);
       const k = symStr(v[0]);

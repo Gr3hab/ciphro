@@ -685,17 +685,19 @@ test('Teilen: nur gelöste Stufen, drei Zeilen bei einer, eine Zeile je Stufe be
   assert.match(lines[1], /^(🟩|🟨|🟥)+$/u);
   assert.match(lines[2], /^Schlägst du meine Zeit\? http:\/\/127\.0\.0\.1:\d+\/\?n=4&m=easy$/);
   noSolution(text, 4);
-  // zweite Stufe gelöst: eine Zeile je Stufe mit Zeit und Kästchen
+  // zweite Stufe gelöst: je Stufe eine Zeile mit der Zeit und darunter die Kästchen allein (kein Umbruch am Handy)
   await page.click('#result [data-act="next"]');
   await page.click('#startBtn');
   for (const w of solution(4, 'de', 'hard')) await typeWord(page, w);
   text = await read();
   lines = text.split('\n');
-  assert.equal(lines.length, 4, text);
+  assert.equal(lines.length, 6, text);
   assert.equal(lines[0], 'CIPHRO #4');
-  assert.match(lines[1], /^Easy ⏱ \d+:\d\d,\d\d (🟩|🟨|🟥)+$/u);
-  assert.match(lines[2], /^Hard ⏱ \d+:\d\d,\d\d (🟩|🟨|🟥)+$/u);
-  assert.match(lines[3], /^Schlägst du meine Zeiten\? http:\/\/127\.0\.0\.1:\d+\/\?n=4$/);
+  assert.match(lines[1], /^Easy ⏱ \d+:\d\d,\d\d$/);
+  assert.match(lines[2], /^(🟩|🟨|🟥)+$/u);
+  assert.match(lines[3], /^Hard ⏱ \d+:\d\d,\d\d$/);
+  assert.match(lines[4], /^(🟩|🟨|🟥)+$/u);
+  assert.match(lines[5], /^Schlägst du meine Zeiten\? http:\/\/127\.0\.0\.1:\d+\/\?n=4$/);
   const twoSolved = text;
   // dritte Stufe aufgelöst: taucht im geteilten Text gar nicht auf, das Ergebnis im Spiel zeigt sie aber
   await page.click('#result [data-act="next"]');
@@ -1377,5 +1379,74 @@ test('Offline: Nach dem ersten Besuch lädt das Spiel auch ohne Verbindung', asy
   await page.waitForFunction(() => document.querySelector('#issue') && /#4/.test(document.querySelector('#issue').textContent));
   assert.ok(await page.isVisible('#startBtn'));
   await page.context().setOffline(false);
+  await page.context().close();
+});
+
+/* ------------------------------------------------------------ Anonymer Zähler */
+// Die Seite läuft hier unter https://ciphro.eu (umgeleitet auf den Testserver), Meldungen an den Zähler werden abgefangen.
+async function onCiphro(opt = {}) {
+  const ctx = await env.browser.newContext({ locale: 'de-AT', timezoneId: 'Europe/Vienna', serviceWorkers: 'block', reducedMotion: 'reduce', permissions: ['clipboard-read', 'clipboard-write'] });
+  await ctx.clock.install({ time: new Date('2026-11-08T10:00:00+01:00') });
+  const got = [];
+  await ctx.route('https://zaehler.ciphro.eu/**', async r => { got.push({ ...JSON.parse(r.request().postData()), origin: r.request().headers().origin }); await r.fulfill({ status: 204 }); });
+  await ctx.route('https://ciphro.eu/**', async r => {
+    const u = new URL(r.request().url());
+    const res = await fetch(env.srv.url.replace(/\/$/, '') + u.pathname + u.search);
+    await r.fulfill({ status: res.status, headers: { 'content-type': res.headers.get('content-type') || 'text/html' }, body: Buffer.from(await res.arrayBuffer()) });
+  });
+  await ctx.addInitScript(s => { try { if (!localStorage.getItem('numfact.test.seeded')) { localStorage.setItem('numfact.v2', s); localStorage.setItem('numfact.test.seeded', '1'); } } catch (e) { /* egal */ } }, JSON.stringify(opt.store || SEEN));
+  if (opt.init) await ctx.addInitScript(opt.init);
+  const page = await ctx.newPage();
+  await page.goto('https://ciphro.eu/' + (opt.url || ''));
+  await page.waitForFunction(() => document.querySelector('#issue') && document.querySelector('#issue').textContent);
+  return { page, got };
+}
+const settle = page => page.waitForTimeout(300);
+
+test('Zähler: meldet auf ciphro.eu nur Ereignis, Sprache, Stufe und Archiv, sonst nichts', async () => {
+  const { page, got } = await onCiphro();
+  await page.click('#startBtn');
+  for (const w of solution(19, 'de', 'easy')) await typeWord(page, w);
+  await page.click('#result [data-act="share"]');
+  await page.click('#result [data-act="next"]');
+  await page.click('#startBtn');
+  await settle(page);
+  assert.deepEqual(got.map(g => [g.e, g.l, g.m, g.a]), [
+    ['aufruf', 'de', '', 0], ['spieler', 'de', '', 0], ['start', 'de', 'easy', 0], ['geloest', 'de', 'easy', 0], ['geteilt', 'de', '', 0], ['start', 'de', 'hard', 0]
+  ], 'zweite Stufe am selben Tag zählt nicht noch einmal als Spieler');
+  got.forEach(g => { assert.deepEqual(Object.keys(g).sort(), ['a', 'e', 'l', 'm', 'origin']); assert.equal(g.origin, 'https://ciphro.eu'); });
+  await page.context().close();
+});
+
+test('Zähler: aus in den Einstellungen und bei Global Privacy Control, nie auf anderen Adressen', async () => {
+  // Schalter in den Einstellungen
+  const a = await onCiphro();
+  await a.page.click('#settingsBtn');
+  assert.equal(await a.page.isChecked('#countToggle'), true);
+  await a.page.click('#countToggle');
+  assert.equal((await store(a.page)).count, false);
+  await a.page.click('#settingsDlg [data-close]');
+  const before = a.got.length;
+  await a.page.click('#startBtn');
+  await settle(a.page);
+  assert.equal(a.got.length, before, 'nach dem Ausschalten keine Meldung mehr');
+  await a.page.context().close();
+  // Global Privacy Control: Schalter gesperrt, keine Meldung
+  const b = await onCiphro({ init: () => Object.defineProperty(Navigator.prototype, 'globalPrivacyControl', { get: () => true }) });
+  await b.page.click('#startBtn');
+  await settle(b.page);
+  assert.deepEqual(b.got, []);
+  await b.page.click('#settingsBtn');
+  assert.equal(await b.page.isDisabled('#countToggle'), true);
+  assert.match(await b.page.textContent('#settingsBody'), /Global Privacy Control/);
+  await b.page.context().close();
+  // Testserver (nicht ciphro.eu): nie eine Meldung
+  const page = await openPage(env, { time: '2026-11-08T10:00:00+01:00' });
+  const sent = [];
+  page.on('request', r => { if (/zaehler/.test(r.url())) sent.push(r.url()); });
+  await page.click('#startBtn');
+  await settle(page);
+  assert.deepEqual(sent, []);
+  noErrors(page);
   await page.context().close();
 });
