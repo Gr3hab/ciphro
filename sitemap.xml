@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
+  <url>
+    <loc>https://ciphro.eu/</loc>
+    <xhtml:link rel="alternate" hreflang="de" href="https://ciphro.eu/de/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://ciphro.eu/en/"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://ciphro.eu/fr/"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://ciphro.eu/it/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://ciphro.eu/"/>
+  </url>
+  <url>
+    <loc>https://ciphro.eu/de/</loc>
+    <xhtml:link rel="alternate" hreflang="de" href="https://ciphro.eu/de/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://ciphro.eu/en/"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://ciphro.eu/fr/"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://ciphro.eu/it/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://ciphro.eu/"/>
+  </url>
+  <url>
+    <loc>https://ciphro.eu/en/</loc>
+    <xhtml:link rel="alternate" hreflang="de" href="https://ciphro.eu/de/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://ciphro.eu/en/"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://ciphro.eu/fr/"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://ciphro.eu/it/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://ciphro.eu/"/>
+  </url>
+  <url>
+    <loc>https://ciphro.eu/fr/</loc>
+    <xhtml:link rel="alternate" hreflang="de" href="https://ciphro.eu/de/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://ciphro.eu/en/"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://ciphro.eu/fr/"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://ciphro.eu/it/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://ciphro.eu/"/>
+  </url>
+  <url>
+    <loc>https://ciphro.eu/it/</loc>
+    <xhtml:link rel="alternate" hreflang="de" href="https://ciphro.eu/de/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://ciphro.eu/en/"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://ciphro.eu/fr/"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://ciphro.eu/it/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://ciphro.eu/"/>
+  </url>
+</urlset>
