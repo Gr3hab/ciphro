@@ -7,6 +7,9 @@ const path = require('path');
 
 const DIR = path.join(__dirname, '..', 'zaehler');
 const load = () => import('data:text/javascript,' + encodeURIComponent(fs.readFileSync(path.join(DIR, 'worker.js'), 'utf8')));
+const SECRET = 'eins-zwei-drei-vier-fuenf-sechs-2026';
+const limiter = (allowed = true) => ({ limit: async () => ({ success: allowed }) });
+const environment = (extras = {}) => ({ DB: fakeDB(), STATISTIK_SCHLUESSEL: SECRET, EINGANG_LIMIT: limiter(), ADMIN_LIMIT: limiter(), ...extras });
 
 // Nachbildung von D1: merkt sich nur Summen, so wie die Tabelle zaehler
 function fakeDB() {
@@ -25,7 +28,7 @@ function fakeDB() {
 const post = (body, origin = 'https://ciphro.eu') => new Request('https://zaehler.ciphro.eu/z', { method: 'POST', headers: origin ? { origin, 'content-type': 'text/plain' } : {}, body: typeof body === 'string' ? body : JSON.stringify(body) });
 
 test('Zähler: zählt nur gültige Meldungen von ciphro.eu und speichert nur Summen', async () => {
-  const w = (await load()).default, env = { DB: fakeDB(), STATISTIK_SCHLUESSEL: 'geheim-123' };
+  const w = (await load()).default, env = environment();
   assert.equal((await w.fetch(post({ e: 'start', l: 'fr', m: 'easy', a: 0 }), env)).status, 204);
   assert.equal((await w.fetch(post({ e: 'start', l: 'fr', m: 'easy', a: 0 }), env)).status, 204);
   assert.equal((await w.fetch(post({ e: 'aufruf', l: 'de', m: '' }), env)).status, 204);
@@ -37,31 +40,67 @@ test('Zähler: zählt nur gültige Meldungen von ciphro.eu und speichert nur Sum
   assert.equal((await w.fetch(post({ e: 'kauf', l: 'de' }), env)).status, 400);
   assert.equal((await w.fetch(post({ e: 'start', l: 'es', m: 'easy' }), env)).status, 400);
   assert.equal((await w.fetch(post({ e: 'start', l: 'de', m: 'leicht' }), env)).status, 400);
+  assert.equal((await w.fetch(post({ e: 'start', l: 'de', m: '' }), env)).status, 400, 'Start verlangt Stufe');
+  assert.equal((await w.fetch(post({ e: 'aufruf', l: 'de', m: 'easy' }), env)).status, 400, 'Aufruf ohne Stufe');
+  assert.equal((await w.fetch(post({ e: 'aufruf', l: 'de', a: 'ja' }), env)).status, 400);
+  assert.equal((await w.fetch(post({ e: 'aufruf', l: 'de', ip: '1.2.3.4' }), env)).status, 400, 'keine zusätzlichen Identifikatoren');
+  assert.equal((await w.fetch(post({ e: 'aufruf', l: 'de' }, 'https://www.ciphro.eu'), env)).status, 204);
+  assert.equal((await w.fetch(new Request('https://zaehler.ciphro.eu/z', { method: 'POST', headers: { origin: 'https://ciphro.eu', 'content-type': 'application/json' }, body: JSON.stringify({ e: 'aufruf', l: 'de' }) }), env)).status, 415);
+  assert.equal((await w.fetch(new Request('https://zaehler.ciphro.eu/z', { method: 'POST', headers: { origin: 'https://ciphro.eu', 'content-type': 'text/plain', 'sec-fetch-site': 'cross-site' }, body: JSON.stringify({ e: 'aufruf', l: 'de' }) }), env)).status, 403);
   assert.equal((await w.fetch(post('{kaputt'), env)).status, 400);
   assert.equal((await w.fetch(post('x'.repeat(500)), env)).status, 413);
   assert.equal((await w.fetch(new Request('https://zaehler.ciphro.eu/z'), env)).status, 405);
   // gespeichert: nur Tag, Ereignis, Sprache, Stufe, Archiv und die Anzahl (keine IP, keine Kennung)
   const keys = [...env.DB.rows.keys()].map(k => k.split('|').slice(1).join('|'));
   assert.deepEqual(keys.sort(), ['aufruf|de||0', 'geloest|it|hard|0', 'start|fr|easy|0']);
-  assert.equal([...env.DB.rows.values()].reduce((a, b) => a + b, 0), 4);
+  assert.equal([...env.DB.rows.values()].reduce((a, b) => a + b, 0), 5);
   [...env.DB.rows.keys()].forEach(k => assert.match(k.split('|')[0], /^\d{4}-\d\d-\d\d$/));
 });
 
 test('Zähler: Statistik nur mit dem geheimen Schlüssel, und nie in der Adresse', async () => {
-  const w = (await load()).default, env = { DB: fakeDB(), STATISTIK_SCHLUESSEL: 'geheim-123' };
+  const w = (await load()).default, env = environment();
   await w.fetch(post({ e: 'spieler', l: 'de', m: '' }), env);
   const auth = pw => ({ authorization: 'Basic ' + Buffer.from('egal:' + pw).toString('base64') });
   const ohne = await w.fetch(new Request('https://zaehler.ciphro.eu/statistik'), env);
   assert.equal(ohne.status, 401);
   assert.match(ohne.headers.get('www-authenticate'), /^Basic /);
   assert.equal((await w.fetch(new Request('https://zaehler.ciphro.eu/statistik', { headers: auth('falsch-12') }), env)).status, 401);
-  assert.equal((await w.fetch(new Request('https://zaehler.ciphro.eu/statistik?schluessel=geheim-123'), env)).status, 401, 'Schlüssel in der Adresse zählt nicht');
-  assert.equal((await w.fetch(new Request('https://zaehler.ciphro.eu/statistik', { headers: auth('') }), { DB: env.DB })).status, 401, 'ohne eingerichteten Schlüssel nie offen');
-  const ok = await w.fetch(new Request('https://zaehler.ciphro.eu/statistik', { headers: auth('geheim-123') }), env);
+  assert.equal((await w.fetch(new Request('https://zaehler.ciphro.eu/statistik?schluessel=' + SECRET), env)).status, 401, 'Schlüssel in der Adresse zählt nicht');
+  assert.equal((await w.fetch(new Request('https://zaehler.ciphro.eu/statistik', { headers: auth('') }), environment({STATISTIK_SCHLUESSEL: undefined}))).status, 503, 'ohne eingerichteten Schlüssel gesperrt');
+  assert.equal((await w.fetch(new Request('https://zaehler.ciphro.eu/statistik', { headers: auth('geheim') }), environment({STATISTIK_SCHLUESSEL: 'geheim'}))).status, 503, 'schwaches Passwort ist Konfigurationsfehler');
+  const ok = await w.fetch(new Request('https://zaehler.ciphro.eu/statistik', { headers: auth(SECRET) }), env);
   assert.equal(ok.status, 200);
   assert.match(await ok.text(), /<td>1<\/td>/);
-  const csv = await w.fetch(new Request('https://zaehler.ciphro.eu/statistik?format=csv', { headers: auth('geheim-123') }), env);
+  assert.equal(ok.headers.get('cache-control'), 'no-store');
+  assert.equal(ok.headers.get('x-frame-options'), 'DENY');
+  assert.match(ok.headers.get('content-security-policy'), /default-src 'none'/);
+  const csv = await w.fetch(new Request('https://zaehler.ciphro.eu/statistik?format=csv', { headers: auth(SECRET) }), env);
   assert.match(await csv.text(), /^datum,ereignis,sprache,stufe,archiv,anzahl\n\d{4}-\d\d-\d\d,spieler,de,,0,1\n$/);
+  assert.equal((await w.fetch(new Request('https://zaehler.ciphro.eu/statistik', { method: 'POST' }), env)).status, 405);
+});
+
+test('Zähler: ohne Rate-Limits keine Erfassung; Überlast ist begrenzt', async () => {
+  const w = (await load()).default, event = post({ e: 'geloest', l: 'fr', m: 'mirror' });
+  const broken = environment({EINGANG_LIMIT: undefined});
+  assert.equal((await w.fetch(event.clone(), broken)).status, 503);
+  assert.equal(broken.DB.rows.size, 0);
+  const denied = environment({EINGANG_LIMIT: limiter(false)});
+  assert.equal((await w.fetch(event.clone(), denied)).status, 429);
+  assert.equal(denied.DB.rows.size, 0);
+  assert.equal((await w.fetch(new Request('https://zaehler.ciphro.eu/statistik'), environment({ADMIN_LIMIT: limiter(false)}))).status, 429);
+  assert.equal((await w.fetch(new Request('https://zaehler.ciphro.eu/statistik'), environment({ADMIN_LIMIT: undefined}))).status, 503);
+});
+
+test('Deployment: Logs und Invocation-Logs explizit aus, zwei eigene Rate-Limits konfiguriert', () => {
+  const cfg = fs.readFileSync(path.join(DIR, 'wrangler.toml'), 'utf8');
+  assert.match(cfg, /\[observability\]\s*enabled = false/);
+  assert.match(cfg, /\[observability\.logs\]\s*enabled = false\s*invocation_logs = false/);
+  assert.match(cfg, /\[observability\.traces\]\s*enabled = false/);
+  assert.match(cfg, /name = "EINGANG_LIMIT"/);
+  assert.match(cfg, /name = "ADMIN_LIMIT"/);
+  assert.match(cfg, /workers_dev = false/);
+  assert.match(cfg, /custom_domain = true/);
+  assert.ok(!fs.readFileSync(path.join(DIR, 'worker.js'), 'utf8').includes('cf-connecting-ip'));
 });
 
 test('Zähler: Tabelle und Hochzählen funktionieren in SQLite (wie D1)', t => {

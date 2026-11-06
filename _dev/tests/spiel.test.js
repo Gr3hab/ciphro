@@ -1416,13 +1416,17 @@ test('Zähler: ohne Zustimmung keine einzige Anfrage, nach „Ja“ nur Ereignis
   await page.click('[data-act="countYes"]');
   assert.equal((await store(page)).count, true);
   assert.equal(await page.isVisible('#result .consent'), false, 'nach der Antwort nicht mehr gefragt');
+  await settle(page);
+  assert.deepEqual(got.map(g => [g.e, g.l, g.m, g.a]), [
+    ['aufruf', 'de', '', 0], ['spieler', 'de', '', 0], ['start', 'de', 'easy', 0], ['geloest', 'de', 'easy', 0]
+  ], 'das erste fertige Rätsel wird erst nach ausdrücklichem Ja nachgemeldet');
   await page.click('#result [data-act="share"]');
   await page.click('#result [data-act="next"]');
   await page.click('#startBtn');
   await page.reload();
   await page.waitForFunction(() => document.querySelector('#issue') && document.querySelector('#issue').textContent);
   await settle(page);
-  assert.deepEqual(got.map(g => [g.e, g.l, g.m, g.a]), [['geteilt', 'de', '', 0], ['start', 'de', 'hard', 0], ['aufruf', 'de', '', 0]],
+  assert.deepEqual(got.map(g => [g.e, g.l, g.m, g.a]).slice(4), [['geteilt', 'de', '', 0], ['start', 'de', 'hard', 0], ['aufruf', 'de', '', 0]],
     'zweite Stufe am selben Tag zählt nicht noch einmal als Spieler');
   got.forEach(g => { assert.deepEqual(Object.keys(g).sort(), ['a', 'e', 'l', 'm', 'origin']); assert.equal(g.origin, 'https://ciphro.eu'); });
   await page.context().close();
@@ -1447,6 +1451,13 @@ test('Zähler: „Nein“, Einstellungen, Global Privacy Control und andere Adre
   await a.page.click('#result [data-act="share"]');
   await settle(a.page);
   assert.deepEqual(a.got.map(g => g.e), ['geteilt']);
+  await a.page.click('#settingsBtn');
+  await a.page.click('#countToggle');
+  assert.equal((await store(a.page)).count, false, 'Widerruf im Browser gespeichert');
+  await a.page.click('#settingsDlg [data-close]');
+  await a.page.click('#result [data-act="share"]');
+  await settle(a.page);
+  assert.deepEqual(a.got.map(g => g.e), ['geteilt'], 'nach Widerruf keine weiteren Meldungen');
   await a.page.context().close();
   // Global Privacy Control: keine Frage, Schalter gesperrt, nichts gemeldet (auch nicht mit früherem Ja)
   const b = await onCiphro({ store: { ...SEEN, count: true }, init: () => Object.defineProperty(Navigator.prototype, 'globalPrivacyControl', { get: () => true }) });
@@ -1459,6 +1470,14 @@ test('Zähler: „Nein“, Einstellungen, Global Privacy Control und andere Adre
   assert.equal(await b.page.isDisabled('#countToggle'), true);
   assert.match(await b.page.textContent('#settingsBody'), /Global Privacy Control/);
   await b.page.context().close();
+  // Do Not Track ebenso: auch ein altes Ja im Browser wird von der Browsereinstellung überstimmt.
+  const dnt = await onCiphro({ store: { ...SEEN, count: true }, init: () => Object.defineProperty(Navigator.prototype, 'doNotTrack', { get: () => '1' }) });
+  await dnt.page.click('#startBtn');
+  for (const w of solution(19, 'de', 'easy')) await typeWord(dnt.page, w);
+  await settle(dnt.page);
+  assert.equal(await dnt.page.isVisible('#result .consent'), false);
+  assert.deepEqual(dnt.got, []);
+  await dnt.page.context().close();
   // Testserver (nicht ciphro.eu): nie eine Frage und nie eine Anfrage, auch mit Ja im Speicher
   const page = await openPage(env, { time: '2026-11-08T10:00:00+01:00', store: { ...SEEN, count: true } });
   const sent = [];
