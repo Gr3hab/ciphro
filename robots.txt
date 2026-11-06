@@ -1,0 +1,5 @@
+# CIPHRO · alle Suchmaschinen willkommen
+User-agent: *
+Allow: /
+
+Sitemap: https://ciphro.eu/sitemap.xml

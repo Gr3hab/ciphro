@@ -3,23 +3,31 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>CIPHRO · Knacke den Code. Entdecke den Fakt.</title>
-<!-- Linkvorschau (WhatsApp & Co.): Wer den Link bekommt, weiß sonst nicht, was ihn erwartet. Deshalb auf Deutsch, klar und mit „kostenlos“.
-     Bild og-de.png mit deutschem Slogan. Links auf /en/, /fr/ und /it/ haben eine eigene Vorschau mit og-en.png, og-fr.png und og-it.png. Neue Bildnamen, weil WhatsApp Bilder zwischenspeichert;
-     ändert sich ein Bild, ?v= erhöhen (seit 4.11.2026 v=3: neuer Name CIPHRO, Adresse ciphro.eu). -->
-<meta name="description" content="Das tägliche Zahlenrätsel: Jede Zahl ist ein Buchstabe. Knacke den Code, dahinter steckt ein wahrer Fakt. Kostenlos, ohne Anmeldung, ohne Werbung.">
+<!-- SEO:ANFANG – erzeugt von _dev/tools/sprachseiten.js, hier nicht von Hand ändern -->
+<title>CIPHRO · Tägliches Zahlenrätsel: Knacke den Code, entdecke den Fakt</title>
+<meta name="description" content="Jeden Tag vier Zahlencodes von Easy bis Impossible. Jede Zahl ist ein Buchstabe, hinter jedem Code steckt ein wahrer Fakt. Kostenlos, ohne Anmeldung, ohne Werbung.">
+<link rel="canonical" href="https://ciphro.eu/">
+<link rel="alternate" hreflang="de" href="https://ciphro.eu/de/">
+<link rel="alternate" hreflang="en" href="https://ciphro.eu/en/">
+<link rel="alternate" hreflang="fr" href="https://ciphro.eu/fr/">
+<link rel="alternate" hreflang="it" href="https://ciphro.eu/it/">
+<link rel="alternate" hreflang="x-default" href="https://ciphro.eu/">
 <meta property="og:site_name" content="CIPHRO">
 <meta property="og:title" content="CIPHRO · Das tägliche Zahlenrätsel">
 <meta property="og:description" content="Jede Zahl ist ein Buchstabe. Knacke den Code, dahinter steckt ein wahrer Fakt. Kostenlos, ohne Anmeldung, ohne Werbung.">
 <meta property="og:locale" content="de_AT">
+<meta property="og:locale:alternate" content="en_GB">
+<meta property="og:locale:alternate" content="fr_FR">
+<meta property="og:locale:alternate" content="it_IT">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://ciphro.eu/">
-<link rel="canonical" href="https://ciphro.eu/">
 <meta property="og:image" content="https://ciphro.eu/og-de.png?v=3">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="CIPHRO: Knacke den Code. Entdecke den Fakt.">
 <meta name="twitter:card" content="summary_large_image">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"CIPHRO","url":"https://ciphro.eu/","inLanguage":["de","en","fr","it"],"description":"Jeden Tag vier Zahlencodes von Easy bis Impossible. Jede Zahl ist ein Buchstabe, hinter jedem Code steckt ein wahrer Fakt. Kostenlos, ohne Anmeldung, ohne Werbung."}</script>
+<!-- SEO:ENDE -->
 <meta name="theme-color" content="#f2f4f7" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#111715" media="(prefers-color-scheme: dark)">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -191,6 +199,8 @@ a{color:var(--ink)}
 
 .nojs{background:var(--sheet);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px;display:flex;flex-direction:column;gap:6px;max-width:62ch}
 .nojs p{margin:0;font-size:.95rem}
+.nojs h2{margin:0;font-size:1.1rem;line-height:1.3}
+.nojs .langs a{color:var(--ink);font-weight:700}
 
 .card{
   flex:none;background-color:var(--sheet);
@@ -514,11 +524,14 @@ textarea{width:100%;font:inherit;font-size:.95rem;padding:10px;border:1px solid 
     <section class="card" id="startCard" hidden></section>
     <section class="card pausecard" id="pauseCard" hidden></section>
     <section class="sheet" id="board">
+      <!-- STATISCH:ANFANG – erzeugt von _dev/tools/sprachseiten.js -->
       <div class="nojs" id="nojs">
-        <strong>Hier fehlt das Rätsel? · Puzzle missing?</strong>
-        <p>Du siehst nur die Vorschau der Datei. Die startet das Spiel nicht. Öffne CIPHRO über den Link im Browser.</p>
-        <p lang="en">You are looking at a file preview, which cannot run the game. Open CIPHRO from the link in your browser.</p>
+        <h2>Das tägliche Zahlenrätsel</h2>
+        <p>Jeden Tag gibt es vier Zahlencodes, von Easy bis Impossible. Jede Zahl steht für einen Buchstaben: A&nbsp;=&nbsp;1, B&nbsp;=&nbsp;2 … Z&nbsp;=&nbsp;26. Wer den Code knackt, entdeckt einen kurzen, wahren Fakt mit Quelle. Kostenlos, ohne Anmeldung, ohne Werbung.</p>
+        <p>Kein Rätsel zu sehen? CIPHRO läuft im Browser und braucht JavaScript. In einer Dateivorschau startet es nicht: Öffne den Link im Browser.</p>
+        <p class="langs"><a href="https://ciphro.eu/de/" hreflang="de" lang="de">Deutsch</a> · <a href="https://ciphro.eu/en/" hreflang="en" lang="en">English</a> · <a href="https://ciphro.eu/fr/" hreflang="fr" lang="fr">Français</a> · <a href="https://ciphro.eu/it/" hreflang="it" lang="it">Italiano</a></p>
       </div>
+      <!-- STATISCH:ENDE -->
     </section>
     <section class="result" id="result" hidden></section>
   </main>
@@ -591,6 +604,7 @@ const ICON = {
 const STR = {
   de: {
     locale: 'de-AT',
+    pageTitle: 'CIPHRO · Tägliches Zahlenrätsel: Knacke den Code, entdecke den Fakt',
     tagline: 'Knacke den Code. Entdecke den Fakt.',
     helpEyebrow: 'Das tägliche Zahlenrätsel',   // der Spruch wäre in der Anleitung zu lang für eine Zeile
     issue: (n, d) => `#${n} · ${d}`,
@@ -700,6 +714,7 @@ const STR = {
   },
   en: {
     locale: 'en-GB',
+    pageTitle: 'CIPHRO · Daily number puzzle: crack the code, reveal the fact',
     tagline: CONFIG.tagline,
     helpEyebrow: CONFIG.tagline,
     issue: (n, d) => `#${n} · ${d}`,
@@ -808,6 +823,7 @@ const STR = {
   // Französisch: Vor : ? ! steht ein geschütztes Leerzeichen ( ), wie im Französischen üblich.
   fr: {
     locale: 'fr-FR',
+    pageTitle: 'CIPHRO · Énigme chiffrée du jour\u00a0: déchiffre le code',
     tagline: 'Déchiffre le code. Découvre le fait.',
     helpEyebrow: 'L’énigme chiffrée du jour',
     issue: (n, d) => `#${n} · ${d}`,
@@ -917,6 +933,7 @@ const STR = {
   },
   it: {
     locale: 'it-IT',
+    pageTitle: 'CIPHRO · Rompicapo numerico del giorno: decifra il codice',
     tagline: 'Decifra il codice. Scopri il fatto.',
     helpEyebrow: 'Il rompicapo del giorno',   // passt so auch auf schmalen Handys in eine Zeile
     issue: (n, d) => `#${n} · ${d}`,
@@ -1134,13 +1151,21 @@ function navLang() {
   return LANGS.includes(nav) ? nav : 'en';
 }
 const defaultLang = () => LANGS.includes(store.lang) ? store.lang : navLang();
+// Sprachseiten ciphro.eu/de/, /en/, /fr/, /it/ (für Suchmaschinen): Dort bestimmt die Adresse die Sprache.
+// Die Startseite ciphro.eu/ wählt sie selbst: gespeicherte Wahl, sonst Browsersprache.
+let pageLang = LANGS.includes(document.documentElement.dataset.pageLang) ? document.documentElement.dataset.pageLang : null;
+// Pfad der Startseite, auch von einer Sprachseite aus (/fr/ → /)
+function sitePath() {
+  return location.pathname.replace(/[^/]*$/, '').replace(new RegExp('(?:' + LANGS.join('|') + ')/$'), '');
+}
 // Links: ?n=Nummer &m=Stufe &lang=de|en|fr|it  (alte Links ohne Angaben öffnen einfach das heutige Rätsel)
 function readLink() {
   const out = {};
   let q;
   try { q = new URLSearchParams(location.search); } catch (e) { return out; }
   const l = (q.get('lang') || '').toLowerCase();
-  if (LANGS.includes(l)) out.lang = l;
+  if (pageLang) out.lang = pageLang;
+  else if (LANGS.includes(l)) out.lang = l;
   const n = q.get('n');
   if (n != null && n !== '') out.n = /^\s*\d{1,5}\s*$/.test(n) && +n >= 1 ? +n : -1;
   const m = (q.get('m') || '').toLowerCase();
@@ -1338,7 +1363,7 @@ function renderHeader() {
   $('#backToday').hidden = !archive;
   if (archive) $('#archiveText').textContent = t.archiveBar(day.number, dateLabel(day.key), day.repeatOf);
   else if (day.repeatOf) $('#archiveText').textContent = t.repeatBar(day.repeatOf);
-  document.title = archive ? `${name} #${day.number}` : `${name} · ${T().tagline}`;
+  document.title = archive ? `${name} #${day.number}` : T().pageTitle;
   renderNotice();
 }
 
@@ -1628,9 +1653,10 @@ function ensureVisible(wi) {
 function syncUrl() {
   if (!history.replaceState || !/^https?:$/.test(location.protocol)) return;
   const q = new URLSearchParams();
-  if (lang !== defaultLang()) q.set('lang', lang);
+  if (!pageLang && lang !== defaultLang()) q.set('lang', lang);
   if (archive) { q.set('n', String(day.number)); q.set('m', current); }
-  const qs = q.toString(), want = location.pathname + (qs ? '?' + qs : '') + location.hash;
+  const path = pageLang ? sitePath() + pageLang + '/' : location.pathname;
+  const qs = q.toString(), want = path + (qs ? '?' + qs : '') + location.hash;
   if (want !== location.pathname + location.search + location.hash) { try { history.replaceState(null, '', want); } catch (e) { /* egal */ } }
 }
 
@@ -1662,6 +1688,8 @@ function setLang(l, keepStore) {
   if (!LANGS.includes(l) || l === lang) return;
   stopClock();
   lang = l;
+  // Auf einer Sprachseite wechselt auch die Adresse (/fr/ → /it/), damit Neuladen und Teilen passen
+  if (pageLang) { pageLang = l; document.documentElement.dataset.pageLang = l; }
   if (!keepStore) { store.lang = l; save(); }
   renderStatic(); buildKeyboard();
   setView(day.key, archive, current);
@@ -2050,7 +2078,7 @@ function renderStats() {
 function siteBase() {
   if (CONFIG.siteUrl) return CONFIG.siteUrl.replace(/\/?$/, '/');
   if (!/^https?:$/.test(location.protocol) || /claude/.test(location.hostname)) return '';
-  return location.origin + location.pathname.replace(/[^/]*$/, '');
+  return location.origin + sitePath();
 }
 function shareUrl(mode) {
   const base = siteBase();

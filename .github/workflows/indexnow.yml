@@ -1,0 +1,44 @@
+# Meldet Bing (und damit auch Yahoo, DuckDuckGo und Ecosia, die Bing-Ergebnisse nutzen) sowie den anderen
+# IndexNow-Suchmaschinen, dass sich ciphro.eu geändert hat. Google nimmt an IndexNow nicht teil, dafür gibt es
+# die Sitemap und die Search Console.
+# Läuft nach jeder Änderung an den Seiten auf main, wartet kurz, bis GitHub Pages veröffentlicht hat.
+# Der Schlüssel ist öffentlich (Datei 429c7c453d1a43bf04709429a27f98b6.txt im Hauptordner), das ist so vorgesehen.
+name: IndexNow
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'index.html'
+      - 'de/**'
+      - 'en/**'
+      - 'fr/**'
+      - 'it/**'
+      - 'fakten.js'
+      - 'kern.js'
+      - 'sitemap.xml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  melden:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Auf die Veröffentlichung warten
+        run: |
+          for i in $(seq 1 30); do
+            if curl -fsS "https://ciphro.eu/429c7c453d1a43bf04709429a27f98b6.txt" | grep -q 429c7c453d1a43bf04709429a27f98b6; then break; fi
+            sleep 10
+          done
+          sleep 60
+      - name: Adressen an IndexNow schicken
+        run: |
+          code=$(curl -sS -o antwort.txt -w '%{http_code}' -X POST https://api.indexnow.org/indexnow \
+            -H 'Content-Type: application/json; charset=utf-8' \
+            -d '{"host":"ciphro.eu","key":"429c7c453d1a43bf04709429a27f98b6","keyLocation":"https://ciphro.eu/429c7c453d1a43bf04709429a27f98b6.txt","urlList":["https://ciphro.eu/","https://ciphro.eu/de/","https://ciphro.eu/en/","https://ciphro.eu/fr/","https://ciphro.eu/it/"]}')
+          echo "IndexNow-Antwort: $code" | tee -a "$GITHUB_STEP_SUMMARY"
+          cat antwort.txt || true
+          case "$code" in 200|202) ;; *) exit 1 ;; esac

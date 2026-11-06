@@ -108,6 +108,7 @@ test('Linkvorschau: Deutsch sagt klar, was das ist und dass es kostenlos ist; je
   assert.equal(meta('index.html', 'og:locale'), 'de_AT');
   assert.match(meta('en/index.html', 'og:description'), /each number is a letter.*Free, no sign-up, no ads\.$/);
   assert.equal(meta('en/index.html', 'og:locale'), 'en_GB');
+  for (const f of ['og:title', 'og:description', 'og:locale', 'og:image', 'og:image:alt']) assert.equal(meta('de/index.html', f), meta('index.html', f), 'de/ wie Startseite: ' + f);
   assert.match(meta('fr/index.html', 'og:description'), /chaque nombre est une lettre.*Gratuit, sans inscription, sans pub\.$/);
   assert.equal(meta('fr/index.html', 'og:locale'), 'fr_FR');
   assert.match(meta('it/index.html', 'og:description'), /ogni numero è una lettera.*Gratis, senza registrazione, senza pubblicità\.$/);
@@ -124,7 +125,7 @@ test('Linkvorschau: Deutsch sagt klar, was das ist und dass es kostenlos ist; je
     const png = fs.readFileSync(path.join(root, f));
     assert.equal(png.toString('latin1', 1, 4), 'PNG', f);
     assert.deepEqual([png.readUInt32BE(16), png.readUInt32BE(20)], [1200, 630], f);
-    for (const file of ['index.html', 'en/index.html', 'fr/index.html', 'it/index.html']) {
+    for (const file of ['index.html', 'de/index.html', 'en/index.html', 'fr/index.html', 'it/index.html']) {
       assert.equal(meta(file, 'og:image:width'), '1200'); assert.equal(meta(file, 'og:image:height'), '630');
     }
   }
@@ -204,13 +205,98 @@ test('Links: Sprache aus dem Link gilt für den Besuch, gespeicherte Sprache ble
   await page.context().close();
 });
 
-test('Links: englische Einstiegsseite en/ leitet mit Nummer und Stufe weiter', async () => {
-  const page = await openPage(env, { url: 'en/?n=2&m=hard' });
-  await page.waitForFunction(() => document.documentElement.lang === 'en');
-  assert.equal(await issueNumber(page), 2);
-  assert.equal(await page.getAttribute('#tab-hard', 'aria-selected'), 'true');
+test('Sprachseiten de/, en/, fr/, it/: das Spiel direkt in ihrer Sprache, Adresse bleibt, Titel wie im Kopf', async () => {
+  const root = path.join(__dirname, '..', '..');
+  for (const l of NF.CONFIG.languages) {
+    // Gespeicherte Wahl ist eine andere Sprache, Browser auf Englisch: die Adresse gewinnt
+    const other = l === 'de' ? 'it' : 'de';
+    const page = await openPage(env, { url: `${l}/?n=2&m=hard`, store: { ...SEEN, lang: other }, locale: 'en-US' });
+    await page.waitForFunction(x => document.documentElement.lang === x, l);
+    assert.equal(await page.evaluate(() => location.pathname + location.search), `/${l}/?n=2&m=hard`, l);
+    assert.equal(await issueNumber(page), 2);
+    assert.equal(await page.getAttribute('#tab-hard', 'aria-selected'), 'true');
+    assert.equal((await store(page)).lang, other, `${l}: gespeicherte Wahl bleibt`);
+    noErrors(page);   // auch keine fehlenden Dateien (Schriften, Skripte, Bilder kommen über <base> aus dem Hauptordner)
+    // Heutiges Rätsel: Titel im Browser = Titel im Seitenkopf (für Suchmaschinen, die JavaScript ausführen)
+    await page.goto(page.url().replace(/\?.*$/, ''));
+    const head = fs.readFileSync(path.join(root, l, 'index.html'), 'utf8').match(/<title>([^<]*)<\/title>/)[1];
+    assert.equal(await page.title(), head, l);
+    assert.equal(await page.evaluate(() => location.pathname + location.search), `/${l}/`);
+    await page.context().close();
+  }
+  // Sprachwechsel auf einer Sprachseite wechselt auch die Adresse
+  const page = await openPage(env, { url: 'fr/?n=2&m=easy' });
+  await page.click('#settingsBtn');
+  await page.click('#settingsBody label:has(input[data-lang="it"])');
+  await page.waitForFunction(() => document.documentElement.lang === 'it');
+  assert.equal(await page.evaluate(() => location.pathname + location.search), '/it/?n=2&m=easy');
+  await page.keyboard.press('Escape');
+  await page.reload();
+  await page.waitForFunction(() => document.documentElement.lang === 'it');
   noErrors(page);
   await page.context().close();
+  // Startseite wählt weiterhin selbst: Browser Englisch → Englisch, Titel passt dazu
+  const home = await openPage(env, { store: { ...SEEN }, locale: 'en-GB' });
+  assert.equal(await home.getAttribute('html', 'lang'), 'en');
+  assert.equal(await home.title(), 'CIPHRO · Daily number puzzle: crack the code, reveal the fact');
+  assert.equal(await home.evaluate(() => location.pathname + location.search), '/');
+  await home.context().close();
+});
+
+test('Suchmaschinen: canonical, hreflang, Beschreibung, lesbarer Text ohne JavaScript, Sitemap, robots.txt, 404, IndexNow', () => {
+  const root = path.join(__dirname, '..', '..');
+  const read = f => fs.readFileSync(path.join(root, f), 'utf8');
+  const SITE = 'https://ciphro.eu/';
+  const L = NF.CONFIG.languages;
+  const pages = [['index.html', null], ...L.map(l => [`${l}/index.html`, l])];
+  const want = [...L.map(l => [l, SITE + l + '/']), ['x-default', SITE]];
+  // Die Seiten sind aus index.html erzeugt und aktuell
+  const gen = require('../tools/sprachseiten.js').outputs();
+  for (const [f, c] of Object.entries(gen)) assert.equal(read(f), c, `${f} veraltet: im Ordner _dev „node tools/sprachseiten.js“ ausführen`);
+  for (const [f, l] of pages) {
+    const s = read(f);
+    const head = s.slice(0, s.indexOf('</head>'));
+    assert.match(s, new RegExp(`<html lang="${l || 'de'}"`), f);
+    assert.doesNotMatch(head, /name="robots"/, f + ' darf nicht noindex sein');
+    assert.deepEqual([...head.matchAll(/<link rel="canonical" href="([^"]+)">/g)].map(m => m[1]), [l ? SITE + l + '/' : SITE], f);
+    assert.deepEqual([...head.matchAll(/<link rel="alternate" hreflang="([^"]+)" href="([^"]+)">/g)].map(m => [m[1], m[2]]), want, f + ' hreflang');
+    const title = head.match(/<title>([^<]+)<\/title>/)[1], desc = head.match(/<meta name="description" content="([^"]+)">/)[1];
+    assert.ok(title.length >= 30 && title.length <= 75 && /^CIPHRO · /.test(title), f + ' Titel: ' + title);
+    assert.ok(desc.length >= 100 && desc.length <= 170, f + ` Beschreibung ${desc.length} Zeichen`);
+    assert.equal(/<base href="\.\.\/">/.test(head), !!l, f + ' <base>');
+    // Text für Suchmaschinen ohne JavaScript: Überschrift, Erklärung, Links zu allen Sprachen
+    const nojs = s.match(/<div class="nojs" id="nojs">([\s\S]*?)<\/div>/)[1];
+    assert.match(nojs, /<h2>[^<]+<\/h2>/, f);
+    assert.match(nojs, /A&nbsp;=&nbsp;1/, f);
+    for (const [hl, u] of want.slice(0, 4)) assert.ok(nojs.includes(`href="${u}" hreflang="${hl}"`), f + ' Link ' + hl);
+    // Name der Website (Google) nur auf der Startseite
+    const ld = [...s.matchAll(/<script type="application\/ld\+json">([^<]+)<\/script>/g)].map(m => JSON.parse(m[1]));
+    if (l) assert.equal(ld.length, 0, f);
+    else assert.deepEqual([ld.length, ld[0]['@type'], ld[0].name, ld[0].url], [1, 'WebSite', 'CIPHRO', SITE]);
+  }
+  // Sprachen sprechen ihre Sprache
+  assert.match(read('fr/index.html'), /<title>CIPHRO · Énigme chiffrée du jour/);
+  assert.match(read('it/index.html'), /<title>CIPHRO · Rompicapo numerico del giorno/);
+  assert.match(read('en/index.html'), /<title>CIPHRO · Daily number puzzle/);
+  assert.match(read('de/index.html'), /<title>CIPHRO · Tägliches Zahlenrätsel/);
+  // Sitemap: alle fünf Adressen, jede mit allen Sprachfassungen
+  const sm = read('sitemap.xml');
+  assert.deepEqual([...sm.matchAll(/<loc>([^<]+)<\/loc>/g)].map(m => m[1]), [SITE, ...L.map(l => SITE + l + '/')]);
+  assert.equal((sm.match(/<xhtml:link rel="alternate"/g) || []).length, 5 * 5);
+  assert.match(read('robots.txt'), /^User-agent: \*$/m);
+  assert.match(read('robots.txt'), /^Sitemap: https:\/\/ciphro\.eu\/sitemap\.xml$/m);
+  assert.doesNotMatch(read('robots.txt'), /^Disallow: \/$/m);
+  // 404-Seite: nicht in den Index, nur absolute Links
+  const nf = read('404.html');
+  assert.match(nf, /<meta name="robots" content="noindex">/);
+  assert.doesNotMatch(nf.replace(/href="\/[^"]*"/g, ''), /href="(?!https?:)/);
+  // IndexNow: Schlüsseldatei enthält genau ihren Namen, der Ablauf nutzt denselben Schlüssel
+  const key = fs.readdirSync(root).find(f => /^[0-9a-f]{32}\.txt$/.test(f));
+  assert.ok(key, 'IndexNow-Schlüsseldatei fehlt');
+  assert.equal(read(key), key.slice(0, 32));
+  const wf = read('.github/workflows/indexnow.yml');
+  assert.ok(wf.includes(`"key":"${key.slice(0, 32)}"`) && wf.includes(`https://ciphro.eu/${key}`), 'Ablauf nutzt anderen Schlüssel');
+  for (const [, u] of want) assert.ok(wf.includes(`"${u}"`), 'IndexNow meldet ' + u);
 });
 
 test('Französisch und Italienisch: Einstieg über fr/ und it/, eigene Tastatur, Akzente nur im Fakt, Spielstand je Sprache, Teilen', async () => {
@@ -254,7 +340,7 @@ test('Französisch und Italienisch: Einstieg über fr/ und it/, eigene Tastatur,
   assert.deepEqual(await page.$$eval('#statsBody .stats .n', els => els.map(e => e.textContent)), ['1', '1', '1', '2']);
   noErrors(page);
   await page.context().close();
-  // it/ leitet mit Nummer und Stufe weiter
+  // it/ öffnet Nummer und Stufe direkt
   page = await openPage(env, { url: 'it/?n=2&m=hard' });
   await page.waitForFunction(() => document.documentElement.lang === 'it');
   assert.equal(await issueNumber(page), 2);
@@ -844,7 +930,7 @@ test('Ab #9 nur 26 Buchstaben: Tastatur ohne Ä Ö Ü ß, Sätze ohne Umlaute; d
   assert.match(help, /Es gibt nur die 26 Buchstaben A bis Z, keine Umlaute und kein ß\./);
   assert.doesNotMatch(help, /27/);
   assert.match(await page.textContent('#helpBody .eyebrow'), /^Das tägliche Zahlenrätsel$/, 'deutsche Anleitung ohne englischen Spruch');
-  assert.equal(await page.title(), 'CIPHRO · Knacke den Code. Entdecke den Fakt.');
+  assert.equal(await page.title(), 'CIPHRO · Tägliches Zahlenrätsel: Knacke den Code, entdecke den Fakt');
   await page.keyboard.press('Escape');
   noErrors(page);
   await page.context().close();
@@ -1007,7 +1093,7 @@ test('Umzug: englischer Link, alter Link ohne Spielstand und kaputter Anker', as
   let page = await openPage(env, { store: null, url: 'en/?n=3&m=easy' + packMoved(oldStore()) });
   assert.equal((await page.textContent('#noticeText')).trim(), 'NUMIGMA is now CIPHRO. Your progress came with you.');
   assert.match(await page.textContent('#issue'), /#3\b/, 'Archivlink bleibt erhalten');
-  assert.equal(await page.evaluate(() => location.search + location.hash), '?lang=en&n=3&m=easy');
+  assert.equal(await page.evaluate(() => location.pathname + location.search + location.hash), '/en/?n=3&m=easy');
   await page.context().close();
   // Neu: alter Link, aber dort nie gespielt → Hinweis auf den neuen Namen, normaler Einstieg
   page = await openPage(env, { store: null, url: '#moved' });
@@ -1130,16 +1216,17 @@ test('Impressum und Datenschutz: aus den Einstellungen erreichbar, in allen vier
     await page.context().close();
   }
   // Keine Telefonnummer veröffentlichen (Entscheidung vom 5. November 2026)
-  for (const f of ['index.html', 'impressum.html', 'datenschutz.html', 'en/index.html', 'fr/index.html', 'it/index.html']) {
+  for (const f of ['index.html', 'impressum.html', 'datenschutz.html', 'de/index.html', 'en/index.html', 'fr/index.html', 'it/index.html', '404.html']) {
     const src = fs.readFileSync(path.join(__dirname, '..', '..', f), 'utf8');
     assert.ok(!/href="tel:|\+43[\s\u00a0&nbsp;]*\d|\b0664/.test(src), f + ' enthält eine Telefonnummer');
   }
   // Keine Skripte, Stylesheets, Bilder oder Schriften von fremden Servern auf irgendeiner Seite
   const root = path.join(__dirname, '..', '..');
-  for (const f of ['index.html', 'en/index.html', 'fr/index.html', 'it/index.html', 'impressum.html', 'datenschutz.html', 'recht.css']) {
+  for (const f of ['index.html', 'de/index.html', 'en/index.html', 'fr/index.html', 'it/index.html', 'impressum.html', 'datenschutz.html', 'recht.css', '404.html']) {
     const src = fs.readFileSync(path.join(root, f), 'utf8');
-    const ext = [...src.matchAll(/(?:<script[^>]+src|<link[^>]+href|<img[^>]+src|url\()\s*=?\s*["']?(https?:)?\/\//gi)];
-    assert.deepEqual(ext.map(m => m[0]).filter(x => !/rel="canonical"/.test(x)), [], f);
+    const ext = [...src.matchAll(/(?:<script[^>]+src|<link[^>]+href|<img[^>]+src|url\()\s*=?\s*["']?(https?:)?\/\/[^"')\s]*/gi)];
+    // Erlaubt: Verweise der Seite auf sich selbst (canonical, Sprachfassungen) – das lädt nichts
+    assert.deepEqual(ext.map(m => m[0]).filter(x => !/rel="(canonical|alternate)"[^>]*href="https:\/\/ciphro\.eu\//.test(x)), [], f);
   }
 });
 

@@ -12,10 +12,12 @@ Bis November 2026 hieß das Spiel NUMIGMA und lag unter `gr3hab.github.io/numfac
 
 | Datei | Inhalt | Öffentlich |
 | --- | --- | --- |
-| `index.html` | Das Spiel | ja |
+| `index.html` | Das Spiel (Startseite, wählt die Sprache selbst) | ja |
 | `fakten.js` | Alle Fakten auf Deutsch, Englisch, Französisch und Italienisch, mit ID, Thema und Quellen | ja |
 | `kern.js` | Spiellogik: Codes, Tagesrätsel, Prüfungen | ja |
-| `en/`, `fr/`, `it/` | Einstieg je Sprache für geteilte Links (eigene Vorschau in WhatsApp & Co.) | ja |
+| `de/`, `en/`, `fr/`, `it/` | Das Spiel je Sprache, für Suchmaschinen und geteilte Links (eigener Titel, eigene Vorschau). **Erzeugt** aus `index.html` mit `_dev/tools/sprachseiten.js`, nicht von Hand ändern | ja |
+| `sitemap.xml`, `robots.txt`, `404.html` | Für Suchmaschinen: Liste aller Sprachseiten, Erlaubnis zum Durchsuchen, Seite für unbekannte Adressen. `sitemap.xml` ist erzeugt | ja |
+| `429c7c….txt` | IndexNow-Schlüssel: Damit meldet `.github/workflows/indexnow.yml` Änderungen an Bing und Co. Öffentlich, das ist so vorgesehen | ja |
 | `sw.js` | Offline-Hilfe: zuletzt geladene Fassung, wenn keine Verbindung da ist | ja |
 | `fonts/` | Schriften (lokal, keine Anfragen an fremde Server) | ja |
 | `og-de.png`, `og-en.png`, `og-fr.png`, `og-it.png`, `icon*.png`, `manifest.webmanifest` | Vorschaubilder für geteilte Links (je Sprache, gleiches Design), App-Icons, Home-Bildschirm-App. Alle erzeugt mit `_dev/grafik/render.js` | ja |
@@ -27,11 +29,19 @@ GitHub Pages veröffentlicht Ordner, die mit `_` beginnen, nicht. Die Prüfseite
 
 **Was trotzdem öffentlich ist:** `fakten.js` muss abrufbar sein, damit das Spiel läuft. Darin stehen alle Sätze, auch die von künftigen Tagen. Wer gezielt in die Datei schaut, kann also vorab nachlesen. Für ein freundschaftliches Rätselspiel ist das bewusst so akzeptiert; die künftigen Lösungen sind nicht geheim, nur nicht mehr auf einer Seite zum Durchblättern. Eine tageweise Veröffentlichung ist in `_dev/KONZEPTE.md` beschrieben.
 
+## Suchmaschinen
+
+- Jede Sprache hat eine feste Adresse: `ciphro.eu/de/`, `/en/`, `/fr/`, `/it/`. Dort erscheint das Spiel immer in dieser Sprache, mit eigenem Titel und eigener Beschreibung. Die Startseite `ciphro.eu/` wählt die Sprache selbst (gespeicherte Wahl, sonst Browsersprache) und ist für Suchmaschinen die Seite für alle anderen Sprachen („x-default“).
+- Alle Seiten verweisen aufeinander (`hreflang`), jede hat `canonical` auf sich selbst. Archivlinks mit `?n=` zählen deshalb nicht als eigene Seiten.
+- Ein kurzer Text in der Sprache steht fest in der Seite. Ihn lesen auch Suchmaschinen, die kein JavaScript ausführen. Sobald das Spiel startet, ersetzt es den Text.
+- Nach jeder Änderung an `index.html`: im Ordner `_dev` `node tools/sprachseiten.js` ausführen. Die Tests schlagen fehl, solange die Sprachseiten veraltet sind. Titel, Beschreibungen und Vorschau-Texte stehen in `_dev/tools/sprachseiten.js`, der Titel im Browser zusätzlich als `pageTitle` in `index.html` (ein Test prüft, dass beide gleich sind).
+- Nach jeder Veröffentlichung meldet `.github/workflows/indexnow.yml` die fünf Adressen an IndexNow (Bing, Yandex, Seznam, Naver, Yep). Google nimmt daran nicht teil und liest die Sitemap.
+
 ## Links zum Teilen
 
 - `https://ciphro.eu/` öffnet das heutige Rätsel.
 - `https://ciphro.eu/?n=4&m=easy` öffnet #4, Stufe Easy. `m` ist `easy`, `hard`, `mirror` oder `impossible`.
-- `https://ciphro.eu/en/?n=4&m=easy` dasselbe auf Englisch, `fr/` auf Französisch, `it/` auf Italienisch. `?lang=en` (oder `fr`, `it`) funktioniert weiterhin.
+- `https://ciphro.eu/en/?n=4&m=easy` dasselbe auf Englisch, `fr/` auf Französisch, `it/` auf Italienisch, `de/` immer auf Deutsch. `?lang=en` (oder `fr`, `it`) auf der Startseite funktioniert weiterhin.
 - Alte Links auf `gr3hab.github.io/numfact/…` landen mit denselben Angaben hier.
 - Ein Link auf ein Rätsel, das in der eigenen Zeitzone noch nicht erschienen ist, öffnet das heutige Rätsel mit einem Hinweis, wann es erscheint.
 - Die Linkvorschau (WhatsApp & Co.) sagt auf Deutsch, was CIPHRO ist und dass es kostenlos ist, ohne Anmeldung und ohne Werbung. Das Bild `og-de.png` hat den deutschen Slogan „Knacke den Code. Entdecke den Fakt.“ `en/`, `fr/` und `it/` haben eine eigene Vorschau in ihrer Sprache (`og-en.png`, `og-fr.png`, `og-it.png`).
