@@ -685,17 +685,19 @@ test('Teilen: nur gelöste Stufen, drei Zeilen bei einer, eine Zeile je Stufe be
   assert.match(lines[1], /^(🟩|🟨|🟥)+$/u);
   assert.match(lines[2], /^Schlägst du meine Zeit\? http:\/\/127\.0\.0\.1:\d+\/\?n=4&m=easy$/);
   noSolution(text, 4);
-  // zweite Stufe gelöst: eine Zeile je Stufe mit Zeit und Kästchen
+  // zweite Stufe gelöst: je Stufe eine Zeile mit der Zeit und darunter die Kästchen allein (kein Umbruch am Handy)
   await page.click('#result [data-act="next"]');
   await page.click('#startBtn');
   for (const w of solution(4, 'de', 'hard')) await typeWord(page, w);
   text = await read();
   lines = text.split('\n');
-  assert.equal(lines.length, 4, text);
+  assert.equal(lines.length, 6, text);
   assert.equal(lines[0], 'CIPHRO #4');
-  assert.match(lines[1], /^Easy ⏱ \d+:\d\d,\d\d (🟩|🟨|🟥)+$/u);
-  assert.match(lines[2], /^Hard ⏱ \d+:\d\d,\d\d (🟩|🟨|🟥)+$/u);
-  assert.match(lines[3], /^Schlägst du meine Zeiten\? http:\/\/127\.0\.0\.1:\d+\/\?n=4$/);
+  assert.match(lines[1], /^Easy ⏱ \d+:\d\d,\d\d$/);
+  assert.match(lines[2], /^(🟩|🟨|🟥)+$/u);
+  assert.match(lines[3], /^Hard ⏱ \d+:\d\d,\d\d$/);
+  assert.match(lines[4], /^(🟩|🟨|🟥)+$/u);
+  assert.match(lines[5], /^Schlägst du meine Zeiten\? http:\/\/127\.0\.0\.1:\d+\/\?n=4$/);
   const twoSolved = text;
   // dritte Stufe aufgelöst: taucht im geteilten Text gar nicht auf, das Ergebnis im Spiel zeigt sie aber
   await page.click('#result [data-act="next"]');

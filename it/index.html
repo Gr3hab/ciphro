@@ -575,8 +575,8 @@ textarea{width:100%;font:inherit;font-size:.95rem;padding:10px;border:1px solid 
 
 <div class="toast" id="toast" role="status" hidden></div>
 
-<script src="fakten.js?v=11"></script>
-<script src="kern.js?v=11"></script>
+<script src="fakten.js?v=12"></script>
+<script src="kern.js?v=12"></script>
 <script>
 (function () {
 'use strict';
@@ -2087,7 +2087,9 @@ function shareUrl(mode) {
   return base + (lang === 'de' ? '' : lang + '/') + `?n=${day.number}` + (mode ? `&m=${mode}` : '');
 }
 // Geteilt werden nur tatsächlich gelöste Stufen. Aufgelöste und nicht gespielte fehlen, das Ergebnis im Spiel bleibt vollständig.
-// Eine gelöste Stufe: drei Zeilen. Mehrere: eine Zeile je Stufe mit Zeit und Kästchen. Keine: kurze Herausforderung ohne Kästchen.
+// Eine gelöste Stufe: drei Zeilen. Mehrere: je Stufe eine Zeile mit der Zeit und darunter eine Zeile Kästchen.
+// Die Kästchen stehen immer allein in ihrer Zeile, sonst bricht WhatsApp sie am Handy um (Sätze ab #19 höchstens 8 Wörter).
+// Keine gelöste Stufe: kurze Herausforderung ohne Kästchen.
 function shareText() {
   const t = T(), won = MODES.filter(m => ms(m.id).status === 'solved');
   const head = t.shareHead(day.number, archive), time = m => `${m.name} ⏱ ${fmtExact(ms(m.id).elapsed)}`;
@@ -2096,7 +2098,7 @@ function shareText() {
   else {
     lines.push(head);
     if (!won.length) lines.push(t.notCracked(archive));
-    won.forEach(m => lines.push(`${time(m)} ${squaresOf(m.id)}`));
+    won.forEach(m => lines.push(time(m), squaresOf(m.id)));
   }
   // Serie ab 2 Tagen in Folge (Archivrätsel zählen nicht für die Serie)
   const streak = archive ? 0 : computeStats().streak;

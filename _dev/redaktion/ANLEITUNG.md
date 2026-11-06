@@ -25,8 +25,10 @@ Jeder Tag braucht vier Fakten. Sie stehen alle in `fakten.js` im Hauptordner, in
 - Keine Ziffern, Kommas, Bindestriche, Apostrophe. Zahlen ausschreiben („vierzig“). Sätze mit Nebensatz so umbauen, dass kein Komma nötig ist.
 - **Kein Ä, Ö, Ü und kein ß, auch nicht im Deutschen** (seit #9, 29. Oktober 2026). Im Spiel gibt es nur die 26 Buchstaben A bis Z. Umformulieren: „mehr als“ statt „über“, „sehr groß“ oder „riesig“ statt „größte“ nur, wenn es weiter stimmt. In der Erklärung sind Umlaute erlaubt. Die Prüfseite meldet einen Fehler, wenn ein Satz ab #9 einen Umlaut hat.
 - Im Englischen kein „it's“ oder „Earth's“ („of the Earth“ schreiben).
-- **Französisch und Italienisch:** Akzente sind im Satz erlaubt (é, è, à, ç, œ …), im Code fallen sie weg wie im Kreuzworträtsel (É → E, Œ → OE). Apostrophe und Bindestriche gehen auch hier nicht, also Sätze ohne Elision bauen: „La mer ne gèle que …“ statt „L’eau de mer …“, „en Islande“ statt „d’Islande“, „di acqua“ statt „d’acqua“, „ottantotto“ statt „quatre-vingt-huit“ (Zahlen mit Bindestrich umgehen). Wörter wie „arc-en-ciel“ oder „États-Unis“ umschreiben („aux USA“). In der Erklärung ist alles erlaubt, dort typografische Apostrophe (’) verwenden.
-- Französisch und Italienisch brauchen oft mehr Wörter. Für Easy gilt trotzdem höchstens 8, also knapp formulieren („Le miel ne se gâte pratiquement jamais.“).
+- **Ab #19 (8. November 2026) in allen vier Sprachen nur A–Z:** auch keine Akzente mehr im Französischen und Italienischen (é, è, ê, à, ç, î, ô, û, ì, ò, ù …). Bis #18 standen Akzente im Satz und fielen nur im Code weg. „oe“ statt „œ“ ist erlaubt („coeur“, „oeufs“). Typische Ausweichwörter: „jadis“ statt „autrefois … été“, „fut“ statt „a été“, „mesure“ statt „pèse“, Plural statt „è“ im Italienischen („Le orche sono …“ statt „L’orca è …“), „oltre“ statt „più di“, „Il nostro …“ statt „Il più …“. Geht ein Wort gar nicht (Vénus, café, planète, éléphant, città, più), den Fakt parken. Die Prüfseite meldet ab #19 jedes Zeichen außer A–Z.
+- **Höchstens 8 Wörter pro Satz, in jeder Sprache und jeder Stufe** (ab #19). Jedes Wort ist beim Teilen ein farbiges Kästchen; mehr als 8 brechen am Handy in WhatsApp um. Die Prüfseite meldet einen Fehler.
+- **Französisch und Italienisch:** Apostrophe und Bindestriche gehen auch hier nicht, also Sätze ohne Elision bauen: „La mer ne gèle que …“ statt „L’eau de mer …“, „en Islande“ statt „d’Islande“, „di acqua“ statt „d’acqua“, „ottantotto“ statt „quatre-vingt-huit“ (Zahlen mit Bindestrich umgehen). Wörter wie „arc-en-ciel“ oder „États-Unis“ umschreiben („aux USA“). In der Erklärung ist alles erlaubt, dort typografische Apostrophe (’) verwenden.
+- Französisch und Italienisch brauchen oft mehr Wörter. Trotzdem höchstens 8, also knapp formulieren („Le miel ne pourrit pratiquement jamais.“).
 - Kurz halten: am besten 25 bis 45 Buchstaben. Der zweitkürzeste Satz eines Tages wird Easy, der kürzeste Impossible.
 - **Easy ist der Einstieg:** Der Easy-Satz soll 5 bis 7 Wörter haben, höchstens 8, in jeder Sprache. Bei mehr meldet die Prüfseite einen Fehler. Dann einen der vier Fakten dieses Tages gegen einen mit weniger Wörtern tauschen. Gute Easy-Sätze sind auch ohne Vorwissen sofort klar.
 - Keine sehr langen Wörter (mehr als etwa 16 Buchstaben, z. B. „Oberschenkelknochen“). Sie passen auf kleinen Handys nicht in eine Zeile. Die Prüfseite meldet das.
@@ -47,7 +49,7 @@ Jeder Tag braucht vier Fakten. Sie stehen alle in `fakten.js` im Hauptordner, in
 - Woher jeder Fakt stammt und was an welcher Stelle der Quelle steht, ist in `QUELLENPRUEFUNG.md` festgehalten. Neue Fakten dort ebenfalls eintragen.
 - Einträge von Tagen, die schon erschienen sind, **nie umsortieren, löschen oder im Satz ändern**. Sonst ändern sich Rätsel, die Leute schon gespielt haben. Die automatischen Tests verhindern das.
 - Ein Fehler in der Erklärung eines veröffentlichten Fakts darf korrigiert werden. Im Pull Request begründen und in `QUELLENPRUEFUNG.md` eintragen.
-- Künftige Tage dürfen umgestellt werden, zum Beispiel für eine bessere Themenmischung oder kürzere Easy-Sätze (so geschehen am 25. Oktober 2026 für #17 bis #106 und am 28. Oktober 2026 ab #9: nur noch Sätze ohne Umlaute). Der Faktenbericht im GitHub-Lauf listet jede Änderung am Fahrplan auf, damit nichts unbemerkt passiert.
+- Künftige Tage dürfen umgestellt werden, zum Beispiel für eine bessere Themenmischung oder kürzere Easy-Sätze (so geschehen am 25. Oktober 2026 für #17 bis #106, am 28. Oktober 2026 ab #9: nur noch Sätze ohne Umlaute, und am 6. November 2026 ab #19: nur A–Z in allen Sprachen, höchstens 8 Wörter, Fahrplan bis 31. Dezember 2026). Tage, die in irgendeiner Zeitzone schon live sind (ab UTC+14 beginnt jeder Tag zuerst), bleiben gleich; deshalb blieb #18 am 6. November unverändert. Der Faktenbericht im GitHub-Lauf listet jede Änderung am Fahrplan auf, damit nichts unbemerkt passiert.
 
 ## Prüfen
 
@@ -57,16 +59,16 @@ Jeder Tag braucht vier Fakten. Sie stehen alle in `fakten.js` im Hauptordner, in
 
 Belege schneller finden: `python3 _dev/tools/belege.py spec.json` lädt Wikipedia-Artikel und zeigt die Sätze, die zu Suchwörtern passen. Das Werkzeug ersetzt nicht das Lesen, es hilft nur beim Finden.
 
-## Geparkte Fakten mit Umlaut
+## Geparkte Fakten
 
-In `_dev/redaktion/geparkt-umlaute.js` liegen geprüfte Fakten, deren deutscher Satz Ä, Ö, Ü oder ß enthält. Sie wurden am 28. Oktober 2026 aus dem Fahrplan genommen, nicht gelöscht. Das Spiel lädt diese Datei nicht. So kommt ein Fakt zurück:
+In `_dev/redaktion/geparkt-umlaute.js` liegen geprüfte Fakten, deren Satz nicht in die A–Z-Regeln passt: ein Umlaut im Deutschen (geparkt am 28. Oktober 2026) oder ein Akzent im Französischen oder Italienischen bzw. mehr als 8 Wörter (geparkt am 6. November 2026). Sie sind nicht gelöscht. Das Spiel lädt diese Datei nicht. So kommt ein Fakt zurück:
 
-1. Den deutschen Satz ohne Umlaut umformulieren. Bedeutung und Quelle müssen weiter passen, der englische Satz sagt dasselbe.
-2. Französisch und Italienisch ergänzen (`fr`, `it`) nach den Regeln oben. Die geparkten Fakten haben nur Deutsch und Englisch.
+1. Jeden Satz so umformulieren, dass nur A–Z vorkommt und er höchstens 8 Wörter hat. Bedeutung und Quelle müssen weiter passen, alle Sprachen sagen dasselbe.
+2. Fehlen Französisch und Italienisch (`fr`, `it`, bei den am 28. Oktober geparkten), nach den Regeln oben ergänzen.
 3. Den ganzen Eintrag mit seiner ID in `fakten.js` ganz unten anhängen und in der geparkten Datei löschen.
 4. Im Ordner `_dev`: `npm test`.
 
-Seit der Umstellung reicht der Vorrat bis 14. Dezember 2026. Umformulierte Fakten verlängern ihn.
+Seit dem 6. November 2026 reicht der Vorrat genau bis 31. Dezember 2026 (#72). Für 2027 braucht es neue oder umformulierte Fakten: Ab etwa 17. Dezember meldet der wöchentliche Lauf, dass weniger als 14 Tage übrig sind.
 
 ## Wenn der Vorrat knapp wird
 

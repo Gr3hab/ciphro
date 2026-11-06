@@ -68,11 +68,13 @@ CIPHRO #4 · Easy ⏱ 4:04,37
 Schlägst du meine Zeit? https://ciphro.eu/?n=4&m=easy
 ```
 Die Zeile mit der Serie steht nur ab 2 Tagen in Folge und nie bei Archivrätseln.
-Mehrere gelöste Stufen:
+Mehrere gelöste Stufen: je Stufe eine Zeile mit der Zeit, darunter die Kästchen allein. So bricht WhatsApp sie am Handy nicht um (ab #19 hat jeder Satz höchstens 8 Wörter, also höchstens 8 Kästchen):
 ```
 CIPHRO #4
-Easy ⏱ 4:04,37 🟩🟩🟩🟩🟩🟩🟩
-Hard ⏱ 6:12,05 🟩🟨🟩🟩🟩
+Easy ⏱ 4:04,37
+🟩🟩🟩🟩🟩🟩🟩
+Hard ⏱ 6:12,05
+🟩🟨🟩🟩🟩
 Schlägst du meine Zeiten? https://ciphro.eu/?n=4
 ```
 Keine gelöst:
@@ -100,7 +102,7 @@ Ausführlich in [`_dev/redaktion/ANLEITUNG.md`](_dev/redaktion/ANLEITUNG.md). Ku
 2. Bestehende Fakten von Tagen, die schon erschienen sind, nie ändern, umsortieren oder löschen. Die Tests prüfen das.
 3. Als Pull Request einreichen. Die Tests laufen automatisch, der Faktenbericht steht in der Zusammenfassung des Laufs.
 
-Satzregeln: nur Buchstaben und Leerzeichen, am Ende ein Punkt. Keine Ziffern, Kommas, Bindestriche oder Apostrophe. Seit #9 nur A bis Z, auch im Deutschen kein Ä, Ö, Ü, ß. Im Französischen und Italienischen sind Akzente im Satz erlaubt, im Code fallen sie weg (É → E, Œ → OE).
+Satzregeln: nur Buchstaben und Leerzeichen, am Ende ein Punkt. Keine Ziffern, Kommas, Bindestriche oder Apostrophe. Seit #9 nur A bis Z, auch im Deutschen kein Ä, Ö, Ü, ß. Seit #19 (8. November 2026) in allen vier Sprachen nur A bis Z, also auch im Französischen und Italienischen keine Akzente, und höchstens 8 Wörter pro Satz. Der Fahrplan reicht bis 31. Dezember 2026 (#72).
 
 ## Tests
 
