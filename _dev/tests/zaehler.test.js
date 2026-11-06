@@ -47,16 +47,20 @@ test('Zähler: zählt nur gültige Meldungen von ciphro.eu und speichert nur Sum
   [...env.DB.rows.keys()].forEach(k => assert.match(k.split('|')[0], /^\d{4}-\d\d-\d\d$/));
 });
 
-test('Zähler: Statistik nur mit dem geheimen Schlüssel', async () => {
+test('Zähler: Statistik nur mit dem geheimen Schlüssel, und nie in der Adresse', async () => {
   const w = (await load()).default, env = { DB: fakeDB(), STATISTIK_SCHLUESSEL: 'geheim-123' };
   await w.fetch(post({ e: 'spieler', l: 'de', m: '' }), env);
-  assert.equal((await w.fetch(new Request('https://zaehler.ciphro.eu/statistik'), env)).status, 403);
-  assert.equal((await w.fetch(new Request('https://zaehler.ciphro.eu/statistik?schluessel=falsch-12'), env)).status, 403);
-  assert.equal((await w.fetch(new Request('https://zaehler.ciphro.eu/statistik?schluessel='), { DB: env.DB })).status, 403, 'ohne eingerichteten Schlüssel nie offen');
-  const ok = await w.fetch(new Request('https://zaehler.ciphro.eu/statistik?schluessel=geheim-123'), env);
+  const auth = pw => ({ authorization: 'Basic ' + Buffer.from('egal:' + pw).toString('base64') });
+  const ohne = await w.fetch(new Request('https://zaehler.ciphro.eu/statistik'), env);
+  assert.equal(ohne.status, 401);
+  assert.match(ohne.headers.get('www-authenticate'), /^Basic /);
+  assert.equal((await w.fetch(new Request('https://zaehler.ciphro.eu/statistik', { headers: auth('falsch-12') }), env)).status, 401);
+  assert.equal((await w.fetch(new Request('https://zaehler.ciphro.eu/statistik?schluessel=geheim-123'), env)).status, 401, 'Schlüssel in der Adresse zählt nicht');
+  assert.equal((await w.fetch(new Request('https://zaehler.ciphro.eu/statistik', { headers: auth('') }), { DB: env.DB })).status, 401, 'ohne eingerichteten Schlüssel nie offen');
+  const ok = await w.fetch(new Request('https://zaehler.ciphro.eu/statistik', { headers: auth('geheim-123') }), env);
   assert.equal(ok.status, 200);
   assert.match(await ok.text(), /<td>1<\/td>/);
-  const csv = await w.fetch(new Request('https://zaehler.ciphro.eu/statistik?schluessel=geheim-123&format=csv'), env);
+  const csv = await w.fetch(new Request('https://zaehler.ciphro.eu/statistik?format=csv', { headers: auth('geheim-123') }), env);
   assert.match(await csv.text(), /^datum,ereignis,sprache,stufe,archiv,anzahl\n\d{4}-\d\d-\d\d,spieler,de,,0,1\n$/);
 });
 
@@ -75,9 +79,10 @@ test('Zähler: Tabelle und Hochzählen funktionieren in SQLite (wie D1)', t => {
   assert.deepEqual(rows.map(r => [r.stufe, r.anzahl]), [['easy', 2], ['hard', 1]]);
 });
 
-test('Spiel: meldet nur auf ciphro.eu, nie lokal, und respektiert Schalter und Global Privacy Control', () => {
+test('Spiel: meldet nur mit Zustimmung, nur auf ciphro.eu und nie bei Global Privacy Control', () => {
   const html = fs.readFileSync(path.join(__dirname, '..', '..', 'index.html'), 'utf8');
   assert.match(html, /const ZAEHLER = 'https:\/\/zaehler\.ciphro\.eu\/z';/);
-  assert.match(html, /if \(!\/\(\^\|\\\.\)ciphro\\\.eu\$\/\.test\(location\.hostname\) \|\| store\.count === false \|\| gpcOn\(\)/);
+  assert.match(html, /if \(store\.count !== true \|\| !countPossible\(\)\) return;/);
+  assert.match(html, /const countPossible = \(\) => \{ try \{ return \/\(\^\|\\\.\)ciphro\\\.eu\$\/\.test\(location\.hostname\) && !gpcOn\(\)/);
   ['aufruf', 'spieler', 'start', 'geloest', 'geteilt'].forEach(e => assert.match(html, new RegExp(`countEvent\\('${e}'`)));
 });

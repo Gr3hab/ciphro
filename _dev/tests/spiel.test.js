@@ -1385,7 +1385,7 @@ test('Offline: Nach dem ersten Besuch lädt das Spiel auch ohne Verbindung', asy
 /* ------------------------------------------------------------ Anonymer Zähler */
 // Die Seite läuft hier unter https://ciphro.eu (umgeleitet auf den Testserver), Meldungen an den Zähler werden abgefangen.
 async function onCiphro(opt = {}) {
-  const ctx = await env.browser.newContext({ locale: 'de-AT', timezoneId: 'Europe/Vienna', serviceWorkers: 'block', reducedMotion: 'reduce', permissions: ['clipboard-read', 'clipboard-write'] });
+  const ctx = await env.browser.newContext({ viewport: { width: opt.width || 390, height: 844 }, locale: 'de-AT', timezoneId: 'Europe/Vienna', serviceWorkers: 'block', reducedMotion: 'reduce', permissions: ['clipboard-read', 'clipboard-write'] });
   await ctx.clock.install({ time: new Date('2026-11-08T10:00:00+01:00') });
   const got = [];
   await ctx.route('https://zaehler.ciphro.eu/**', async r => { got.push({ ...JSON.parse(r.request().postData()), origin: r.request().headers().origin }); await r.fulfill({ status: 204 }); });
@@ -1403,50 +1403,84 @@ async function onCiphro(opt = {}) {
 }
 const settle = page => page.waitForTimeout(300);
 
-test('Zähler: meldet auf ciphro.eu nur Ereignis, Sprache, Stufe und Archiv, sonst nichts', async () => {
+test('Zähler: ohne Zustimmung keine einzige Anfrage, nach „Ja“ nur Ereignis, Sprache, Stufe und Archiv', async () => {
   const { page, got } = await onCiphro();
   await page.click('#startBtn');
   for (const w of solution(19, 'de', 'easy')) await typeWord(page, w);
+  await settle(page);
+  assert.deepEqual(got, [], 'vor der Zustimmung geht nichts an den Zähler');
+  // Frage im Ergebnis, Ja und Nein gleich gestaltet
+  assert.ok(await page.isVisible('#result .consent'));
+  assert.match(await page.textContent('#result .consent'), /Dürfen wir anonym mitzählen\?/);
+  assert.equal(await page.getAttribute('[data-act="countYes"]', 'class'), await page.getAttribute('[data-act="countNo"]', 'class'));
+  await page.click('[data-act="countYes"]');
+  assert.equal((await store(page)).count, true);
+  assert.equal(await page.isVisible('#result .consent'), false, 'nach der Antwort nicht mehr gefragt');
   await page.click('#result [data-act="share"]');
   await page.click('#result [data-act="next"]');
   await page.click('#startBtn');
+  await page.reload();
+  await page.waitForFunction(() => document.querySelector('#issue') && document.querySelector('#issue').textContent);
   await settle(page);
-  assert.deepEqual(got.map(g => [g.e, g.l, g.m, g.a]), [
-    ['aufruf', 'de', '', 0], ['spieler', 'de', '', 0], ['start', 'de', 'easy', 0], ['geloest', 'de', 'easy', 0], ['geteilt', 'de', '', 0], ['start', 'de', 'hard', 0]
-  ], 'zweite Stufe am selben Tag zählt nicht noch einmal als Spieler');
+  assert.deepEqual(got.map(g => [g.e, g.l, g.m, g.a]), [['geteilt', 'de', '', 0], ['start', 'de', 'hard', 0], ['aufruf', 'de', '', 0]],
+    'zweite Stufe am selben Tag zählt nicht noch einmal als Spieler');
   got.forEach(g => { assert.deepEqual(Object.keys(g).sort(), ['a', 'e', 'l', 'm', 'origin']); assert.equal(g.origin, 'https://ciphro.eu'); });
   await page.context().close();
 });
 
-test('Zähler: aus in den Einstellungen und bei Global Privacy Control, nie auf anderen Adressen', async () => {
-  // Schalter in den Einstellungen
+test('Zähler: „Nein“, Einstellungen, Global Privacy Control und andere Adressen', async () => {
+  // Nein: keine Frage mehr, nichts gemeldet, Schalter aus; später in den Einstellungen einschalten geht
   const a = await onCiphro();
-  await a.page.click('#settingsBtn');
-  assert.equal(await a.page.isChecked('#countToggle'), true);
-  await a.page.click('#countToggle');
-  assert.equal((await store(a.page)).count, false);
-  await a.page.click('#settingsDlg [data-close]');
-  const before = a.got.length;
   await a.page.click('#startBtn');
+  for (const w of solution(19, 'de', 'easy')) await typeWord(a.page, w);
+  await a.page.click('[data-act="countNo"]');
+  assert.equal((await store(a.page)).count, false);
+  assert.equal(await a.page.isVisible('#result .consent'), false);
+  await a.page.click('#result [data-act="share"]');
   await settle(a.page);
-  assert.equal(a.got.length, before, 'nach dem Ausschalten keine Meldung mehr');
+  assert.deepEqual(a.got, []);
+  await a.page.click('#settingsBtn');
+  assert.equal(await a.page.isChecked('#countToggle'), false);
+  await a.page.click('#countToggle');
+  assert.equal((await store(a.page)).count, true);
+  await a.page.click('#settingsDlg [data-close]');
+  await a.page.click('#result [data-act="share"]');
+  await settle(a.page);
+  assert.deepEqual(a.got.map(g => g.e), ['geteilt']);
   await a.page.context().close();
-  // Global Privacy Control: Schalter gesperrt, keine Meldung
-  const b = await onCiphro({ init: () => Object.defineProperty(Navigator.prototype, 'globalPrivacyControl', { get: () => true }) });
+  // Global Privacy Control: keine Frage, Schalter gesperrt, nichts gemeldet (auch nicht mit früherem Ja)
+  const b = await onCiphro({ store: { ...SEEN, count: true }, init: () => Object.defineProperty(Navigator.prototype, 'globalPrivacyControl', { get: () => true }) });
   await b.page.click('#startBtn');
+  for (const w of solution(19, 'de', 'easy')) await typeWord(b.page, w);
   await settle(b.page);
+  assert.equal(await b.page.isVisible('#result .consent'), false);
   assert.deepEqual(b.got, []);
   await b.page.click('#settingsBtn');
   assert.equal(await b.page.isDisabled('#countToggle'), true);
   assert.match(await b.page.textContent('#settingsBody'), /Global Privacy Control/);
   await b.page.context().close();
-  // Testserver (nicht ciphro.eu): nie eine Meldung
-  const page = await openPage(env, { time: '2026-11-08T10:00:00+01:00' });
+  // Testserver (nicht ciphro.eu): nie eine Frage und nie eine Anfrage, auch mit Ja im Speicher
+  const page = await openPage(env, { time: '2026-11-08T10:00:00+01:00', store: { ...SEEN, count: true } });
   const sent = [];
   page.on('request', r => { if (/zaehler/.test(r.url())) sent.push(r.url()); });
   await page.click('#startBtn');
+  for (const w of solution(19, 'de', 'easy')) await typeWord(page, w);
   await settle(page);
+  assert.equal(await page.isVisible('#result .consent'), false);
   assert.deepEqual(sent, []);
   noErrors(page);
   await page.context().close();
+});
+
+test('Zähler: Frage im Ergebnis passt auf kleine Handys, in allen Sprachen', async () => {
+  for (const [l, url] of [['de', ''], ['en', 'en/'], ['fr', 'fr/'], ['it', 'it/']]) {
+    const { page } = await onCiphro({ url, width: 320 });
+    await page.click('#startBtn');
+    for (const w of solution(19, l, 'easy')) await typeWord(page, w);
+    const box = await page.$eval('#result .consent', el => { const r = el.getBoundingClientRect(); return { left: r.left, right: r.right, sw: document.documentElement.scrollWidth }; });
+    assert.ok(box.left >= 0 && box.right <= 320 && box.sw <= 320, `${l}: ${JSON.stringify(box)}`);
+    const btns = await page.$$eval('#result .consent .btn', bs => bs.map(b => { const r = b.getBoundingClientRect(); return [r.width, r.height, b.scrollWidth <= b.clientWidth]; }));
+    btns.forEach(([w, h, fits]) => assert.ok(h >= 44 && fits, `${l}: Knopf ${w}×${h}`));
+    await page.context().close();
+  }
 });

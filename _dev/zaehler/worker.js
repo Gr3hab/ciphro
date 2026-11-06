@@ -3,8 +3,9 @@
    Stufe und Archiv ja/nein. Keine IP-Adresse, keine Kennung, kein Cookie, kein Zeitstempel einzelner Aufrufe.
 
    POST /z           ← das Spiel meldet ein Ereignis (navigator.sendBeacon, Text mit JSON)
-   GET  /statistik?schluessel=…            → Tabelle der letzten 60 Tage (nur mit dem geheimen Schlüssel)
-   GET  /statistik?schluessel=…&format=csv → dieselben Zahlen als CSV
+   GET  /statistik             → Tabelle der letzten 60 Tage. Der Browser fragt nach Benutzer und Passwort:
+                                 Benutzername beliebig, Passwort = geheimer Schlüssel (steht so nie in der Adresse).
+   GET  /statistik?format=csv  → dieselben Zahlen als CSV
 
    Einrichtung: siehe ANLEITUNG.md in diesem Ordner. Bindings: DB (D1), Secret STATISTIK_SCHLUESSEL. */
 
@@ -17,7 +18,7 @@ export default {
   async fetch(req, env) {
     const url = new URL(req.url);
     if (url.pathname === '/z') return zaehlen(req, env);
-    if (url.pathname === '/statistik') return statistik(url, env);
+    if (url.pathname === '/statistik') return statistik(req, url, env);
     return new Response('CIPHRO-Zähler\n', { status: 404, headers: { 'content-type': 'text/plain; charset=utf-8' } });
   }
 };
@@ -55,8 +56,17 @@ function gleich(a, b) {
   return x === 0;
 }
 
-async function statistik(url, env) {
-  if (!gleich(url.searchParams.get('schluessel') || '', env.STATISTIK_SCHLUESSEL || '')) return new Response('Kein Zugriff\n', { status: 403 });
+// Passwort aus der Anmeldung des Browsers (HTTP Basic), damit der Schlüssel nicht in Adresse, Verlauf oder Protokollen steht
+function passwort(req) {
+  const m = /^Basic\s+([A-Za-z0-9+/=]+)$/.exec(req.headers.get('authorization') || '');
+  if (!m) return '';
+  try { const t = atob(m[1]); return t.slice(t.indexOf(':') + 1); } catch (e) { return ''; }
+}
+
+async function statistik(req, url, env) {
+  if (!gleich(passwort(req), env.STATISTIK_SCHLUESSEL || '')) {
+    return new Response('Kein Zugriff\n', { status: 401, headers: { 'www-authenticate': 'Basic realm="CIPHRO-Zaehler", charset="UTF-8"', 'cache-control': 'no-store' } });
+  }
   const { results } = await env.DB.prepare(
     "SELECT datum, ereignis, sprache, stufe, archiv, anzahl FROM zaehler WHERE datum >= date('now', '-60 days') ORDER BY datum DESC"
   ).all();

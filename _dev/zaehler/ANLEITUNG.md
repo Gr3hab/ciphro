@@ -8,7 +8,7 @@ Beantwortet die Frage „Haben wir überhaupt Nutzer?“, ohne Tracking: Das Spi
 | `schema.sql` | Die eine Tabelle der Datenbank. |
 | `wrangler.toml` | Nur für die Einrichtung über die Kommandozeile (statt Dashboard). |
 
-Im Spiel steht der Gegenpart in `index.html` (Suche nach `countEvent`). Er meldet nur auf `ciphro.eu`, nie lokal, in Tests oder Vorschauen. Wer in den Einstellungen „Anonym mitzählen“ ausschaltet oder im Browser Global Privacy Control / Do Not Track aktiv hat, wird nicht gezählt.
+Im Spiel steht der Gegenpart in `index.html` (Suche nach `countEvent`). **Standardmäßig aus:** Nach dem ersten gelösten oder aufgelösten Rätsel fragt das Spiel im Ergebnis einmal „Dürfen wir anonym mitzählen?“ mit zwei gleichwertigen Knöpfen. Erst nach „Ja“ (oder dem Schalter in den Einstellungen) geht überhaupt eine Anfrage an den Zähler. Gefragt und gezählt wird nur auf `ciphro.eu` (nie lokal, in Tests oder Vorschauen) und nie bei Global Privacy Control / Do Not Track.
 
 **Kosten:** Der kostenlose Workers-Plan erlaubt 100.000 Aufrufe pro Tag, D1 kostenlos 100.000 geschriebene und 5 Millionen gelesene Zeilen pro Tag und 5 GB Speicher (Stand November 2026, [Workers](https://developers.cloudflare.com/workers/platform/pricing/), [D1](https://developers.cloudflare.com/d1/platform/pricing/)). Jede Meldung schreibt eine Zeile. Mit grob 5 Meldungen pro Spieler und Tag reicht das für rund 20.000 Spieler am Tag. Ist die Grenze erreicht, gehen weitere Meldungen an diesem Tag verloren; das Spiel merkt davon nichts.
 
@@ -28,10 +28,10 @@ Voraussetzung: Die Domain `ciphro.eu` liegt schon bei Cloudflare (ist so, wegen 
 ## Prüfen, ob es läuft
 
 - `https://zaehler.ciphro.eu/` zeigt „CIPHRO-Zähler“ (Fehlerseite 404, das ist richtig).
-- ciphro.eu öffnen, ein Rätsel starten. Dann `https://zaehler.ciphro.eu/statistik?schluessel=EUER-SCHLÜSSEL` öffnen: Der heutige Tag hat mindestens einen Aufruf, einen Spieler und einen Start.
-- Dieselbe Adresse mit `&format=csv` lädt die Zahlen als Tabelle für Excel.
+- ciphro.eu öffnen, ein Rätsel starten. Dann `https://zaehler.ciphro.eu/statistik` öffnen. Der Browser fragt nach Benutzername und Passwort: Benutzername beliebig, Passwort ist der geheime Schlüssel. Der heutige Tag hat mindestens einen Aufruf, einen Spieler und einen Start.
+- `https://zaehler.ciphro.eu/statistik?format=csv` lädt die Zahlen als Tabelle für Excel.
 
-Die Statistik-Adresse mit Schlüssel nicht weitergeben und nicht öffentlich posten. Wer sie hat, sieht die Zahlen (sonst nichts).
+Der Schlüssel steht nie in der Adresse, also auch nicht im Browserverlauf. Nicht weitergeben. Wer ihn hat, sieht die Zahlen (sonst nichts).
 
 ## Was die Zahlen bedeuten
 
@@ -44,7 +44,7 @@ Die Statistik-Adresse mit Schlüssel nicht weitergeben und nicht öffentlich pos
 | Start / Gelöst je Stufe | Wie oft Easy, Hard, Mirror, Impossible gestartet und gelöst wurden. |
 | Geteilt | Wie oft „Ergebnis teilen“ getippt wurde. |
 
-Die Zahlen sind ein Richtwert: Wer den Zähler ausschaltet oder Global Privacy Control nutzt, fehlt, und wer es darauf anlegt, könnte falsche Meldungen schicken (es gibt bewusst keine Anmeldung).
+Die Zahlen sind ein Richtwert: Gezählt wird nur, wer zugestimmt hat (also deutlich weniger als alle Spieler), und wer es darauf anlegt, könnte falsche Meldungen schicken (es gibt bewusst keine Anmeldung).
 
 ## Rechtliches (kurz)
 
