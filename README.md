@@ -2,7 +2,7 @@
 
 **Crack the code. Reveal the fact.**
 
-Jeden Tag vier Zahlencodes von Easy bis Impossible. Hinter jedem steckt ein kurzer, wahrer Fakt. Auf Deutsch, Englisch, Französisch und Italienisch. Kein Konto, keine Werbung, kein Tracking.
+Jeden Tag vier Zahlencodes von Easy bis Impossible. Hinter jedem steckt ein kurzer, wahrer Fakt. Auf Deutsch, Englisch, Französisch und Italienisch. Kein Konto, keine Werbung, kein Tracking (nur ein anonymer, abschaltbarer Zähler, siehe unten).
 
 Spielen: https://ciphro.eu/ · English: https://ciphro.eu/en/ · Français: https://ciphro.eu/fr/ · Italiano: https://ciphro.eu/it/
 
@@ -23,7 +23,7 @@ Bis November 2026 hieß das Spiel NUMIGMA und lag unter `gr3hab.github.io/numfac
 | `og-de.png`, `og-en.png`, `og-fr.png`, `og-it.png`, `icon*.png`, `manifest.webmanifest` | Vorschaubilder für geteilte Links (je Sprache, gleiches Design), App-Icons, Home-Bildschirm-App. Alle erzeugt mit `_dev/grafik/render.js` | ja |
 | `impressum.html`, `datenschutz.html`, `recht.css` | Impressum und Datenschutz (Deutsch, darunter Englisch, Französisch, Italienisch). Verlinkt in den Einstellungen | ja |
 | `CNAME` | Eigene Adresse `ciphro.eu` für GitHub Pages | ja |
-| `_dev/` | Prüfseite, Tests, Redaktionsunterlagen, Nachweise | **nein** |
+| `_dev/` | Prüfseite, Tests, Redaktionsunterlagen, Nachweise, Code des anonymen Zählers (`_dev/zaehler/`, läuft bei Cloudflare) | **nein** |
 
 GitHub Pages veröffentlicht Ordner, die mit `_` beginnen, nicht. Die Prüfseite mit allen Lösungen und alles für die Redaktion liegt deshalb in `_dev/`.
 
@@ -83,6 +83,10 @@ CIPHRO #4
 Heute nicht geknackt 😅
 Schaffst du's? https://ciphro.eu/?n=4
 ```
+
+## Anonymer Zähler
+
+Seit November 2026 zählt CIPHRO mit, wie oft gespielt wird, ohne jemanden zu erkennen: Das Spiel meldet nur Ereignis (Seite aufgerufen, erstes Rätsel des Tages begonnen, Stufe gestartet, Stufe gelöst, geteilt), Sprache, Stufe und Archiv ja/nein an `https://zaehler.ciphro.eu/z`. Ein Cloudflare Worker zählt daraus Tagessummen in einer D1-Datenbank. Keine IP-Adresse, keine Kennung, kein Cookie. Gemeldet wird nur auf `ciphro.eu` (nie lokal oder in Tests), nicht bei ausgeschaltetem Schalter „Anonym mitzählen“ in den Einstellungen und nicht bei Global Privacy Control / Do Not Track. Code, Einrichtung und wie man die Zahlen ansieht: [`_dev/zaehler/ANLEITUNG.md`](_dev/zaehler/ANLEITUNG.md). Beschrieben in `datenschutz.html`.
 
 ## Umzug von der alten Adresse
 

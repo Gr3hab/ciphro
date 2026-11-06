@@ -11,6 +11,7 @@ Dieser Ordner wird von GitHub Pages **nicht** veröffentlicht (Ordner mit `_` am
 | `tests/` | Automatische Tests (siehe unten) |
 | `tests/veroeffentlicht-1-16.json` | Abzug der Rätsel #1–#16 vom Relaunch; geprüft werden seit 28.10.2026 nur noch #1–#8, Umlaute dort als AE, OE, UE, SS (ab #9 neuer Fahrplan ohne Umlaute) |
 | `redaktion/` | Anleitung für neue Fakten, Quellenprüfung, geparkte Fakten, deren Satz nicht in die A–Z-Regeln passt (`geparkt-umlaute.js`) |
+| `zaehler/` | Anonymer Zähler: Cloudflare Worker, Datenbank-Tabelle, Anleitung zum Einrichten und Ansehen der Zahlen |
 | `nachweise/` | Bildschirmfotos vorher und nachher |
 
 ## Tests
@@ -23,7 +24,8 @@ npm test
 ```
 
 - `tests/daten.test.js`: Fakten (IDs, Themen, Satzregeln, Quellen, Kodierung), veröffentlichte Rätsel unverändert (Abzug #1–#8 und Vergleich mit `main` für alle Tage, die irgendwo auf der Welt schon live sind), nur A–Z an allen Tagen, ab #9 Sätze ohne Umlaute, ab #19 in allen Sprachen nur A–Z und höchstens 8 Wörter, geparkte Fakten, Französisch und Italienisch vollständig, gleiche Fakten in allen vier Sprachen ab #9, kein Thema doppelt pro Tag, Verschlüsselung, Zeitzonen und Sommerzeit, Vorrat und Wiederholung.
-- `tests/spiel.test.js`: im echten Browser (Chromium): Kurz-Einstieg und Erstbesuch über einen geteilten Link, Linkvorschau, Regelzeile, Links mit Nummer, Stufe und Sprache, Zeitzonen, Farben für Hilfe, alte Spielstände, Uhr und Pause, zwei Tabs, Teilen, Statistik und Serie, Tageswechsel, Vorrat erschöpft, Tastatur, Barrierefreiheit (axe), offline.
+- `tests/zaehler.test.js`: anonymer Zähler ohne Cloudflare (nachgebildete Datenbank, SQL in SQLite): nur gültige Meldungen von ciphro.eu, nur Summen, Statistik nur mit Schlüssel.
+- `tests/spiel.test.js`: im echten Browser (Chromium): Kurz-Einstieg und Erstbesuch über einen geteilten Link, Linkvorschau, Regelzeile, Links mit Nummer, Stufe und Sprache, Zeitzonen, Farben für Hilfe, alte Spielstände, Uhr und Pause, zwei Tabs, Teilen, Statistik und Serie, Tageswechsel, Vorrat erschöpft, Tastatur, Barrierefreiheit (axe), offline, Meldungen an den Zähler (nur auf ciphro.eu, abschaltbar, Global Privacy Control).
 - `tests/layout.test.js`: 320 bis 1280 px, Hoch- und Querformat, alle vier Sprachen: nichts ragt hinaus, nichts überlappt, Tasten und Zahlen darauf groß genug, Regelzeile nicht abgeschnitten, längste Wörter passen in eine Zeile.
 
 Einzelne Teile: `npm run test:daten`, `npm run test:spiel`. Die Uhrzeit in den Browsertests ist fest (24. Oktober 2026, Wien), die Tests sind deshalb jeden Tag gleich.

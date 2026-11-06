@@ -1381,3 +1381,72 @@ test('Offline: Nach dem ersten Besuch lädt das Spiel auch ohne Verbindung', asy
   await page.context().setOffline(false);
   await page.context().close();
 });
+
+/* ------------------------------------------------------------ Anonymer Zähler */
+// Die Seite läuft hier unter https://ciphro.eu (umgeleitet auf den Testserver), Meldungen an den Zähler werden abgefangen.
+async function onCiphro(opt = {}) {
+  const ctx = await env.browser.newContext({ locale: 'de-AT', timezoneId: 'Europe/Vienna', serviceWorkers: 'block', reducedMotion: 'reduce', permissions: ['clipboard-read', 'clipboard-write'] });
+  await ctx.clock.install({ time: new Date('2026-11-08T10:00:00+01:00') });
+  const got = [];
+  await ctx.route('https://zaehler.ciphro.eu/**', async r => { got.push({ ...JSON.parse(r.request().postData()), origin: r.request().headers().origin }); await r.fulfill({ status: 204 }); });
+  await ctx.route('https://ciphro.eu/**', async r => {
+    const u = new URL(r.request().url());
+    const res = await fetch(env.srv.url.replace(/\/$/, '') + u.pathname + u.search);
+    await r.fulfill({ status: res.status, headers: { 'content-type': res.headers.get('content-type') || 'text/html' }, body: Buffer.from(await res.arrayBuffer()) });
+  });
+  await ctx.addInitScript(s => { try { if (!localStorage.getItem('numfact.test.seeded')) { localStorage.setItem('numfact.v2', s); localStorage.setItem('numfact.test.seeded', '1'); } } catch (e) { /* egal */ } }, JSON.stringify(opt.store || SEEN));
+  if (opt.init) await ctx.addInitScript(opt.init);
+  const page = await ctx.newPage();
+  await page.goto('https://ciphro.eu/' + (opt.url || ''));
+  await page.waitForFunction(() => document.querySelector('#issue') && document.querySelector('#issue').textContent);
+  return { page, got };
+}
+const settle = page => page.waitForTimeout(300);
+
+test('Zähler: meldet auf ciphro.eu nur Ereignis, Sprache, Stufe und Archiv, sonst nichts', async () => {
+  const { page, got } = await onCiphro();
+  await page.click('#startBtn');
+  for (const w of solution(19, 'de', 'easy')) await typeWord(page, w);
+  await page.click('#result [data-act="share"]');
+  await page.click('#result [data-act="next"]');
+  await page.click('#startBtn');
+  await settle(page);
+  assert.deepEqual(got.map(g => [g.e, g.l, g.m, g.a]), [
+    ['aufruf', 'de', '', 0], ['spieler', 'de', '', 0], ['start', 'de', 'easy', 0], ['geloest', 'de', 'easy', 0], ['geteilt', 'de', '', 0], ['start', 'de', 'hard', 0]
+  ], 'zweite Stufe am selben Tag zählt nicht noch einmal als Spieler');
+  got.forEach(g => { assert.deepEqual(Object.keys(g).sort(), ['a', 'e', 'l', 'm', 'origin']); assert.equal(g.origin, 'https://ciphro.eu'); });
+  await page.context().close();
+});
+
+test('Zähler: aus in den Einstellungen und bei Global Privacy Control, nie auf anderen Adressen', async () => {
+  // Schalter in den Einstellungen
+  const a = await onCiphro();
+  await a.page.click('#settingsBtn');
+  assert.equal(await a.page.isChecked('#countToggle'), true);
+  await a.page.click('#countToggle');
+  assert.equal((await store(a.page)).count, false);
+  await a.page.click('#settingsDlg [data-close]');
+  const before = a.got.length;
+  await a.page.click('#startBtn');
+  await settle(a.page);
+  assert.equal(a.got.length, before, 'nach dem Ausschalten keine Meldung mehr');
+  await a.page.context().close();
+  // Global Privacy Control: Schalter gesperrt, keine Meldung
+  const b = await onCiphro({ init: () => Object.defineProperty(Navigator.prototype, 'globalPrivacyControl', { get: () => true }) });
+  await b.page.click('#startBtn');
+  await settle(b.page);
+  assert.deepEqual(b.got, []);
+  await b.page.click('#settingsBtn');
+  assert.equal(await b.page.isDisabled('#countToggle'), true);
+  assert.match(await b.page.textContent('#settingsBody'), /Global Privacy Control/);
+  await b.page.context().close();
+  // Testserver (nicht ciphro.eu): nie eine Meldung
+  const page = await openPage(env, { time: '2026-11-08T10:00:00+01:00' });
+  const sent = [];
+  page.on('request', r => { if (/zaehler/.test(r.url())) sent.push(r.url()); });
+  await page.click('#startBtn');
+  await settle(page);
+  assert.deepEqual(sent, []);
+  noErrors(page);
+  await page.context().close();
+});
