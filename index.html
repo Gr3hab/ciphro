@@ -674,7 +674,6 @@ const STR = {
     legal: { imprint: 'Impressum', privacy: 'Datenschutz', hash: '' },
     settings: { title: 'Einstellungen', theme: 'Design', system: 'System', light: 'Hell', dark: 'Dunkel', themeNote: 'System: hell oder dunkel, je nachdem, wie dein Handy oder Computer eingestellt ist.', language: 'Sprache',
       haptics: 'Haptisches Feedback', hapticsNote: 'Am Handy bei jedem Tastendruck. Auf Android zusätzlich bei richtigen und falschen Wörtern.',
-      count: 'Anonym mitzählen', countNote: 'Hilft uns zu sehen, wie viele spielen. Gezählt wird nur, wie oft ein Rätsel aufgerufen, gestartet, gelöst oder geteilt wird. Keine Kennung, keine Cookies, nichts über dich.', countGpc: 'Dein Browser bittet Websites, nichts zu erfassen (Global Privacy Control). Deshalb zählen wir bei dir nicht mit.',
       privacy: 'Kein Konto, keine Werbung, kein Tracking. Dein Fortschritt bleibt nur in diesem Browser. Auf einem anderen Gerät oder als App am Home-Bildschirm beginnt die Statistik neu.',
       intro: 'Kurz-Einstieg ansehen', done: 'Fertig' },
     shareDlg: { title: 'Ergebnis teilen', note: 'Automatisches Kopieren klappt hier nicht. Der Text ist markiert, du kannst ihn selbst kopieren.', done: 'Fertig' },
@@ -784,7 +783,6 @@ const STR = {
     legal: { imprint: 'Legal notice', privacy: 'Privacy', hash: '#en' },
     settings: { title: 'Settings', theme: 'Theme', system: 'System', light: 'Light', dark: 'Dark', themeNote: 'System: light or dark, matching the setting on your phone or computer.', language: 'Language',
       haptics: 'Haptic feedback', hapticsNote: 'On phones with every key press. On Android also for right and wrong words.',
-      count: 'Count anonymously', countNote: 'Helps us see how many people play. We only count how often a puzzle is opened, started, solved or shared. No ID, no cookies, nothing about you.', countGpc: 'Your browser asks websites not to collect data (Global Privacy Control), so we do not count you.',
       privacy: 'No account, no ads, no tracking. Your progress stays in this browser only. On another device or as a home screen app, your statistics start fresh.',
       intro: 'Show the quick start', done: 'Done' },
     shareDlg: { title: 'Share result', note: 'Automatic copying does not work here. The text is selected so you can copy it yourself.', done: 'Done' },
@@ -894,7 +892,6 @@ const STR = {
     legal: { imprint: 'Mentions légales', privacy: 'Confidentialité', hash: '#fr' },
     settings: { title: 'Réglages', theme: 'Apparence', system: 'Système', light: 'Clair', dark: 'Sombre', themeNote: 'Système : clair ou sombre, selon le réglage de ton téléphone ou de ton ordinateur.', language: 'Langue',
       haptics: 'Retour haptique', hapticsNote: 'Sur téléphone à chaque touche. Sur Android aussi pour les mots justes et faux.',
-      count: 'Comptage anonyme', countNote: 'Nous aide à savoir combien de personnes jouent. Nous comptons seulement combien de fois une énigme est ouverte, commencée, résolue ou partagée. Aucun identifiant, aucun cookie, rien sur toi.', countGpc: 'Ton navigateur demande aux sites de ne rien collecter (Global Privacy Control). Nous ne te comptons donc pas.',
       privacy: 'Pas de compte, pas de pub, pas de pistage. Ta progression reste uniquement dans ce navigateur. Sur un autre appareil ou en appli sur l’écran d’accueil, tes statistiques repartent de zéro.',
       intro: 'Revoir la prise en main', done: 'OK' },
     shareDlg: { title: 'Partager le résultat', note: 'La copie automatique ne fonctionne pas ici. Le texte est sélectionné, tu peux le copier toi-même.', done: 'OK' },
@@ -1005,7 +1002,6 @@ const STR = {
     legal: { imprint: 'Note legali', privacy: 'Privacy', hash: '#it' },
     settings: { title: 'Impostazioni', theme: 'Tema', system: 'Sistema', light: 'Chiaro', dark: 'Scuro', themeNote: 'Sistema: chiaro o scuro, come impostato sul tuo telefono o computer.', language: 'Lingua',
       haptics: 'Feedback aptico', hapticsNote: 'Sul telefono a ogni tasto. Su Android anche per parole giuste e sbagliate.',
-      count: 'Conteggio anonimo', countNote: 'Ci aiuta a capire quante persone giocano. Contiamo solo quante volte un enigma viene aperto, iniziato, risolto o condiviso. Nessun identificativo, nessun cookie, niente su di te.', countGpc: 'Il tuo browser chiede ai siti di non raccogliere dati (Global Privacy Control), quindi non ti contiamo.',
       privacy: 'Nessun account, nessuna pubblicità, nessun tracciamento. I tuoi progressi restano solo in questo browser. Su un altro dispositivo o come app nella schermata Home, le statistiche ripartono da zero.',
       intro: 'Rivedi l’introduzione', done: 'Fatto' },
     shareDlg: { title: 'Condividi il risultato', note: 'La copia automatica qui non funziona. Il testo è selezionato, puoi copiarlo tu.', done: 'Fatto' },
@@ -1147,22 +1143,6 @@ function fixStore() {
 }
 fixStore();
 function save() { try { localStorage.setItem(CONFIG.storageKey, JSON.stringify(store)); } catch (e) { /* ignorieren */ } }
-
-/* ============================================================ Anonymer Zähler (seit November 2026)
-   Zählt nur, wie oft etwas passiert: Seite aufgerufen, erstes Rätsel des Tages begonnen (ungefähr: Spieler),
-   Stufe gestartet, Stufe gelöst, Ergebnis geteilt. Je Sprache und Stufe, sonst nichts. Keine Kennung, kein Cookie,
-   nichts aus dem Spielstand. Der Zähler (Cloudflare Worker, Code in _dev/zaehler/) speichert keine IP-Adresse.
-   Nur auf ciphro.eu (nie in Tests, lokal oder in Vorschauen). Aus: Schalter in den Einstellungen oder
-   Global Privacy Control / Do Not Track im Browser. Kommt die Meldung nicht an, merkt das Spiel nichts davon. */
-const ZAEHLER = 'https://zaehler.ciphro.eu/z';
-const gpcOn = () => { try { return navigator.globalPrivacyControl === true || navigator.doNotTrack === '1'; } catch (e) { return false; } };
-function countEvent(e, mode) {
-  try {
-    if (!/(^|\.)ciphro\.eu$/.test(location.hostname) || store.count === false || gpcOn() || !navigator.sendBeacon) return;
-    const body = JSON.stringify({ e, l: lang, m: mode || '', a: archive ? 1 : 0 });
-    navigator.sendBeacon(ZAEHLER, new Blob([body], { type: 'text/plain' }));
-  } catch (err) { /* Zählen darf das Spiel nie stören */ }
-}
 if (moved === 'ok' || moved === 'again') save();
 
 /* ============================================================ Sprache und Link */
@@ -1727,8 +1707,6 @@ function startMode() {
   const s = ms(current);
   if (s.status !== 'open') return;
   const firstEver = !everPlayed();
-  if (MODES.every(m => ms(m.id).status === 'open')) countEvent('spieler');
-  countEvent('start', current);
   s.status = 'playing'; s.startedOn = realToday();
   paused = false;
   save();
@@ -1984,7 +1962,7 @@ function complete(status) {
   save();
   renderAll();
   announce(status === 'solved' ? t.saySolved(fmtExact(s.elapsed)) : t.sayRevealed);
-  if (status === 'solved') { burst(); buzz('win'); countEvent('geloest', current); }
+  if (status === 'solved') { burst(); buzz('win'); }
   requestAnimationFrame(() => $('#result').scrollIntoView({ behavior: reduceMotion() ? 'auto' : 'smooth', block: 'start' }));
 }
 
@@ -2132,7 +2110,6 @@ function shareText() {
 
 async function doShare(btn) {
   const text = shareText(), t = T();
-  countEvent('geteilt');
   if (navigator.share && mq('(pointer: coarse)')) {
     try { await navigator.share({ text }); return; }
     catch (e) { if (e && e.name === 'AbortError') return; }
@@ -2201,7 +2178,6 @@ function renderSettings() {
       [['system', t.system], ['light', t.light], ['dark', t.dark]].map(([v, l]) => `<label><input type="radio" name="theme" id="theme-${v}" value="${v}"${(store.theme || 'system') === v ? ' checked' : ''}><span>${esc(l)}</span></label>`).join('') +
     `</div><p class="small" style="margin-top:6px">${esc(t.themeNote)}</p></div>` +
     `<div class="row"><label for="hapticsToggle"><strong>${esc(t.haptics)}</strong><br><span class="small">${esc(t.hapticsNote)}</span></label><input type="checkbox" switch id="hapticsToggle"${store.haptics ? ' checked' : ''}></div>` +
-    `<div class="row"><label for="countToggle"><strong>${esc(t.count)}</strong><br><span class="small">${esc(gpcOn() ? t.countGpc : t.countNote)}</span></label><input type="checkbox" switch id="countToggle"${store.count !== false && !gpcOn() ? ' checked' : ''}${gpcOn() ? ' disabled' : ''}></div>` +
     `<p class="small">${esc(t.privacy)}</p>` +
     '<div class="actions-row">' +
       `<button class="btn primary" type="button" data-close>${esc(t.done)}</button>` +
@@ -2359,7 +2335,6 @@ document.addEventListener('change', e => {
     if (again) again.focus();
   } else if (el.name === 'theme') { store.theme = el.value; save(); applyTheme(); }
   else if (el.id === 'hapticsToggle') { store.haptics = el.checked; save(); applyHaptics(); if (store.haptics) buzz('ok'); }
-  else if (el.id === 'countToggle') { store.count = el.checked; save(); }
 });
 
 $('#kb').addEventListener('click', e => {
@@ -2479,7 +2454,6 @@ renderStatic(); buildKeyboard();
   syncUrl();
   if (!store.seenHelp) openIntro();
   tick();
-  countEvent('aufruf');
 })();
 
 // Offline-Unterstützung: nur über https (GitHub Pages). Die Seite funktioniert auch ohne.
