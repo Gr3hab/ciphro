@@ -1,6 +1,6 @@
 # Anonymer Zähler für CIPHRO – Freigabe- und Betriebsanleitung
 
-**Status (07.11.2026):** Cloudflare-Worker `ciphro-zaehler`, EU-D1-Datenbank und `zaehler.ciphro.eu` sind im Konto `lksgreil@gmail.com` eingerichtet. Der produktive Spielcode erhält den Zähler mit PR #10. Normale Besucher müssen dafür nichts installieren; für Wartung siehe unten.
+**Status (07.11.2026):** Cloudflare-Worker `ciphro-zaehler`, EU-D1-Datenbank und `zaehler.ciphro.eu` sind im Cloudflare-Konto der Betreiber (das Konto, in dem auch ciphro.eu liegt) eingerichtet. Der produktive Spielcode erhält den Zähler mit PR #10. Normale Besucher müssen dafür nichts installieren; für Wartung siehe unten.
 
 Beantwortet die Frage „Haben wir überhaupt Nutzer?“, ohne Tracking: Das Spiel meldet nur, **dass** etwas passiert ist (Seite aufgerufen, erstes Rätsel des Tages begonnen, Stufe gestartet, Stufe gelöst, Ergebnis geteilt), mit Sprache, Stufe und Archiv ja/nein. Der Zähler speichert davon nur Tagessummen. Keine IP-Adresse, keine Kennung, kein Cookie.
 
@@ -25,7 +25,7 @@ Die Ersteinrichtung erfolgte am 07.11.2026 über die Cloudflare-API im bestehend
 
 Für spätere Änderungen: Node.js 20+, Wrangler v4.36.0 oder neuer und Berechtigung für das **richtige** Konto vorausgesetzt.
 
-1. In `_dev/zaehler` wechseln, `npx wrangler whoami` prüfen; falls erforderlich `npx wrangler login` mit dem Konto `lksgreil@gmail.com`.
+1. In `_dev/zaehler` wechseln, `npx wrangler whoami` prüfen; falls erforderlich `npx wrangler login` mit dem Cloudflare-Konto, in dem ciphro.eu liegt.
 2. Im Ordner `_dev` `npm test` ausführen. Im Zählerordner `npx wrangler deploy --dry-run` ausführen. D1-ID, EU-Datenbank, Rate-Limits und deaktivierte Logs im `wrangler.toml` kontrollieren.
 3. Nur nach Releasefreigabe `npx wrangler deploy` ausführen. **Kein zweites `d1 create`, kein erneutes `schema.sql` und kein neues Secret beim gewöhnlichen Code-Deploy.**
 4. **Nach jedem Deploy** unter Cloudflare Worker-Einstellungen prüfen, dass Workers Logs, Invocation Logs, Traces sowie Logpush/Tail-Consumers aus sind. Die dazu passende API ist `GET /accounts/{account_id}/workers/scripts/ciphro-zaehler/script-settings` (nicht die allgemeine `/settings`-Antwort). Bei der Einrichtung am 07.11.2026 antwortete dieses Feld mit `observability: null` für den deaktivierten Zähler; ein anderer Worker im selben Konto lieferte bei aktivierter Protokollierung ausdrücklich `observability.enabled: true`. Die abgeschalteten Einstellungen wurden zusätzlich mit `PATCH .../script-settings` gesetzt.

@@ -230,6 +230,16 @@ test('Vorrat: mindestens zwei Wochen über den 30. November hinaus', { skip: pro
   assert.ok(NF.lastPlannedDay() >= NF.addDays('2026-11-30', 14), `reicht nur bis ${NF.lastPlannedDay()}`);
 });
 
+test('Keine privaten E-Mail-Adressen im Repository (es ist öffentlich auf GitHub)', () => {
+  // Kontakt läuft nur über die Weiterleitungen kontakt@, contact@ und contatto@ciphro.eu (Entscheidung vom 5. November 2026)
+  const { execSync } = require('child_process');
+  const root = path.join(__dirname, '..', '..');
+  const files = execSync('git ls-files', { cwd: root, encoding: 'utf8' }).split('\n').filter(f => f && !/\.(png|jpe?g|ico|woff2?)$/i.test(f));
+  const privat = /[A-Za-z0-9._%+-]+@(gmail|googlemail|outlook|hotmail|live|gmx|web|yahoo|icloud|aon|chello)\.[a-z]{2,}/i;
+  const hits = files.filter(f => { try { return privat.test(fs.readFileSync(path.join(root, f), 'utf8')); } catch (e) { return false; } });
+  assert.deepEqual(hits, [], 'private Adresse gefunden in: ' + hits.join(', '));
+});
+
 test('Geparkte Fakten: nur solche, die gegen die A–Z-Regeln verstoßen, vollständig, mit Quelle, nicht eingeplant', () => {
   const planned = new Set(F.map(f => f.id));
   const words = s => s.split(/\s+/).filter(w => NF.symStr(w)).length;
