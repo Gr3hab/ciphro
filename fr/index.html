@@ -240,6 +240,10 @@ a{color:var(--ink)}
 .result .streak{margin:0;font-size:.92rem}
 .result .streak.note{color:var(--muted)}
 .result .actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:2px}
+.result .consent{border:1px solid var(--line);border-radius:var(--r);padding:12px 14px;display:flex;flex-direction:column;gap:10px;max-width:62ch}
+.result .consent p{margin:0;font-size:.92rem}
+.result .consent .small{color:var(--muted);font-size:.86rem}
+.result .consent .actions{margin:0}
 .countdown{font-family:var(--display);font-weight:700;font-variant-numeric:tabular-nums;color:var(--ink)}
 
 /* Knöpfe */
@@ -657,6 +661,7 @@ const STR = {
     wordLabel: (i, n, L, code, typed) => `Wort ${i} von ${n}, ${L} Buchstaben, Code ${code}, eingegeben: ${typed}`,
     wordDone: (i, n, w) => `Wort ${i} von ${n}: ${w}`,
     empty: 'leer',
+    consent: { q: 'Dürfen wir anonym mitzählen?', note: 'Nur wie oft gespielt wird, je Sprache und Stufe – auch dieses gerade beendete Rätsel. Keine Kennung, keine Cookies. Jederzeit in den Einstellungen änderbar.', yes: 'Ja, zählt mit', no: 'Nein, danke', thanks: 'Danke! Ändern kannst du das in den Einstellungen.' },
     resSolved: 'Geknackt', resRevealed: 'Aufgelöst',
     noHelp: 'ohne Hilfe', withHelp: n => n === 1 ? 'mit 1 Tipp' : `mit ${n} Tipps`,
     summary: (g, y, r) => [g && `${g} ohne Hilfe`, y && `${y} mit Hilfe`, r && `${r} aufgelöst`].filter(Boolean).join(' · '),
@@ -675,6 +680,7 @@ const STR = {
     legal: { imprint: 'Impressum', privacy: 'Datenschutz', hash: '' },
     settings: { title: 'Einstellungen', theme: 'Design', system: 'System', light: 'Hell', dark: 'Dunkel', themeNote: 'System: hell oder dunkel, je nachdem, wie dein Handy oder Computer eingestellt ist.', language: 'Sprache',
       haptics: 'Haptisches Feedback', hapticsNote: 'Am Handy bei jedem Tastendruck. Auf Android zusätzlich bei richtigen und falschen Wörtern.',
+      count: 'Anonym mitzählen', countNote: 'Hilft uns zu sehen, wie viele spielen. Gezählt wird nur, wie oft ein Rätsel aufgerufen, gestartet, gelöst oder geteilt wird. Keine Kennung, keine Cookies, nichts über dich. Aus, solange du nicht zustimmst.', countGpc: 'Dein Browser bittet Websites, nichts zu erfassen (Global Privacy Control). Deshalb zählen wir bei dir nicht mit.',
       privacy: 'Kein Konto, keine Werbung, kein Tracking. Dein Fortschritt bleibt nur in diesem Browser. Auf einem anderen Gerät oder als App am Home-Bildschirm beginnt die Statistik neu.',
       intro: 'Kurz-Einstieg ansehen', done: 'Fertig' },
     shareDlg: { title: 'Ergebnis teilen', note: 'Automatisches Kopieren klappt hier nicht. Der Text ist markiert, du kannst ihn selbst kopieren.', done: 'Fertig' },
@@ -766,6 +772,7 @@ const STR = {
     wordLabel: (i, n, L, code, typed) => `Word ${i} of ${n}, ${L} letters, code ${code}, typed: ${typed}`,
     wordDone: (i, n, w) => `Word ${i} of ${n}: ${w}`,
     empty: 'empty',
+    consent: { q: 'May we count you anonymously?', note: 'Only how often people play, by language and level – including this puzzle you just finished. No ID, no cookies. You can change this any time in settings.', yes: 'Yes, count me', no: 'No, thanks', thanks: 'Thanks! You can change this in the settings.' },
     resSolved: 'Cracked', resRevealed: 'Revealed',
     noHelp: 'no help', withHelp: n => n === 1 ? 'with 1 hint' : `with ${n} hints`,
     summary: (g, y, r) => [g && `${g} without help`, y && `${y} with help`, r && `${r} revealed`].filter(Boolean).join(' · '),
@@ -784,6 +791,7 @@ const STR = {
     legal: { imprint: 'Legal notice', privacy: 'Privacy', hash: '#en' },
     settings: { title: 'Settings', theme: 'Theme', system: 'System', light: 'Light', dark: 'Dark', themeNote: 'System: light or dark, matching the setting on your phone or computer.', language: 'Language',
       haptics: 'Haptic feedback', hapticsNote: 'On phones with every key press. On Android also for right and wrong words.',
+      count: 'Count anonymously', countNote: 'Helps us see how many people play. We only count how often a puzzle is opened, started, solved or shared. No ID, no cookies, nothing about you. Off unless you agree.', countGpc: 'Your browser asks websites not to collect data (Global Privacy Control), so we do not count you.',
       privacy: 'No account, no ads, no tracking. Your progress stays in this browser only. On another device or as a home screen app, your statistics start fresh.',
       intro: 'Show the quick start', done: 'Done' },
     shareDlg: { title: 'Share result', note: 'Automatic copying does not work here. The text is selected so you can copy it yourself.', done: 'Done' },
@@ -875,6 +883,7 @@ const STR = {
     wordLabel: (i, n, L, code, typed) => `Mot ${i} sur ${n}, ${L} lettres, code ${code}, saisi : ${typed}`,
     wordDone: (i, n, w) => `Mot ${i} sur ${n} : ${w}`,
     empty: 'vide',
+    consent: { q: 'Pouvons-nous te compter de façon anonyme\u00a0?', note: 'Seulement combien de fois on joue, par langue et par niveau – y compris cette énigme terminée. Aucun identifiant, aucun cookie. Modifiable dans les réglages.', yes: 'Oui, comptez-moi', no: 'Non, merci', thanks: 'Merci\u00a0! Tu peux changer cela dans les réglages.' },
     resSolved: 'Déchiffré', resRevealed: 'Dévoilé',
     noHelp: 'sans aide', withHelp: n => n === 1 ? 'avec 1 indice' : `avec ${n} indices`,
     summary: (g, y, r) => [g && `${g} sans aide`, y && `${y} avec aide`, r && `${r} ${r === 1 ? 'dévoilé' : 'dévoilés'}`].filter(Boolean).join(' · '),
@@ -893,6 +902,7 @@ const STR = {
     legal: { imprint: 'Mentions légales', privacy: 'Confidentialité', hash: '#fr' },
     settings: { title: 'Réglages', theme: 'Apparence', system: 'Système', light: 'Clair', dark: 'Sombre', themeNote: 'Système : clair ou sombre, selon le réglage de ton téléphone ou de ton ordinateur.', language: 'Langue',
       haptics: 'Retour haptique', hapticsNote: 'Sur téléphone à chaque touche. Sur Android aussi pour les mots justes et faux.',
+      count: 'Comptage anonyme', countNote: 'Nous aide à savoir combien de personnes jouent. Nous comptons seulement combien de fois une énigme est ouverte, commencée, résolue ou partagée. Aucun identifiant, aucun cookie, rien sur toi. Désactivé tant que tu n’as pas accepté.', countGpc: 'Ton navigateur demande aux sites de ne rien collecter (Global Privacy Control). Nous ne te comptons donc pas.',
       privacy: 'Pas de compte, pas de pub, pas de pistage. Ta progression reste uniquement dans ce navigateur. Sur un autre appareil ou en appli sur l’écran d’accueil, tes statistiques repartent de zéro.',
       intro: 'Revoir la prise en main', done: 'OK' },
     shareDlg: { title: 'Partager le résultat', note: 'La copie automatique ne fonctionne pas ici. Le texte est sélectionné, tu peux le copier toi-même.', done: 'OK' },
@@ -985,6 +995,7 @@ const STR = {
     wordLabel: (i, n, L, code, typed) => `Parola ${i} di ${n}, ${L} lettere, codice ${code}, scritto: ${typed}`,
     wordDone: (i, n, w) => `Parola ${i} di ${n}: ${w}`,
     empty: 'vuota',
+    consent: { q: 'Possiamo contarti in modo anonimo?', note: 'Solo quante volte si gioca, per lingua e livello – incluso questo enigma appena finito. Nessun identificativo, nessun cookie. Puoi cambiare idea nelle impostazioni.', yes: 'Sì, contatemi', no: 'No, grazie', thanks: 'Grazie! Puoi cambiarlo nelle impostazioni.' },
     resSolved: 'Decifrato', resRevealed: 'Svelato',
     noHelp: 'senza aiuti', withHelp: n => n === 1 ? 'con 1 indizio' : `con ${n} indizi`,
     summary: (g, y, r) => [g && `${g} senza aiuti`, y && `${y} con aiuti`, r && `${r} ${r === 1 ? 'svelata' : 'svelate'}`].filter(Boolean).join(' · '),
@@ -1003,6 +1014,7 @@ const STR = {
     legal: { imprint: 'Note legali', privacy: 'Privacy', hash: '#it' },
     settings: { title: 'Impostazioni', theme: 'Tema', system: 'Sistema', light: 'Chiaro', dark: 'Scuro', themeNote: 'Sistema: chiaro o scuro, come impostato sul tuo telefono o computer.', language: 'Lingua',
       haptics: 'Feedback aptico', hapticsNote: 'Sul telefono a ogni tasto. Su Android anche per parole giuste e sbagliate.',
+      count: 'Conteggio anonimo', countNote: 'Ci aiuta a capire quante persone giocano. Contiamo solo quante volte un enigma viene aperto, iniziato, risolto o condiviso. Nessun identificativo, nessun cookie, niente su di te. Disattivato finché non acconsenti.', countGpc: 'Il tuo browser chiede ai siti di non raccogliere dati (Global Privacy Control), quindi non ti contiamo.',
       privacy: 'Nessun account, nessuna pubblicità, nessun tracciamento. I tuoi progressi restano solo in questo browser. Su un altro dispositivo o come app nella schermata Home, le statistiche ripartono da zero.',
       intro: 'Rivedi l’introduzione', done: 'Fatto' },
     shareDlg: { title: 'Condividi il risultato', note: 'La copia automatica qui non funziona. Il testo è selezionato, puoi copiarlo tu.', done: 'Fatto' },
@@ -1144,6 +1156,24 @@ function fixStore() {
 }
 fixStore();
 function save() { try { localStorage.setItem(CONFIG.storageKey, JSON.stringify(store)); } catch (e) { /* ignorieren */ } }
+
+/* ============================================================ Anonymer Zähler (nur mit Zustimmung)
+   Standardmäßig aus. Erst wer im Ergebnis „Ja, zählt mit“ tippt (oder den Schalter in den Einstellungen einschaltet),
+   wird gezählt: Seite aufgerufen, erstes Rätsel des Tages begonnen, Stufe gestartet, gelöst, geteilt. Je Sprache und
+   Stufe, sonst nichts. Keine Kennung, kein Cookie, nichts aus dem Spielstand. Ohne Zustimmung geht keine einzige
+   Anfrage an den Zähler. Der Zähler (Cloudflare Worker, Code in _dev/zaehler/) speichert keine IP-Adresse.
+   Nur auf ciphro.eu (nie in Tests, lokal oder in Vorschauen). Bei Global Privacy Control / Do Not Track wird
+   gar nicht erst gefragt. store.count: undefined = noch nicht gefragt, true = Ja, false = Nein. */
+const ZAEHLER = 'https://zaehler.ciphro.eu/z';
+const gpcOn = () => { try { return navigator.globalPrivacyControl === true || navigator.doNotTrack === '1'; } catch (e) { return false; } };
+const countPossible = () => { try { return /(^|\.)ciphro\.eu$/.test(location.hostname) && !gpcOn() && !!navigator.sendBeacon; } catch (e) { return false; } };
+function countEvent(e, mode) {
+  try {
+    if (store.count !== true || !countPossible()) return;
+    const body = JSON.stringify({ e, l: lang, m: mode || '', a: archive ? 1 : 0 });
+    navigator.sendBeacon(ZAEHLER, new Blob([body], { type: 'text/plain' }));
+  } catch (err) { /* Zählen darf das Spiel nie stören */ }
+}
 if (moved === 'ok' || moved === 'again') save();
 
 /* ============================================================ Sprache und Link */
@@ -1617,7 +1647,13 @@ function renderResult() {
       `<button class="btn primary" type="button" data-act="share">${ICON.share}${esc(t.share)}</button>` +
       (next ? `<button class="btn" type="button" data-act="next">${esc(t.next(next.name))}${ICON.next}</button>` : '') +
       (allDone ? `<button class="btn" type="button" data-act="stats">${esc(t.statsBtn)}</button>` : '') +
-    '</div>' + legalLinks();
+    '</div>' +
+    // Frage nach dem anonymen Zähler: nur auf ciphro.eu, nur solange nicht beantwortet, Ja und Nein gleich groß
+    (store.count === undefined && countPossible()
+      ? `<div class="consent" role="group" aria-labelledby="consentQ"><p id="consentQ"><strong>${esc(t.consent.q)}</strong></p><p class="small">${esc(t.consent.note)}</p>` +
+        `<div class="actions"><button class="btn" type="button" data-act="countYes">${esc(t.consent.yes)}</button><button class="btn" type="button" data-act="countNo">${esc(t.consent.no)}</button></div></div>`
+      : '') +
+    legalLinks();
   box.hidden = false;
   tick();
 }
@@ -1708,6 +1744,8 @@ function startMode() {
   const s = ms(current);
   if (s.status !== 'open') return;
   const firstEver = !everPlayed();
+  if (MODES.every(m => ms(m.id).status === 'open')) countEvent('spieler');
+  countEvent('start', current);
   s.status = 'playing'; s.startedOn = realToday();
   paused = false;
   save();
@@ -1963,7 +2001,7 @@ function complete(status) {
   save();
   renderAll();
   announce(status === 'solved' ? t.saySolved(fmtExact(s.elapsed)) : t.sayRevealed);
-  if (status === 'solved') { burst(); buzz('win'); }
+  if (status === 'solved') { burst(); buzz('win'); countEvent('geloest', current); }
   requestAnimationFrame(() => $('#result').scrollIntoView({ behavior: reduceMotion() ? 'auto' : 'smooth', block: 'start' }));
 }
 
@@ -2111,6 +2149,7 @@ function shareText() {
 
 async function doShare(btn) {
   const text = shareText(), t = T();
+  countEvent('geteilt');
   if (navigator.share && mq('(pointer: coarse)')) {
     try { await navigator.share({ text }); return; }
     catch (e) { if (e && e.name === 'AbortError') return; }
@@ -2179,6 +2218,7 @@ function renderSettings() {
       [['system', t.system], ['light', t.light], ['dark', t.dark]].map(([v, l]) => `<label><input type="radio" name="theme" id="theme-${v}" value="${v}"${(store.theme || 'system') === v ? ' checked' : ''}><span>${esc(l)}</span></label>`).join('') +
     `</div><p class="small" style="margin-top:6px">${esc(t.themeNote)}</p></div>` +
     `<div class="row"><label for="hapticsToggle"><strong>${esc(t.haptics)}</strong><br><span class="small">${esc(t.hapticsNote)}</span></label><input type="checkbox" switch id="hapticsToggle"${store.haptics ? ' checked' : ''}></div>` +
+    `<div class="row"><label for="countToggle"><strong>${esc(t.count)}</strong><br><span class="small">${esc(gpcOn() ? t.countGpc : t.countNote)}</span></label><input type="checkbox" switch id="countToggle"${store.count === true && !gpcOn() ? ' checked' : ''}${gpcOn() ? ' disabled' : ''}></div>` +
     `<p class="small">${esc(t.privacy)}</p>` +
     '<div class="actions-row">' +
       `<button class="btn primary" type="button" data-close>${esc(t.done)}</button>` +
@@ -2336,6 +2376,7 @@ document.addEventListener('change', e => {
     if (again) again.focus();
   } else if (el.name === 'theme') { store.theme = el.value; save(); applyTheme(); }
   else if (el.id === 'hapticsToggle') { store.haptics = el.checked; save(); applyHaptics(); if (store.haptics) buzz('ok'); }
+  else if (el.id === 'countToggle') { store.count = el.checked; save(); }
 });
 
 $('#kb').addEventListener('click', e => {
@@ -2368,6 +2409,16 @@ document.addEventListener('click', e => {
   else if (act === 'next') { const m = nextOpenMode(current); if (m) setMode(m.id); }
   else if (act === 'toEasy') { setMode('easy'); $('#tab-easy').focus(); }
   else if (act === 'share') doShare(b);
+  else if (act === 'countYes' || act === 'countNo') {
+    store.count = act === 'countYes'; save();
+    // Nach dem Ja dieses bereits beendete Rätsel mitzählen; davor wurde nichts gesendet.
+    // Bei „Nein“ erfolgt weiterhin keine einzige Anfrage.
+    if (store.count) {
+      countEvent('aufruf'); countEvent('spieler'); countEvent('start', current);
+      if (ms(current).status === 'solved') countEvent('geloest', current);
+    }
+    renderResult(); toast(T().consent.thanks);
+  }
   else if (act === 'stats') { renderStats(); openDlg($('#statsDlg')); }
   else if (act === 'replayIntro') { const d = b.closest('dialog'); if (d) closeDlg(d); openIntro(); }
   else if (act === 'introRules') { closeDlg($('#introDlg')); renderHelp(); openDlg($('#helpDlg')); }
@@ -2455,6 +2506,7 @@ renderStatic(); buildKeyboard();
   syncUrl();
   if (!store.seenHelp) openIntro();
   tick();
+  countEvent('aufruf');
 })();
 
 // Offline-Unterstützung: nur über https (GitHub Pages). Die Seite funktioniert auch ohne.
