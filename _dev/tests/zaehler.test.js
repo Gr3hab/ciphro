@@ -100,6 +100,8 @@ test('Deployment: Logs und Invocation-Logs explizit aus, zwei eigene Rate-Limits
   assert.match(cfg, /name = "ADMIN_LIMIT"/);
   assert.match(cfg, /workers_dev = false/);
   assert.match(cfg, /custom_domain = true/);
+  assert.match(cfg, /database_id = "a0779429-8730-45bf-be7c-364c9ad77a52"/, 'eingerichtete EU-D1-Datenbank darf bei Wartungsdeploy nicht gewechselt werden');
+  assert.doesNotMatch(cfg, /HIER-DIE-ID-DER-DATENBANK-EINTRAGEN/);
   assert.ok(!fs.readFileSync(path.join(DIR, 'worker.js'), 'utf8').includes('cf-connecting-ip'));
 });
 

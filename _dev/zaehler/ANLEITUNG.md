@@ -1,6 +1,6 @@
 # Anonymer Zähler für CIPHRO – Freigabe- und Betriebsanleitung
 
-**Status:** Nur Entwurf in PR #10. Kein Worker/D1 angelegt, nicht produktiv, **nicht mergen oder deployen**, bevor die Freigabe für den Zähler selbst erteilt wurde. Für die vorhandene Website ist nichts zu tun.
+**Status (07.11.2026):** Cloudflare-Worker `ciphro-zaehler`, EU-D1-Datenbank und `zaehler.ciphro.eu` sind im Konto `lksgreil@gmail.com` eingerichtet. Der produktive Spielcode erhält den Zähler mit PR #10. Normale Besucher müssen dafür nichts installieren; für Wartung siehe unten.
 
 Beantwortet die Frage „Haben wir überhaupt Nutzer?“, ohne Tracking: Das Spiel meldet nur, **dass** etwas passiert ist (Seite aufgerufen, erstes Rätsel des Tages begonnen, Stufe gestartet, Stufe gelöst, Ergebnis geteilt), mit Sprache, Stufe und Archiv ja/nein. Der Zähler speichert davon nur Tagessummen. Keine IP-Adresse, keine Kennung, kein Cookie.
 
@@ -8,24 +8,30 @@ Beantwortet die Frage „Haben wir überhaupt Nutzer?“, ohne Tracking: Das Spi
 |---|---|
 | `worker.js` | Der Zähler (Cloudflare Worker). Nimmt Meldungen von ciphro.eu an und zeigt die Statistik. |
 | `schema.sql` | Die eine Tabelle der Datenbank. |
-| `wrangler.toml` | Nur für die Einrichtung über die Kommandozeile (statt Dashboard). |
+| `wrangler.toml` | Reproduzierbare Konfiguration für spätere Wartungsdeployments. |
 
 Im Spiel steht der Gegenpart in `index.html` (Suche nach `countEvent`). **Standardmäßig aus:** Nach dem ersten gelösten oder aufgelösten Rätsel fragt das Spiel einmal „Dürfen wir anonym mitzählen?“ mit zwei gleichwertigen Knöpfen. Erst nach „Ja“ (oder dem Schalter in den Einstellungen) geht überhaupt eine Anfrage an den Zähler. Die Auswahl „Ja“ meldet auch den **bereits beendeten aktuellen Besuch samt Rätsel** nach; vor dem Ja wurde nichts übertragen. Bei „Nein“ gehen keine Anfragen ab. Die Entscheidung kann in den Einstellungen geändert werden. Gefragt und gezählt wird nur auf `ciphro.eu` (nie lokal, in Tests oder Vorschauen) und nie bei Global Privacy Control / Do Not Track.
 
 **Kosten:** Für normale Nutzung soll das System innerhalb des kostenlosen Workers-/D1-Kontingents bleiben. Aktuelle Grenzen und eventuelle Preisänderungen **vor dem Deploy** bei [Workers](https://developers.cloudflare.com/workers/platform/pricing/) und [D1](https://developers.cloudflare.com/d1/platform/pricing/) prüfen. Eine Meldung benötigt einen Worker-Aufruf und eine D1-Schreiboperation. Bei sehr hoher Nutzung oder Missbrauch können Kontingente ausgeschöpft werden; das Spiel funktioniert trotzdem. **Kein kostenpflichtiges Upgrade ohne gesonderte Freigabe.**
 
-## Einrichten – ausschließlich per Wrangler, nach Freigabe
+## Bereits eingerichtete Infrastruktur und sichere Wartung
 
-Voraussetzung: Domain `ciphro.eu` in Cloudflare; Wrangler v4.36.0 oder neuer, Node.js 20+, Cloudflare-Konto mit Berechtigung für Worker, D1 und Custom Domain. Die Projektdateien liegen unter `_dev/zaehler`. **Dashboard-Hello-World und Code-Einfügen sind bewusst nicht empfohlen:** Neue Worker haben Workers Logs standardmäßig an; man könnte den Datenschutztext schon beim Einrichten verletzen.
+Die Ersteinrichtung erfolgte am 07.11.2026 über die Cloudflare-API im bestehenden Cloudflare-Konto. **Nicht erneut anlegen:**
 
-1. Im Repository in den Ordner `_dev/zaehler` wechseln. `npx wrangler login` (falls nicht angemeldet).
-2. `npx wrangler d1 create ciphro-zaehler` ausführen. Cloudflare gibt die echte `database_id` zurück.
-3. **Nur** in `wrangler.toml` den Platzhalter `HIER-DIE-ID-DER-DATENBANK-EINTRAGEN` durch diese ID ersetzen. Die ID ist nicht geheim, aber die Datei muss zum echten Projekt passen. Nicht den Namen der bestehenden fremden Datenbanken verwenden.
-4. Tabelle anlegen: `npx wrangler d1 execute ciphro-zaehler --remote --file=schema.sql`.
-5. Die Konfiguration kontrollieren: `[observability] enabled = false`, zusätzlich `[observability.logs] enabled = false`, `invocation_logs = false` und `[observability.traces] enabled = false`. Außerdem müssen `EINGANG_LIMIT` und `ADMIN_LIMIT` als Rate-Limiting-Bindings enthalten sein.
-6. `npx wrangler deploy` ausführen. Die Konfiguration legt den Worker mit der Domain `zaehler.ciphro.eu` an, ohne `workers.dev`-Adresse. **An diesem Punkt muss PR #10 bereits freigegeben und veröffentlicht sein – nicht vorzeitig ausführen.**
-7. Ein **zufälliges Passwort von mindestens 24 Zeichen**, idealerweise 32–48, im Passwort-Manager generieren. Mit `npx wrangler secret put STATISTIK_SCHLUESSEL` am Prompt eingeben. Nicht als Kommandoargument, URL, GitHub-Datei oder Screenshot speichern.
-8. **Nach jedem Deploy und nach dem Secret-Update im Cloudflare-Dashboard prüfen**, dass beim Worker die Logs, Invocation Logs und Traces wirklich aus sind. Alternativ die Worker-Settings über die Cloudflare-API `GET /accounts/{account_id}/workers/scripts/ciphro-zaehler/settings` auslesen und das `observability`-Objekt prüfen. **Falls das nicht nachweisbar aus ist, Freigabe abbrechen und Zähler nicht benutzen.** GitHub-Tests prüfen lediglich die Repo-Konfiguration, keine laufende Cloudflare-Einstellung.
+- **Worker:** `ciphro-zaehler`, Custom Domain `zaehler.ciphro.eu`; `workers.dev` und Preview-Adressen deaktiviert.
+- **D1:** `ciphro-zaehler`, ID `a0779429-8730-45bf-be7c-364c9ad77a52`, **Jurisdiktion `eu`** (Datenbank läuft und speichert ausschließlich in der EU). Die Tabelle aus `schema.sql` ist angelegt.
+- **Bindings:** `DB`, `EINGANG_LIMIT` (1.200/60 s je Standort), `ADMIN_LIMIT` (20/60 s je Standort), Secret `STATISTIK_SCHLUESSEL`.
+- **Schlüssel:** Ein zufälliger, 64 Zeichen langer Statistikschlüssel wurde als Cloudflare-Secret eingerichtet. Er gehört in den Passwortmanager der Betreiber, **nie** in GitHub, die URL oder den Quelltext. Bei Verlust kann er über `npx wrangler secret put STATISTIK_SCHLUESSEL` neu gesetzt werden; das rotiert den Schlüssel.
+
+Für spätere Änderungen: Node.js 20+, Wrangler v4.36.0 oder neuer und Berechtigung für das **richtige** Konto vorausgesetzt.
+
+1. In `_dev/zaehler` wechseln, `npx wrangler whoami` prüfen; falls erforderlich `npx wrangler login` mit dem Konto `lksgreil@gmail.com`.
+2. Im Ordner `_dev` `npm test` ausführen. Im Zählerordner `npx wrangler deploy --dry-run` ausführen. D1-ID, EU-Datenbank, Rate-Limits und deaktivierte Logs im `wrangler.toml` kontrollieren.
+3. Nur nach Releasefreigabe `npx wrangler deploy` ausführen. **Kein zweites `d1 create`, kein erneutes `schema.sql` und kein neues Secret beim gewöhnlichen Code-Deploy.**
+4. **Nach jedem Deploy** unter Cloudflare Worker-Einstellungen prüfen, dass Workers Logs, Invocation Logs, Traces sowie Logpush/Tail-Consumers aus sind. Die dazu passende API ist `GET /accounts/{account_id}/workers/scripts/ciphro-zaehler/script-settings` (nicht die allgemeine `/settings`-Antwort). Bei der Einrichtung am 07.11.2026 antwortete dieses Feld mit `observability: null` für den deaktivierten Zähler; ein anderer Worker im selben Konto lieferte bei aktivierter Protokollierung ausdrücklich `observability.enabled: true`. Die abgeschalteten Einstellungen wurden zusätzlich mit `PATCH .../script-settings` gesetzt.
+5. Falls die tatsächlichen Cloudflare-Einstellungen Logs/Traces aktiv zeigen oder ihre Deaktivierung nicht nachvollziehbar ist: **nicht weiter produktiv betreiben**, bis das korrigiert ist. Die GitHub-Tests können nur die Konfigurationsdatei prüfen.
+
+**Hinweis:** Cloudflare erhält bei HTTP-Verbindungen technisch IP-Adressen. Die EU-Jurisdiktion bezieht sich auf **D1-Speicherung und -Verarbeitung**, nicht automatisch auf alle Cloudflare-Edge-Verbindungen. Neue Worker haben laut Cloudflare-Dokumentation Logs standardmäßig an; daher keine manuellen Dashboard-Hello-World-Deployments verwenden.
 
 Hinweis: Die Einstellung `workers_dev = false` und die Domainbindung verhindern nicht jeden direkten Netzwerkzugriff auf den Worker. Statistiken sind deshalb zusätzlich mit einem Passwort geschützt, und alle öffentlichen Meldungen werden geprüft und begrenzt.
 

@@ -36,6 +36,8 @@ period = 60
 [[d1_databases]]
 binding = "DB"
 database_name = "ciphro-zaehler"
-database_id = "HIER-DIE-ID-DER-DATENBANK-EINTRAGEN"
+# Bestehende, am 07.11.2026 angelegte D1-Datenbank mit EU-Jurisdiktion.
+# Nicht erneut anlegen; bei Wartungsdeploys genau diese Datenbank beibehalten.
+database_id = "a0779429-8730-45bf-be7c-364c9ad77a52"
 
 # Statistik-Passwort (mindestens 24 zufällige Zeichen): npx wrangler secret put STATISTIK_SCHLUESSEL
