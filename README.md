@@ -88,6 +88,10 @@ Schaffst du's? https://ciphro.eu/?n=4
 
 CIPHRO kann mitzählen, wie oft gespielt wird, ohne jemanden zu erkennen, **aber nur mit Zustimmung**: Standardmäßig aus; nach dem ersten fertigen Rätsel fragt das Spiel einmal „Dürfen wir anonym mitzählen?“ (Ja und Nein gleichwertig, später in den Einstellungen änderbar). Mit Ja meldet es nur Ereignis (Seite aufgerufen, erstes Rätsel des Tages begonnen, Stufe gestartet, Stufe gelöst, geteilt), Sprache, Stufe und Archiv ja/nein an `https://zaehler.ciphro.eu/z`. Ein Cloudflare Worker zählt daraus Tagessummen in einer D1-Datenbank. Keine IP-Adresse, keine Kennung, kein Cookie. Nur auf `ciphro.eu`, nie bei Global Privacy Control / Do Not Track. Code, Einrichtung und wie man die Zahlen ansieht: [`_dev/zaehler/ANLEITUNG.md`](_dev/zaehler/ANLEITUNG.md). Beschrieben in `datenschutz.html`.
 
+## Besucherzahlen (Cloudflare)
+
+Unabhängig vom Zähler: `ciphro.eu` läuft über Cloudflare als Zwischenstation (Proxy, „orange Wolke“) vor GitHub Pages. Cloudflare zählt die Aufrufe auf dem Server mit, ohne Cookie und ohne Skript im Spiel. Ansehen: Cloudflare → ciphro.eu → Analytics & Logs → Web Traffic (eindeutige Besucher, Anfragen, Datenmenge; im Gratis-Tarif keine Seitenaufrufe, Bots sind nicht herausgerechnet). Damit das so bleibt, müssen in Cloudflare **aus** sein: Email Address Obfuscation (fügt sonst ein Skript ein), die automatische Einrichtung von Web Analytics (fügt sonst ein Messskript ein) und alles, was Cookies setzt. SSL-Modus „Full“, nicht „Flexible“ (sonst Umleitungsschleife) und nicht „Full (strict)“ (GitHub kann sein Zertifikat hinter dem Proxy nicht erneuern). Beschrieben in `datenschutz.html`.
+
 ## Umzug von der alten Adresse
 
 Der Browser speichert den Spielstand pro Adresse. Auf `ciphro.eu` wäre er ohne Hilfe leer. Deshalb:
