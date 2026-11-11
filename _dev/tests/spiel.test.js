@@ -595,6 +595,12 @@ test('Stern: Easy und Hard ganz ohne Zahlen gelöst zeigen ⭐ im Ergebnis und b
 });
 
 test('Stern: Einstellung „Zahlen auf der Tastatur“, ältere Spielstände ohne Stern, Mirror und Impossible nie', async () => {
+  // Schließen und warten, bis das Spiel darauf reagiert hat (sein „close“-Listener ist älter und läuft vor diesem)
+  const closeSettings = async pg => {
+    await pg.evaluate(() => { window.__closed = new Promise(r => document.getElementById('settingsDlg').addEventListener('close', () => r(), { once: true })); });
+    await pg.click('#settingsBody [data-close]');
+    await pg.evaluate(() => window.__closed);
+  };
   // Vor der Änderung gelöst (kein keySeen): kein Stern, auch wenn die Zahlen jetzt aus sind
   const solvedOld = (mode, extra = {}) => ({ sig: puzzle(4, 'de', mode).sig, typed: solution(4, 'de', mode), hints: {}, hintCount: 0, cuts: [], status: 'solved', elapsed: 61000, given: [], helped: [], doneOn: K4, startedOn: K4, ...extra });
   const page = await openPage(env, { clipboard: true, store: { ...SEEN, easyKey: false, days: { [K4]: { hard: solvedOld('hard'), mirror: solvedOld('mirror', { keySeen: false }) } } } });
@@ -611,14 +617,14 @@ test('Stern: Einstellung „Zahlen auf der Tastatur“, ältere Spielstände ohn
   assert.equal(await page.isChecked('#keysToggle'), false);
   await page.check('#keysToggle');
   assert.equal((await store(page)).easyKey, true);
-  await page.click('#settingsBody [data-close]');
+  await closeSettings(page);
   await page.click('#startBtn');
   assert.equal(await page.textContent('#kb .k[data-k="H"] i'), '8');
   assert.equal((await state(page, K4, 'easy')).keySeen, true);
   // Mitten im Rätsel in den Einstellungen ausschalten: Tastatur ohne Zahlen, Stern gibt es erst beim nächsten Rätsel
   await page.click('#settingsBtn');
   await page.uncheck('#keysToggle');
-  await page.click('#settingsBody [data-close]');
+  await closeSettings(page);
   assert.equal(await page.textContent('#kb .k[data-k="H"] i'), '');
   assert.equal(await page.getAttribute('#keyBtn', 'aria-pressed'), 'false');
   for (const w of solution(4, 'de', 'easy')) await typeWord(page, w);
@@ -631,11 +637,11 @@ test('Stern: Einstellung „Zahlen auf der Tastatur“, ältere Spielstände ohn
   await p2.check('#keysToggle');
   assert.equal((await state(p2, K4, 'easy')).keySeen, false, 'solange die Einstellungen offen sind, ist nichts zu sehen');
   await p2.uncheck('#keysToggle');
-  await p2.click('#settingsBody [data-close]');
+  await closeSettings(p2);
   assert.equal((await state(p2, K4, 'easy')).keySeen, false, 'versehentlich an und wieder aus kostet den Stern nicht');
   await p2.click('#settingsBtn');
   await p2.check('#keysToggle');
-  await p2.click('#settingsBody [data-close]');
+  await closeSettings(p2);
   assert.equal(await p2.textContent('#kb .k[data-k="H"] i'), '8');
   assert.equal((await state(p2, K4, 'easy')).keySeen, true);
   // Impossible: weiterhin kein Schlüssel
