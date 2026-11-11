@@ -34,7 +34,9 @@ jobs:
           cache: npm
           cache-dependency-path: _dev/package-lock.json
       - run: npm ci
-      - run: npx playwright install --with-deps chromium
+      # Ohne --with-deps: Die Systembibliotheken für Chromium sind im Image ubuntu-24.04 schon vorhanden. --with-deps holt
+      # nur noch Zusatzschriften über apt und hing am 11. November 2026 an dessen Spiegelserver (Lauf brach vor den Tests ab).
+      - run: npx playwright install chromium
       - name: Vergleichsstand festlegen
         run: |
           if [ "${{ github.event_name }}" = "pull_request" ]; then echo "NUMIGMA_BASE_REF=origin/${{ github.base_ref }}" >> "$GITHUB_ENV";
