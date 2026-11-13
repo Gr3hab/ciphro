@@ -647,6 +647,32 @@ test('Stern: Einstellung „Zahlen auf der Tastatur“, ältere Spielstände ohn
   await page.context().close();
 });
 
+test('Fokus: nach einem Mausklick auf Knopf oder Reiter kein doppelter Rahmen beim Weitertippen; Tab und Enter behalten den Fokus', async () => {
+  // Gemeldet am 13. November 2026: „Schlüssel“ war manchmal doppelt umrandet (eigener Rahmen plus Fokusrahmen des Browsers)
+  const page = await openPage(env, { width: 1100, height: 800 });
+  const where = () => page.evaluate(() => { const a = document.activeElement; return [a.id || a.className.split(' ')[0], a.matches(':focus-visible')]; });
+  await page.click('#tab-hard');
+  await page.click('#startBtn');
+  const sol = solution(4, 'de', 'hard');
+  for (const sel of ['#keyBtn', '#keyBtn', '#tab-hard', `#kb .k[data-k="${sol[0][0]}"] button`]) {
+    await page.click(sel);
+    await page.keyboard.press('Q');
+    assert.deepEqual((await where())[0], 'w', `nach Klick auf ${sel} liegt der Fokus wieder beim Wort`);
+    for (const id of ['keyBtn', 'tab-hard']) assert.equal(await page.$eval('#' + id, el => el.matches(':focus-visible')), false, `${id} ohne Fokusrahmen`);
+  }
+  // Tipp abgebrochen: Fokus zurück beim Wort
+  await page.click('#hintBtn');
+  assert.deepEqual((await where())[0], 'confirmNo', 'Nachfrage: Fokus auf „Abbrechen“');
+  await page.click('#confirmNo');
+  assert.deepEqual((await where())[0], 'w');
+  // Tastaturbedienung: Der Fokus bleibt auf dem Knopf, mit sichtbarem Rahmen
+  await page.focus('#keyBtn');
+  await page.keyboard.press('Enter');
+  assert.deepEqual(await where(), ['keyBtn', true]);
+  noErrors(page);
+  await page.context().close();
+});
+
 test('Farben: Trennung bei Impossible ist gelb, Auflösen ist rot', async () => {
   const page = await openPage(env, { clipboard: true });
   await page.click('#tab-impossible');

@@ -2384,6 +2384,18 @@ document.addEventListener('change', e => {
   else if (el.id === 'countToggle') { store.count = el.checked; save(); }
 });
 
+// Mit der Maus einen Knopf angeklickt und danach auf der Tastatur getippt: Der Browser zeichnet dann seinen Fokusrahmen um den
+// zuletzt angeklickten Knopf. Um „Schlüssel“ oder den gewählten Reiter, die selbst einen Rahmen haben, sah das doppelt umrandet aus.
+// Deshalb geht der Fokus nach einem Mausklick zurück aufs aktive Wort (dort steht er auch nach „Start“).
+// Nur bei der Maus: Wer mit Tab und Enter bedient, behält den Fokus und den Rahmen; Finger und Vorlesehilfen bleiben unberührt.
+document.addEventListener('click', e => {
+  if (!e.detail || e.pointerType !== 'mouse' || !day || !e.target.closest) return;
+  if (!e.target.closest('#modes button, #tools button, #kb button, #confirm button')) return;
+  if (ms(current).status !== 'playing' || paused || confirmKind || dialogOpen()) return;
+  const w = wordEls[aw == null ? 0 : aw];
+  if (w) { try { w.el.focus({ preventScroll: true }); } catch (err) { /* alt */ } }
+});
+
 $('#kb').addEventListener('click', e => {
   const k = e.target.closest('.k');
   if (!k) return;
