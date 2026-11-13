@@ -56,9 +56,9 @@ GitHub Pages veröffentlicht Ordner, die mit `_` beginnen, nicht. Die Prüfseite
 
 ## Farben und Teilen
 
-Im Ergebnis: 🟩 ohne Hilfe gelöst · 🟨 mit Tipp, Schlüssel oder Trennung · 🟥 aufgelöst. Einmal gelb bleibt gelb, auch wenn der aufgedeckte Buchstabe später überschrieben wird. Die Zahlen auf der Tastatur („Schlüssel“) sind bei Easy und Hard gratis, standardmäßig an und zählen nicht als Hilfe. Ausschalten gilt für beide Stufen und bleibt gespeichert (Knopf „Schlüssel“ oder Einstellungen). Bei Mirror kostet der Schlüssel einen Tipp und gilt für genau den nächsten getippten Buchstaben; dessen Wort wird gelb. Bei Impossible gibt es keinen.
+Im Ergebnis: 🟩 ohne Hilfe gelöst · 🟨 mit Tipp oder Trennung · 🟥 aufgelöst. Einmal gelb bleibt gelb, auch wenn der aufgedeckte Buchstabe später überschrieben wird. Die Zahlen auf der Tastatur („Schlüssel“) sind bei Easy, Hard und Mirror gratis, standardmäßig an und zählen nicht als Hilfe. Ausschalten gilt für alle drei Stufen und bleibt gespeichert (Knopf „Schlüssel“ oder Einstellungen). Bei Impossible gibt es keinen Schlüssel. Den früheren bezahlten Schlüssel (1 Tipp für einen Buchstaben) gibt es nicht mehr.
 
-⭐ hinter der Zeit (Ergebnis und geteilter Text): Easy oder Hard gelöst, ohne dass die Zahlen in diesem Rätsel je zu sehen waren. Wer sie unterwegs einblendet, wird vorher gefragt. Rätsel, die vor dieser Regel begonnen wurden, bekommen keinen Stern.
+⭐ hinter der Zeit (Ergebnis und geteilter Text): Easy, Hard oder Mirror gelöst, ohne dass die Zahlen in diesem Rätsel je zu sehen waren. Wer sie unterwegs einblendet, wird vorher gefragt. Rätsel, die vor dieser Regel begonnen wurden, bekommen keinen Stern.
 
 Geteilt werden nur Stufen, die tatsächlich gelöst wurden; aufgelöste und nicht gespielte fehlen. Die Ergebnisanzeige im Spiel bleibt vollständig.
 

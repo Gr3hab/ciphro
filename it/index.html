@@ -158,10 +158,12 @@ a{color:var(--ink)}
   flex:none;
 }
 .words{display:flex;flex-wrap:wrap;column-gap:var(--cell);row-gap:var(--cell);align-items:flex-start}
-.w{position:relative;width:calc(var(--cell) * var(--u));display:flex;flex-direction:column;cursor:pointer;border-radius:2px;
+.w{position:relative;flex:none;width:calc(var(--cell) * var(--u));display:flex;flex-direction:column;cursor:pointer;border-radius:2px;
   appearance:none;-webkit-appearance:none;background:none;border:0;padding:0;margin:0;text-align:left;touch-action:manipulation}
 .w:focus-visible{outline:2px solid var(--ink);outline-offset:5px}
-.dr,.lr{display:flex;flex-wrap:wrap;position:relative;z-index:1}
+/* Ein Wort bleibt immer in einer Zeile: kein Umbruch in der Ziffern- oder Buchstabenzeile, Kästchen schrumpfen nicht */
+.dr,.lr{display:flex;flex-wrap:nowrap;position:relative;z-index:1}
+.d,.c{flex:none}
 .dr{min-height:var(--cell)}
 .d{position:relative;width:calc(var(--cell) / 2);height:var(--cell);display:grid;place-items:center;font-family:var(--display);font-weight:700;font-size:calc(var(--cell) * .54);color:var(--ink);font-variant-numeric:tabular-nums;line-height:1}
 .easy .d{width:var(--cell);font-size:calc(var(--cell) * .5);letter-spacing:-.04em}
@@ -278,8 +280,8 @@ a{color:var(--ink)}
 .coach span{flex-basis:140px;font-size:.88rem;line-height:1.35}
 .confirm .btn,.coach .btn{min-height:38px}
 /* Nachfrage vor einem Tipp: „Abbrechen“ links, „Ja“ ganz rechts. Wer reflexartig noch einmal an dieselbe Stelle tippt
-   wie auf „Tipp“ (links), trifft nie das Ja. Beim Schlüssel (Mitte) bleibt „Ja“ links, dort liegt dann der Abstand
-   oder „Abbrechen“ (die Tests messen das). */
+   wie auf „Tipp“ (links), trifft nie das Ja. Beim Einblenden der Zahlen (Knopf „Schlüssel“, Mitte) bleibt „Ja“ links, dort liegt
+   dann der Abstand oder „Abbrechen“ (die Tests messen das). */
 .confirm.ask span{flex-basis:100%}
 .confirm.ask #confirmNo{order:1}
 .confirm.ask #confirmYes{order:2;margin-left:auto}
@@ -553,7 +555,7 @@ textarea{width:100%;font:inherit;font-size:.95rem;padding:10px;border:1px solid 
       </button>
       <button class="tool" id="keyBtn" type="button" aria-pressed="false">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8" cy="15" r="4"/><path d="M10.8 12.2 20 3M17 6l2 2M15 8l2 2"/></svg>
-        <span id="keyLabel"></span><span class="cost" id="keyCost" aria-hidden="true" hidden></span>
+        <span id="keyLabel"></span>
       </button>
       <button class="tool ghost" id="revealBtn" type="button"></button>
     </div>
@@ -627,7 +629,6 @@ const STR = {
     startMeta: (w, l) => `${w === 1 ? '1 Wort' : w + ' Wörter'} · ${l} Buchstaben`, start: 'Start',
     startNote: 'Der Code erscheint erst nach Start. Die Uhr läuft nur, solange du ihn siehst. Die Pause-Taste neben der Uhr hält sie an.',
     toEasy: 'Neu hier? Fang lieber mit Easy an',
-    noNumbers: 'Auf der Tastatur stehen hier keine Zahlen. Der Schlüssel blendet sie für einen Buchstaben ein und kostet 1 Tipp.',
     impTip: 'Tipp: Fang mit einem kurzen Wort an. Errätst du einen Buchstaben, kennst du die Verschiebung für alle. Probier ruhig Buchstaben in den Kästchen aus, du kannst jedes überschreiben.',
     rotateTitle: 'Bitte hochkant halten', rotateText: 'Im Querformat ist auf diesem Bildschirm zu wenig Platz für Code und Tastatur. Die Uhr steht so lange.',
     paused: 'Pausiert', pausedAt: t => `Die Uhr steht bei ${t}. Der Code ist so lange verdeckt.`,
@@ -636,11 +637,9 @@ const STR = {
     hintTitle: 'Deckt das gewählte Kästchen auf (1 Tipp)', cutTitle: 'Zeigt bei einem Wort, wo die Buchstaben getrennt sind (1 Tipp)',
     hintAria: (cut, l, m) => `${cut ? 'Trennung zeigen' : 'Buchstabe aufdecken'}, ${l} von ${m} Tipps übrig`,
     keyEasy: on => on ? 'Zahlen auf der Tastatur ausblenden (gratis)' : 'Zahlen auf der Tastatur einblenden (gratis)',
-    keyPaid: open => open ? 'Schlüssel offen: Die Zahlen gelten für deinen nächsten Buchstaben' : 'Schlüssel: Zahlen für einen Buchstaben einblenden, kostet 1 Tipp',
     keyForbidden: 'Bei Impossible gibt es keinen Schlüssel',
     keyShown: 'Zahlen auf der Tastatur sind wieder da', keyHidden: 'Zahlen ausgeblendet. „Schlüssel“ blendet sie wieder ein.',
-    keyExplain: 'Der Schlüssel zeigt die Zahlen auf der Tastatur, bis du den nächsten Buchstaben tippst. Er kostet 1 Tipp und das Wort zählt beim Teilen als 🟨.',
-    keyYes: 'Schlüssel nutzen', cancel: 'Abbrechen',
+    cancel: 'Abbrechen',
     // Zahlen wieder einblenden, obwohl der ⭐ noch möglich wäre: kurz nachfragen (ein Tipp daneben soll ihn nicht kosten)
     showQ: 'Zahlen einblenden? Dann gibt es für dieses Rätsel keinen ⭐ beim Teilen.', showYes: 'Einblenden',
     noKey: '⭐ ohne Schlüssel', starMissed: 'Kein ⭐: Die Zahlen waren in diesem Rätsel zeitweise eingeblendet.',
@@ -649,7 +648,6 @@ const STR = {
     hintYes: 'Aufdecken',
     cutQ: left => `Trennung zeigen? Du siehst, wo im markierten Wort die Buchstaben getrennt sind. Das kostet ${left === 1 ? 'deinen letzten Tipp' : `1 von ${left} Tipps`} und das Wort zählt beim Teilen als 🟨.`,
     cutYes: 'Trennung zeigen',
-    keyOpened: 'Schlüssel offen: Die Zahlen gelten für deinen nächsten Buchstaben.',
     revealQ: 'Lösung anzeigen? Dann zählt dieses Rätsel nicht als gelöst.', revealYes: 'Ja, auflösen', revealNo: 'Weiter rätseln',
     kb: 'Tastatur', nextWord: 'Nächstes Wort', backspace: 'Löschen',
     coach: {
@@ -676,15 +674,15 @@ const STR = {
     copied: 'Ergebnis kopiert. Jetzt in WhatsApp & Co. einfügen', copiedBtn: 'Kopiert ✓',
     stats: { title: 'Statistik', played: 'Rätseltage', streak: 'Serie', best: 'Beste Serie', cracked: 'Codes geknackt', byMode: 'Nach Stufe', solved: 'Gelöst', clean: 'Ohne Hilfe', bestTime: 'Bestzeit*', week: 'Letzte 7 Tage',
       weekSr: (d, s) => `${d}: ${s} von 4 am selben Tag gelöst`,
-      note: '* Schnellste Lösung ohne Tipp, Schlüssel oder Trennung. Die Zahlen bei Easy und Hard sind gratis und zählen nicht als Hilfe. Alle Sprachen, auch Archivrätsel.',
+      note: '* Schnellste Lösung ohne Tipp oder Trennung. Die Zahlen auf der Tastatur sind gratis und zählen nicht als Hilfe. Alle Sprachen, auch Archivrätsel.',
       streakNote: 'Die Serie wächst mit jedem Tag, an dem du ein Rätsel des Tages löst. Nächste Codes in', empty: 'Noch nichts gelöst. Dein erstes Rätsel wartet.' },
     archive: { title: 'Archiv', intro: 'Alle bisherigen Rätsel zum Nachspielen. Sie zählen für die Statistik, aber nicht für die Serie.', today: 'Heute',
       st: { solved: 'gelöst', revealed: 'aufgelöst', playing: 'angefangen', open: 'offen' }, repeat: r => `Wiederholung von #${r}` },
     legal: { imprint: 'Impressum', privacy: 'Datenschutz', hash: '' },
     settings: { title: 'Einstellungen', theme: 'Design', system: 'System', light: 'Hell', dark: 'Dunkel', themeNote: 'System: hell oder dunkel, je nachdem, wie dein Handy oder Computer eingestellt ist.', language: 'Sprache',
       haptics: 'Haptisches Feedback', hapticsNote: 'Am Handy bei jedem Tastendruck. Auf Android zusätzlich bei richtigen und falschen Wörtern.',
-      keys: 'Zahlen auf der Tastatur', keysNote: 'Bei Easy und Hard. Wer ein Rätsel ganz ohne sie knackt, bekommt beim Teilen einen ⭐.',
-      count: 'Anonym mitzählen', countNote: 'Hilft uns zu sehen, wie viele spielen. Gezählt wird nur, wie oft ein Rätsel aufgerufen, gestartet, gelöst oder geteilt wird. Keine Kennung, keine Cookies, nichts über dich. Aus, solange du nicht zustimmst. Deine Serie und Statistik funktionieren in jedem Fall.', countGpc: 'Dein Browser bittet Websites, nichts zu erfassen (Global Privacy Control). Deshalb zählen wir bei dir nicht mit.',
+      keys: 'Zahlen auf der Tastatur', keysNote: 'Bei Easy, Hard und Mirror. Wer ein Rätsel ganz ohne sie knackt, bekommt beim Teilen einen ⭐.',
+      count: 'Anonym mitzählen', countNote: 'Hilft uns zu sehen, wie viele spielen. Gezählt wird nur, wie oft ein Rätsel aufgerufen, gestartet, gelöst oder geteilt wird. Keine Kennung, keine Cookies, nichts über dich. Aus, solange du nicht zustimmst. Deine Serie und Statistik funktionieren in jedem Fall.', countGpc: 'Dein Browser bittet Websites, nichts zu erfassen (Global Privacy Control oder „Do Not Track“). Deshalb zählen wir bei dir nicht mit.',
       privacy: 'Kein Konto, keine Werbung, kein Tracking. Dein Fortschritt bleibt nur in diesem Browser. Auf einem anderen Gerät oder als App am Home-Bildschirm beginnt die Statistik neu.',
       intro: 'Kurz-Einstieg ansehen', done: 'Fertig' },
     shareDlg: { title: 'Ergebnis teilen', note: 'Automatisches Kopieren klappt hier nicht. Der Text ist markiert, du kannst ihn selbst kopieren.', done: 'Fertig' },
@@ -701,8 +699,8 @@ const STR = {
       sections: [
         ['Die vier Stufen', '<ul><li><strong>Easy:</strong> A&nbsp;=&nbsp;1 … Z&nbsp;=&nbsp;26. Jede Zahl hat ihr eigenes Kästchen.</li><li><strong>Hard:</strong> dieselben Zahlen, aber ohne Trennung. 1 1 kann K sein oder AA.</li><li><strong>Mirror:</strong> rückwärts, A&nbsp;=&nbsp;26 … Z&nbsp;=&nbsp;1, ohne Trennung.</li><li><strong>Impossible:</strong> Das Alphabet ist um eine geheime Zahl verschoben, ohne Trennung.</li></ul><p>Die Kästchen verraten immer, wie viele Buchstaben ein Wort hat. Es gibt nur die 26&nbsp;Buchstaben A bis&nbsp;Z, keine Umlaute und kein&nbsp;ß.</p>'],
         ['Tippen und korrigieren', '<p>Tippe ein Kästchen an und schreibe mit der Tastatur. Jedes Kästchen lässt sich einzeln überschreiben. Ein volles, aber falsches Wort wird rot und gestrichelt umrandet. Richtige Wörter werden grün markiert. Der Pfeil springt zum nächsten Wort.</p><p>Am Computer: Buchstaben tippen, Pfeiltasten, Enter für das nächste Wort, Rücktaste.</p>'],
-        ['Tipps, Schlüssel, Auflösen', '<p>Pro Rätsel hast du drei Tipps. Ein Tipp deckt das gewählte Kästchen auf. Bei Impossible zeigt er stattdessen, wo in einem Wort die Buchstaben getrennt sind. Bevor ein Tipp verbraucht wird, fragt das Spiel kurz nach.</p><p>Der <strong>Schlüssel</strong> blendet die Zahlen auf der Tastatur ein: bei Easy und Hard gratis und von Anfang an eingeschaltet. Du kannst ihn ausschalten, das merkt sich das Spiel. Wer ein Rätsel ganz ohne Schlüssel knackt, bekommt beim Teilen einen ⭐. Bei Mirror kostet der Schlüssel 1 Tipp und gilt bis zum nächsten Buchstaben. Bei Impossible gibt es keinen.</p><p><strong>Auflösen</strong> zeigt die ganze Lösung. Dann zählt das Rätsel nicht als gelöst.</p>'],
-        ['Grün, Gelb, Rot', '<p>Im Ergebnis steht jedes Kästchen für ein Wort: 🟩 ohne Hilfe gelöst, 🟨 mit Tipp, Schlüssel oder Trennung, 🟥 aufgelöst. Einmal gelb bleibt gelb. Ein kleiner Punkt am grünen Wort zeigt dir schon im Rätsel, wo du Hilfe hattest.</p><p>Geteilt werden nur Stufen, die du selbst geknackt hast. Die Lösung wird dabei nie verraten.</p>'],
+        ['Tipps, Schlüssel, Auflösen', '<p>Pro Rätsel hast du drei Tipps. Ein Tipp deckt das gewählte Kästchen auf. Bei Impossible zeigt er stattdessen, wo in einem Wort die Buchstaben getrennt sind. Bevor ein Tipp verbraucht wird, fragt das Spiel kurz nach.</p><p>Der <strong>Schlüssel</strong> blendet die Zahlen auf der Tastatur ein: bei Easy, Hard und Mirror gratis und von Anfang an eingeschaltet. Du kannst ihn ausschalten, das merkt sich das Spiel. Wer ein Rätsel ganz ohne Schlüssel knackt, bekommt beim Teilen einen ⭐. Bei Impossible gibt es keinen.</p><p><strong>Auflösen</strong> zeigt die ganze Lösung. Dann zählt das Rätsel nicht als gelöst.</p>'],
+        ['Grün, Gelb, Rot', '<p>Im Ergebnis steht jedes Kästchen für ein Wort: 🟩 ohne Hilfe gelöst, 🟨 mit Tipp oder Trennung, 🟥 aufgelöst. Einmal gelb bleibt gelb. Ein kleiner Punkt am grünen Wort zeigt dir schon im Rätsel, wo du Hilfe hattest.</p><p>Geteilt werden nur Stufen, die du selbst geknackt hast. Die Lösung wird dabei nie verraten.</p>'],
         ['Zeit und Pause', '<p>Die Uhr startet mit Start und läuft nur, solange der Code zu sehen ist. Sie hält an, wenn du ein Menü öffnest, den Tab wechselst, die App verlässt oder auf die Pause-Taste tippst. Dann ist der Code verdeckt. Mit Weiter geht es genau dort weiter. Jede Stufe hat ihre eigene Uhr.</p>'],
         ['Serie, Archiv, Statistik', '<p>Deine Serie wächst mit jedem Tag, an dem du mindestens ein Rätsel des Tages löst. Neue Codes gibt es um Mitternacht nach deiner Uhrzeit. Ältere Rätsel kannst du im Archiv nachspielen. Sie zählen für die Statistik, nicht für die Serie.</p>']
       ],
@@ -743,7 +741,6 @@ const STR = {
     startMeta: (w, l) => `${w === 1 ? '1 word' : w + ' words'} · ${l} letters`, start: 'Start',
     startNote: 'The code appears when you press Start. The clock only runs while you can see it. The pause button next to the clock stops it.',
     toEasy: 'New here? Start with Easy instead',
-    noNumbers: 'The keyboard shows no numbers here. The key shows them for one letter and costs 1 hint.',
     impTip: 'Tip: start with a short word. Guess one letter and you know the shift for all of them. Feel free to try letters in the boxes; you can type over any of them.',
     rotateTitle: 'Please turn your phone upright', rotateText: 'In landscape this screen is too small for the code and the keyboard. The clock is paused until you turn your phone back.',
     paused: 'Paused', pausedAt: t => `The clock is stopped at ${t}. The code stays hidden until you continue.`,
@@ -752,18 +749,15 @@ const STR = {
     hintTitle: 'Reveals the selected box (1 hint)', cutTitle: 'Shows where the letters split within one word (1 hint)',
     hintAria: (cut, l, m) => `${cut ? 'Show split' : 'Reveal letter'}, ${l} of ${m} hints left`,
     keyEasy: on => on ? 'Hide numbers on the keyboard (free)' : 'Show numbers on the keyboard (free)',
-    keyPaid: open => open ? 'Key open: the numbers apply to your next letter' : 'Key: show the numbers for one letter, costs 1 hint',
     keyForbidden: 'There is no key in Impossible',
     keyShown: 'Numbers on the keyboard are back', keyHidden: 'Numbers hidden. Tap “Key” to bring them back.',
-    keyExplain: 'The key shows the numbers on the keyboard until you type your next letter. It costs 1 hint and the word counts as 🟨 when you share.',
-    keyYes: 'Use the key', cancel: 'Cancel',
+    cancel: 'Cancel',
     showQ: 'Show the numbers? Then this puzzle gets no ⭐ when you share.', showYes: 'Show',
     noKey: '⭐ no key', starMissed: 'No ⭐: the numbers were shown for part of this puzzle.',
     hintQ: left => `Use a hint? One letter in the highlighted word will be revealed. It costs ${left === 1 ? 'your last hint' : `1 of your ${left} hints`} and the word counts as 🟨 when you share.`,
     hintYes: 'Reveal',
     cutQ: left => `Show the split? You will see where the letters split in the highlighted word. It costs ${left === 1 ? 'your last hint' : `1 of your ${left} hints`} and the word counts as 🟨 when you share.`,
     cutYes: 'Show split',
-    keyOpened: 'Key open: the numbers apply to your next letter.',
     revealQ: 'Show the answer? This puzzle will then not count as solved.', revealYes: 'Yes, reveal', revealNo: 'Keep going',
     kb: 'Keyboard', nextWord: 'Next word', backspace: 'Delete',
     coach: {
@@ -790,15 +784,15 @@ const STR = {
     copied: 'Result copied. Paste it into WhatsApp or anywhere else', copiedBtn: 'Copied ✓',
     stats: { title: 'Statistics', played: 'Puzzle days', streak: 'Streak', best: 'Best streak', cracked: 'Codes cracked', byMode: 'By level', solved: 'Solved', clean: 'No help', bestTime: 'Best time*', week: 'Last 7 days',
       weekSr: (d, s) => `${d}: ${s} of 4 solved on the day`,
-      note: '* Fastest solve with no hint, key or split. The free numbers in Easy and Hard do not count as help. All languages, archive puzzles included.',
+      note: '* Fastest solve with no hint or split. The free numbers on the keyboard do not count as help. All languages, archive puzzles included.',
       streakNote: 'Your streak grows every day you solve at least one of that day’s puzzles. Next codes in', empty: 'Nothing solved yet. Your first puzzle is waiting.' },
     archive: { title: 'Archive', intro: 'Every puzzle so far, ready to replay. They count towards your statistics but not your streak.', today: 'Today',
       st: { solved: 'solved', revealed: 'revealed', playing: 'started', open: 'open' }, repeat: r => `Repeat of #${r}` },
     legal: { imprint: 'Legal notice', privacy: 'Privacy', hash: '#en' },
     settings: { title: 'Settings', theme: 'Theme', system: 'System', light: 'Light', dark: 'Dark', themeNote: 'System: light or dark, matching the setting on your phone or computer.', language: 'Language',
       haptics: 'Haptic feedback', hapticsNote: 'On phones with every key press. On Android also for right and wrong words.',
-      keys: 'Numbers on the keyboard', keysNote: 'In Easy and Hard. Crack a puzzle entirely without them and you get a ⭐ when you share.',
-      count: 'Count anonymously', countNote: 'Helps us see how many people play. We only count how often a puzzle is opened, started, solved or shared. No ID, no cookies, nothing about you. Off unless you agree. Your streak and stats work either way.', countGpc: 'Your browser asks websites not to collect data (Global Privacy Control), so we do not count you.',
+      keys: 'Numbers on the keyboard', keysNote: 'In Easy, Hard and Mirror. Crack a puzzle entirely without them and you get a ⭐ when you share.',
+      count: 'Count anonymously', countNote: 'Helps us see how many people play. We only count how often a puzzle is opened, started, solved or shared. No ID, no cookies, nothing about you. Off unless you agree. Your streak and stats work either way.', countGpc: 'Your browser asks websites not to collect data (Global Privacy Control or “Do Not Track”), so we do not count you.',
       privacy: 'No account, no ads, no tracking. Your progress stays in this browser only. On another device or as a home screen app, your statistics start fresh.',
       intro: 'Show the quick start', done: 'Done' },
     shareDlg: { title: 'Share result', note: 'Automatic copying does not work here. The text is selected so you can copy it yourself.', done: 'Done' },
@@ -815,8 +809,8 @@ const STR = {
       sections: [
         ['The four levels', '<ul><li><strong>Easy:</strong> A&nbsp;=&nbsp;1 … Z&nbsp;=&nbsp;26. Each number has its own box.</li><li><strong>Hard:</strong> the same numbers, but with no separators. 1 1 could be K or AA.</li><li><strong>Mirror:</strong> backwards, A&nbsp;=&nbsp;26 … Z&nbsp;=&nbsp;1, no separators.</li><li><strong>Impossible:</strong> the alphabet is shifted by a secret number, no separators.</li></ul><p>The boxes always tell you how many letters a word has.</p>'],
         ['Typing and fixing', '<p>Tap a box and type with the keyboard. You can type over any box on its own. A full word that is wrong gets a red dashed outline. Correct words are highlighted in green. The arrow jumps to the next word.</p><p>On a computer: type letters, use the arrow keys, Enter for the next word and Backspace.</p>'],
-        ['Hints, key, reveal', '<p>You get three hints per puzzle. A hint reveals the selected box. In Impossible it shows where the letters split within a word instead. Before a hint is used up, the game asks you to confirm.</p><p>The <strong>key</strong> shows the numbers on the keyboard: free and switched on from the start in Easy and Hard. You can turn it off, and the game remembers that. Crack a puzzle entirely without the key and you get a ⭐ when you share. In Mirror the key costs 1 hint and lasts until your next letter. There is no key in Impossible.</p><p><strong>Reveal</strong> shows the whole answer. The puzzle then does not count as solved.</p>'],
-        ['Green, yellow, red', '<p>In your result, each square stands for one word: 🟩 solved without help, 🟨 with a hint, key or split, 🟥 revealed. Once yellow, always yellow. A small dot on a green word shows you where you had help.</p><p>Only levels you actually cracked are shared. Sharing never gives away the answer.</p>'],
+        ['Hints, key, reveal', '<p>You get three hints per puzzle. A hint reveals the selected box. In Impossible it shows where the letters split within a word instead. Before a hint is used up, the game asks you to confirm.</p><p>The <strong>key</strong> shows the numbers on the keyboard: free and switched on from the start in Easy, Hard and Mirror. You can turn it off, and the game remembers that. Crack a puzzle entirely without the key and you get a ⭐ when you share. There is no key in Impossible.</p><p><strong>Reveal</strong> shows the whole answer. The puzzle then does not count as solved.</p>'],
+        ['Green, yellow, red', '<p>In your result, each square stands for one word: 🟩 solved without help, 🟨 with a hint or split, 🟥 revealed. Once yellow, always yellow. A small dot on a green word shows you where you had help.</p><p>Only levels you actually cracked are shared. Sharing never gives away the answer.</p>'],
         ['Time and pause', '<p>The clock starts when you press Start and only runs while the code is visible. It stops when you open a menu, switch tabs, leave the app or tap the pause button. The code is hidden while it is stopped. Continue picks up exactly where you left off. Each level has its own clock.</p>'],
         ['Streak, archive, statistics', '<p>Your streak grows every day you solve at least one of that day’s puzzles. New codes arrive at midnight, your local time. You can replay older puzzles in the archive. They count towards your statistics but not your streak.</p>']
       ],
@@ -857,7 +851,6 @@ const STR = {
     startMeta: (w, l) => `${w === 1 ? '1 mot' : w + ' mots'} · ${l} lettres`, start: 'Démarrer',
     startNote: 'Le code apparaît quand tu appuies sur Démarrer. Le chrono ne tourne que tant que tu le vois. Le bouton pause à côté du chrono l’arrête.',
     toEasy: 'Tu débutes ? Commence plutôt par Easy',
-    noNumbers: 'Ici, le clavier n’affiche pas de chiffres. La clé les montre pour une lettre et coûte 1 indice.',
     impTip: 'Astuce : commence par un mot court. Si tu devines une lettre, tu connais le décalage pour toutes. N’hésite pas à essayer des lettres dans les cases, tu peux toutes les remplacer.',
     rotateTitle: 'Tiens ton téléphone à la verticale', rotateText: 'En mode paysage, cet écran est trop petit pour le code et le clavier. Le chrono reste arrêté en attendant.',
     paused: 'En pause', pausedAt: t => `Le chrono est arrêté à ${t}. Le code reste caché jusqu’à ce que tu continues.`,
@@ -866,18 +859,15 @@ const STR = {
     hintTitle: 'Dévoile la case choisie (1 indice)', cutTitle: 'Montre où les lettres se séparent dans un mot (1 indice)',
     hintAria: (cut, l, m) => `${cut ? 'Montrer la coupure' : 'Dévoiler une lettre'}, ${l} indices sur ${m} restants`,
     keyEasy: on => on ? 'Masquer les chiffres du clavier (gratuit)' : 'Afficher les chiffres du clavier (gratuit)',
-    keyPaid: open => open ? 'Clé ouverte : les chiffres valent pour ta prochaine lettre' : 'Clé : afficher les chiffres pour une lettre, coûte 1 indice',
     keyForbidden: 'Pas de clé en Impossible',
     keyShown: 'Les chiffres du clavier sont de retour', keyHidden: 'Chiffres masqués. « Clé » les fait réapparaître.',
-    keyExplain: 'La clé affiche les chiffres sur le clavier jusqu’à ta prochaine lettre. Elle coûte 1 indice et le mot compte comme 🟨 au partage.',
-    keyYes: 'Utiliser la clé', cancel: 'Annuler',
+    cancel: 'Annuler',
     showQ: 'Afficher les chiffres\u00a0? Cette énigme sera alors partagée sans ⭐.', showYes: 'Afficher',
     noKey: '⭐ sans clé', starMissed: 'Pas de ⭐\u00a0: les chiffres étaient affichés pendant une partie de cette énigme.',
     hintQ: left => `Utiliser un indice ? Une lettre du mot surligné sera dévoilée. Cela coûte ${left === 1 ? 'ton dernier indice' : `1 de tes ${left} indices`} et le mot compte comme 🟨 au partage.`,
     hintYes: 'Dévoiler',
     cutQ: left => `Montrer la coupure ? Tu verras où les lettres se séparent dans le mot surligné. Cela coûte ${left === 1 ? 'ton dernier indice' : `1 de tes ${left} indices`} et le mot compte comme 🟨 au partage.`,
     cutYes: 'Montrer la coupure',
-    keyOpened: 'Clé ouverte : les chiffres valent pour ta prochaine lettre.',
     revealQ: 'Afficher la solution ? Cette énigme ne comptera alors pas comme résolue.', revealYes: 'Oui, révéler', revealNo: 'Continuer à chercher',
     kb: 'Clavier', nextWord: 'Mot suivant', backspace: 'Effacer',
     coach: {
@@ -904,15 +894,15 @@ const STR = {
     copied: 'Résultat copié. Colle-le dans WhatsApp ou ailleurs', copiedBtn: 'Copié ✓',
     stats: { title: 'Statistiques', played: 'Jours joués', streak: 'Série', best: 'Meilleure série', cracked: 'Codes déchiffrés', byMode: 'Par niveau', solved: 'Résolus', clean: 'Sans aide', bestTime: 'Record*', week: '7 derniers jours',
       weekSr: (d, s) => `${d} : ${s} sur 4 résolus le jour même`,
-      note: '* Résolution la plus rapide sans indice, clé ni coupure. Les chiffres gratuits en Easy et Hard ne comptent pas comme aide. Toutes les langues, archives comprises.',
+      note: '* Résolution la plus rapide sans indice ni coupure. Les chiffres gratuits du clavier ne comptent pas comme aide. Toutes les langues, archives comprises.',
       streakNote: 'Ta série grandit chaque jour où tu résous au moins une énigme du jour. Prochains codes dans', empty: 'Rien de résolu pour l’instant. Ta première énigme t’attend.' },
     archive: { title: 'Archives', intro: 'Toutes les énigmes passées, à rejouer. Elles comptent pour les statistiques, mais pas pour la série.', today: 'Aujourd’hui',
       st: { solved: 'résolu', revealed: 'dévoilé', playing: 'commencé', open: 'à faire' }, repeat: r => `Reprise du #${r}` },
     legal: { imprint: 'Mentions légales', privacy: 'Confidentialité', hash: '#fr' },
     settings: { title: 'Réglages', theme: 'Apparence', system: 'Système', light: 'Clair', dark: 'Sombre', themeNote: 'Système : clair ou sombre, selon le réglage de ton téléphone ou de ton ordinateur.', language: 'Langue',
       haptics: 'Retour haptique', hapticsNote: 'Sur téléphone à chaque touche. Sur Android aussi pour les mots justes et faux.',
-      keys: 'Chiffres sur le clavier', keysNote: 'En Easy et Hard. Une énigme résolue entièrement sans eux est partagée avec ⭐.',
-      count: 'Comptage anonyme', countNote: 'Nous aide à savoir combien de personnes jouent. Nous comptons seulement combien de fois une énigme est ouverte, commencée, résolue ou partagée. Aucun identifiant, aucun cookie, rien sur toi. Désactivé tant que tu n’as pas accepté. Ta série et tes statistiques fonctionnent dans tous les cas.', countGpc: 'Ton navigateur demande aux sites de ne rien collecter (Global Privacy Control). Nous ne te comptons donc pas.',
+      keys: 'Chiffres sur le clavier', keysNote: 'En Easy, Hard et Mirror. Une énigme résolue entièrement sans eux est partagée avec ⭐.',
+      count: 'Comptage anonyme', countNote: 'Nous aide à savoir combien de personnes jouent. Nous comptons seulement combien de fois une énigme est ouverte, commencée, résolue ou partagée. Aucun identifiant, aucun cookie, rien sur toi. Désactivé tant que tu n’as pas accepté. Ta série et tes statistiques fonctionnent dans tous les cas.', countGpc: 'Ton navigateur demande aux sites de ne rien collecter (Global Privacy Control ou « Do Not Track »). Nous ne te comptons donc pas.',
       privacy: 'Pas de compte, pas de pub, pas de pistage. Ta progression reste uniquement dans ce navigateur. Sur un autre appareil ou en appli sur l’écran d’accueil, tes statistiques repartent de zéro.',
       intro: 'Revoir la prise en main', done: 'OK' },
     shareDlg: { title: 'Partager le résultat', note: 'La copie automatique ne fonctionne pas ici. Le texte est sélectionné, tu peux le copier toi-même.', done: 'OK' },
@@ -929,8 +919,8 @@ const STR = {
       sections: [
         ['Les quatre niveaux', '<ul><li><strong>Easy&nbsp;:</strong> A&nbsp;=&nbsp;1 … Z&nbsp;=&nbsp;26. Chaque nombre a sa propre case.</li><li><strong>Hard&nbsp;:</strong> les mêmes nombres, mais sans séparation. 1 1 peut être K ou AA.</li><li><strong>Mirror&nbsp;:</strong> à l’envers, A&nbsp;=&nbsp;26 … Z&nbsp;=&nbsp;1, sans séparation.</li><li><strong>Impossible&nbsp;:</strong> l’alphabet est décalé d’un nombre secret, sans séparation.</li></ul><p>Les cases indiquent toujours combien de lettres compte un mot. Il n’y a que les 26&nbsp;lettres de A à&nbsp;Z&nbsp;: les accents disparaissent, É devient E et Œ devient OE.</p>'],
         ['Écrire et corriger', '<p>Touche une case et écris avec le clavier. Chaque case peut être remplacée séparément. Un mot complet mais faux est entouré de rouge en pointillés. Les mots justes sont surlignés en vert. La flèche passe au mot suivant.</p><p>Sur ordinateur&nbsp;: tape les lettres, utilise les flèches, Entrée pour le mot suivant et Retour arrière pour effacer.</p>'],
-        ['Indices, clé, solution', '<p>Tu as trois indices par énigme. Un indice dévoile la case choisie. En Impossible, il montre plutôt où les lettres se séparent dans un mot. Avant d’utiliser un indice, le jeu te demande de confirmer.</p><p>La <strong>clé</strong> affiche les chiffres sur le clavier&nbsp;: gratuite et activée dès le départ en Easy et Hard. Tu peux la désactiver, le jeu s’en souvient. Une énigme résolue entièrement sans clé est partagée avec ⭐. En Mirror, la clé coûte 1 indice et vaut jusqu’à ta prochaine lettre. Il n’y en a pas en Impossible.</p><p><strong>Révéler</strong> affiche toute la solution. L’énigme ne compte alors pas comme résolue.</p>'],
-        ['Vert, jaune, rouge', '<p>Dans ton résultat, chaque carré représente un mot&nbsp;: 🟩 résolu sans aide, 🟨 avec indice, clé ou coupure, 🟥 dévoilé. Jaune une fois, jaune pour toujours. Un petit point sur un mot vert te montre déjà dans l’énigme où tu as eu de l’aide.</p><p>Seuls les niveaux que tu as vraiment déchiffrés sont partagés. Le partage ne révèle jamais la solution.</p>'],
+        ['Indices, clé, solution', '<p>Tu as trois indices par énigme. Un indice dévoile la case choisie. En Impossible, il montre plutôt où les lettres se séparent dans un mot. Avant d’utiliser un indice, le jeu te demande de confirmer.</p><p>La <strong>clé</strong> affiche les chiffres sur le clavier&nbsp;: gratuite et activée dès le départ en Easy, Hard et Mirror. Tu peux la désactiver, le jeu s’en souvient. Une énigme résolue entièrement sans clé est partagée avec ⭐. Il n’y en a pas en Impossible.</p><p><strong>Révéler</strong> affiche toute la solution. L’énigme ne compte alors pas comme résolue.</p>'],
+        ['Vert, jaune, rouge', '<p>Dans ton résultat, chaque carré représente un mot&nbsp;: 🟩 résolu sans aide, 🟨 avec indice ou coupure, 🟥 dévoilé. Jaune une fois, jaune pour toujours. Un petit point sur un mot vert te montre déjà dans l’énigme où tu as eu de l’aide.</p><p>Seuls les niveaux que tu as vraiment déchiffrés sont partagés. Le partage ne révèle jamais la solution.</p>'],
         ['Temps et pause', '<p>Le chrono démarre avec Démarrer et ne tourne que tant que le code est visible. Il s’arrête quand tu ouvres un menu, changes d’onglet, quittes l’appli ou touches le bouton pause. Le code est alors caché. Continuer reprend exactement où tu en étais. Chaque niveau a son propre chrono.</p>'],
         ['Série, archives, statistiques', '<p>Ta série grandit chaque jour où tu résous au moins une énigme du jour. Les nouveaux codes arrivent à minuit, à ton heure locale. Tu peux rejouer les anciennes énigmes dans les archives. Elles comptent pour les statistiques, pas pour la série.</p>']
       ],
@@ -972,7 +962,6 @@ const STR = {
     startMeta: (w, l) => `${w === 1 ? '1 parola' : w + ' parole'} · ${l} lettere`, start: 'Inizia',
     startNote: 'Il codice appare quando premi Inizia. Il cronometro gira solo finché lo vedi. Il tasto pausa accanto al cronometro lo ferma.',
     toEasy: 'Prima volta qui? Meglio iniziare con Easy',
-    noNumbers: 'Qui la tastiera non mostra numeri. La chiave li mostra per una lettera e costa 1 indizio.',
     impTip: 'Consiglio: inizia da una parola corta. Se indovini una lettera, conosci lo spostamento per tutte. Prova pure le lettere nelle caselle, puoi sovrascriverle tutte.',
     rotateTitle: 'Tieni il telefono in verticale', rotateText: 'In orizzontale questo schermo è troppo piccolo per codice e tastiera. Nel frattempo il cronometro resta fermo.',
     paused: 'In pausa', pausedAt: t => `Il cronometro è fermo a ${t}. Il codice resta nascosto finché non continui.`,
@@ -981,18 +970,15 @@ const STR = {
     hintTitle: 'Svela la casella scelta (1 indizio)', cutTitle: 'Mostra dove si dividono le lettere in una parola (1 indizio)',
     hintAria: (cut, l, m) => `${cut ? 'Mostra la divisione' : 'Svela una lettera'}, ${l} indizi su ${m} rimasti`,
     keyEasy: on => on ? 'Nascondi i numeri sulla tastiera (gratis)' : 'Mostra i numeri sulla tastiera (gratis)',
-    keyPaid: open => open ? 'Chiave aperta: i numeri valgono per la tua prossima lettera' : 'Chiave: mostra i numeri per una lettera, costa 1 indizio',
     keyForbidden: 'In Impossible non c’è la chiave',
     keyShown: 'I numeri sulla tastiera sono tornati', keyHidden: 'Numeri nascosti. «Chiave» li fa riapparire.',
-    keyExplain: 'La chiave mostra i numeri sulla tastiera finché non scrivi la prossima lettera. Costa 1 indizio e la parola conta come 🟨 quando condividi.',
-    keyYes: 'Usa la chiave', cancel: 'Annulla',
+    cancel: 'Annulla',
     showQ: 'Mostrare i numeri? Allora questo enigma sarà condiviso senza ⭐.', showYes: 'Mostra',
     noKey: '⭐ senza chiave', starMissed: 'Niente ⭐: i numeri erano visibili per una parte di questo enigma.',
     hintQ: left => `Usare un indizio? Verrà svelata una lettera della parola evidenziata. Costa ${left === 1 ? 'il tuo ultimo indizio' : `1 dei tuoi ${left} indizi`} e la parola conta come 🟨 quando condividi.`,
     hintYes: 'Svela',
     cutQ: left => `Mostrare la divisione? Vedrai dove si dividono le lettere nella parola evidenziata. Costa ${left === 1 ? 'il tuo ultimo indizio' : `1 dei tuoi ${left} indizi`} e la parola conta come 🟨 quando condividi.`,
     cutYes: 'Mostra divisione',
-    keyOpened: 'Chiave aperta: i numeri valgono per la tua prossima lettera.',
     revealQ: 'Mostrare la soluzione? Allora questo enigma non conta come risolto.', revealYes: 'Sì, svela', revealNo: 'Continua a provare',
     kb: 'Tastiera', nextWord: 'Parola successiva', backspace: 'Cancella',
     coach: {
@@ -1019,15 +1005,15 @@ const STR = {
     copied: 'Risultato copiato. Ora incollalo su WhatsApp o altrove', copiedBtn: 'Copiato ✓',
     stats: { title: 'Statistiche', played: 'Giorni giocati', streak: 'Serie', best: 'Serie migliore', cracked: 'Codici decifrati', byMode: 'Per livello', solved: 'Risolti', clean: 'Senza aiuti', bestTime: 'Record*', week: 'Ultimi 7 giorni',
       weekSr: (d, s) => `${d}: ${s} su 4 risolti in giornata`,
-      note: '* Soluzione più veloce senza indizi, chiave o divisione. I numeri gratuiti in Easy e Hard non contano come aiuto. Tutte le lingue, archivio compreso.',
+      note: '* Soluzione più veloce senza indizi o divisione. I numeri gratuiti sulla tastiera non contano come aiuto. Tutte le lingue, archivio compreso.',
       streakNote: 'La tua serie cresce ogni giorno in cui risolvi almeno un enigma del giorno. Prossimi codici tra', empty: 'Ancora niente di risolto. Il tuo primo enigma ti aspetta.' },
     archive: { title: 'Archivio', intro: 'Tutti gli enigmi finora, da rigiocare. Contano per le statistiche, ma non per la serie.', today: 'Oggi',
       st: { solved: 'risolto', revealed: 'svelato', playing: 'iniziato', open: 'da fare' }, repeat: r => `Ripetizione del #${r}` },
     legal: { imprint: 'Note legali', privacy: 'Privacy', hash: '#it' },
     settings: { title: 'Impostazioni', theme: 'Tema', system: 'Sistema', light: 'Chiaro', dark: 'Scuro', themeNote: 'Sistema: chiaro o scuro, come impostato sul tuo telefono o computer.', language: 'Lingua',
       haptics: 'Feedback aptico', hapticsNote: 'Sul telefono a ogni tasto. Su Android anche per parole giuste e sbagliate.',
-      keys: 'Numeri sulla tastiera', keysNote: 'In Easy e Hard. Un enigma risolto del tutto senza di essi viene condiviso con ⭐.',
-      count: 'Conteggio anonimo', countNote: 'Ci aiuta a capire quante persone giocano. Contiamo solo quante volte un enigma viene aperto, iniziato, risolto o condiviso. Nessun identificativo, nessun cookie, niente su di te. Disattivato finché non acconsenti. La tua serie e le statistiche funzionano comunque.', countGpc: 'Il tuo browser chiede ai siti di non raccogliere dati (Global Privacy Control), quindi non ti contiamo.',
+      keys: 'Numeri sulla tastiera', keysNote: 'In Easy, Hard e Mirror. Un enigma risolto del tutto senza di essi viene condiviso con ⭐.',
+      count: 'Conteggio anonimo', countNote: 'Ci aiuta a capire quante persone giocano. Contiamo solo quante volte un enigma viene aperto, iniziato, risolto o condiviso. Nessun identificativo, nessun cookie, niente su di te. Disattivato finché non acconsenti. La tua serie e le statistiche funzionano comunque.', countGpc: 'Il tuo browser chiede ai siti di non raccogliere dati (Global Privacy Control o «Do Not Track»), quindi non ti contiamo.',
       privacy: 'Nessun account, nessuna pubblicità, nessun tracciamento. I tuoi progressi restano solo in questo browser. Su un altro dispositivo o come app nella schermata Home, le statistiche ripartono da zero.',
       intro: 'Rivedi l’introduzione', done: 'Fatto' },
     shareDlg: { title: 'Condividi il risultato', note: 'La copia automatica qui non funziona. Il testo è selezionato, puoi copiarlo tu.', done: 'Fatto' },
@@ -1044,8 +1030,8 @@ const STR = {
       sections: [
         ['I quattro livelli', '<ul><li><strong>Easy:</strong> A&nbsp;=&nbsp;1 … Z&nbsp;=&nbsp;26. Ogni numero ha la sua casella.</li><li><strong>Hard:</strong> gli stessi numeri, ma senza divisione. 1 1 può essere K o AA.</li><li><strong>Mirror:</strong> al contrario, A&nbsp;=&nbsp;26 … Z&nbsp;=&nbsp;1, senza divisione.</li><li><strong>Impossible:</strong> l’alfabeto è spostato di un numero segreto, senza divisione.</li></ul><p>Le caselle dicono sempre quante lettere ha una parola. Ci sono solo le 26&nbsp;lettere dalla A alla&nbsp;Z: gli accenti spariscono, È diventa E.</p>'],
         ['Scrivere e correggere', '<p>Tocca una casella e scrivi con la tastiera. Ogni casella si può sovrascrivere da sola. Una parola piena ma sbagliata ha un bordo rosso tratteggiato. Le parole giuste sono evidenziate in verde. La freccia passa alla parola successiva.</p><p>Al computer: scrivi le lettere, usa le frecce, Invio per la parola successiva e Backspace per cancellare.</p>'],
-        ['Indizi, chiave, soluzione', '<p>Per ogni enigma hai tre indizi. Un indizio svela la casella scelta. In Impossible mostra invece dove si dividono le lettere in una parola. Prima di usare un indizio, il gioco chiede conferma.</p><p>La <strong>chiave</strong> mostra i numeri sulla tastiera: gratis e attiva fin dall’inizio in Easy e Hard. Puoi spegnerla, il gioco se lo ricorda. Un enigma risolto del tutto senza chiave viene condiviso con ⭐. In Mirror la chiave costa 1 indizio e vale fino alla prossima lettera. In Impossible non c’è.</p><p><strong>Svela</strong> mostra tutta la soluzione. Allora l’enigma non conta come risolto.</p>'],
-        ['Verde, giallo, rosso', '<p>Nel risultato ogni quadratino rappresenta una parola: 🟩 risolta senza aiuti, 🟨 con indizio, chiave o divisione, 🟥 svelata. Una volta gialla, resta gialla. Un puntino su una parola verde ti mostra già nell’enigma dove hai avuto aiuto.</p><p>Si condividono solo i livelli che hai davvero decifrato. La condivisione non svela mai la soluzione.</p>'],
+        ['Indizi, chiave, soluzione', '<p>Per ogni enigma hai tre indizi. Un indizio svela la casella scelta. In Impossible mostra invece dove si dividono le lettere in una parola. Prima di usare un indizio, il gioco chiede conferma.</p><p>La <strong>chiave</strong> mostra i numeri sulla tastiera: gratis e attiva fin dall’inizio in Easy, Hard e Mirror. Puoi spegnerla, il gioco se lo ricorda. Un enigma risolto del tutto senza chiave viene condiviso con ⭐. In Impossible non c’è.</p><p><strong>Svela</strong> mostra tutta la soluzione. Allora l’enigma non conta come risolto.</p>'],
+        ['Verde, giallo, rosso', '<p>Nel risultato ogni quadratino rappresenta una parola: 🟩 risolta senza aiuti, 🟨 con indizio o divisione, 🟥 svelata. Una volta gialla, resta gialla. Un puntino su una parola verde ti mostra già nell’enigma dove hai avuto aiuto.</p><p>Si condividono solo i livelli che hai davvero decifrato. La condivisione non svela mai la soluzione.</p>'],
         ['Tempo e pausa', '<p>Il cronometro parte con Inizia e gira solo finché il codice è visibile. Si ferma quando apri un menu, cambi scheda, esci dall’app o tocchi il tasto pausa. Allora il codice è nascosto. Con Continua riprendi esattamente da dove eri. Ogni livello ha il suo cronometro.</p>'],
         ['Serie, archivio, statistiche', '<p>La tua serie cresce ogni giorno in cui risolvi almeno un enigma del giorno. I nuovi codici arrivano a mezzanotte, secondo la tua ora locale. Gli enigmi passati si possono rigiocare nell’archivio. Contano per le statistiche, non per la serie.</p>']
       ],
@@ -1277,13 +1263,13 @@ function msFor(key, id, p, l) {
 const ms = id => msFor(day.key, id, day.puzzles[id]);
 const finished = s => s.status === 'solved' || s.status === 'revealed';
 const hintsLeft = s => Math.max(0, CONFIG.hintsPerPuzzle - (s.hintCount || 0));
-const keyForbidden = s => current === 'impossible' && !s.shiftShown;
 const modeName = id => MODES.find(m => m.id === id).name;
-// Easy und Hard: Zahlen auf der Tastatur sind gratis und standardmäßig an. Eine gemeinsame Einstellung, die sich das Spiel merkt
-// (store.easyKey heißt weiter so, damit alte Spielstände passen). Mirror: Schlüssel kostet 1 Tipp. Impossible: keiner.
-const freeKey = id => id === 'easy' || id === 'hard';
+// Easy, Hard und Mirror: Zahlen auf der Tastatur sind gratis und standardmäßig an. Eine gemeinsame Einstellung, die sich das Spiel merkt
+// (store.easyKey heißt weiter so, damit alte Spielstände passen). Seit 13. November 2026 auch bei Mirror; den bezahlten
+// Schlüssel (1 Tipp für einen Buchstaben) gibt es nicht mehr. Impossible: kein Schlüssel.
+const freeKey = id => id !== 'impossible';
 const easyKeyOn = () => store.easyKey !== false;
-const keyVisible = () => freeKey(current) ? easyKeyOn() : !!ms(current).keyOpen;
+const keyVisible = () => freeKey(current) && easyKeyOn();
 // ⭐ im Ergebnis und beim Teilen: gelöst, ohne dass die Zahlen in diesem Rätsel je zu sehen waren.
 // keySeen ist beim Start false und wird true, sobald die Tastatur beim Spielen Zahlen zeigt. Ältere Spielstände ohne das Feld: kein ⭐.
 const starOf = id => freeKey(id) && ms(id).status === 'solved' && ms(id).keySeen === false;
@@ -1474,7 +1460,6 @@ function ruleHtml(withTip) {
   const um = (t.accentRe || /[äöüÄÖÜßẞ]/).test(p.fact.t);
   return `<p>${esc(r.text)}</p>` + (ex ? `<p class="ex">${esc(ex)}</p>` : '') +
     (withTip && current === 'impossible' && !finished(s) ? `<p class="tip">${esc(t.impTip)}</p>` : '') +
-    (withTip && current === 'mirror' && !finished(s) ? `<p class="tip">${esc(t.noNumbers)}</p>` : '') +
     (t.umlauts && um ? `<p class="note">${esc(t.umlauts)}</p>` : '');
 }
 
@@ -1529,13 +1514,17 @@ function buildBoard() {
 function layoutBoard() {
   const board = $('#board');
   if (!day || board.hidden) return;
-  const avail = board.clientWidth;
-  if (!avail) return;
+  // Nicht clientWidth: Das rundet. Bei krummen Breiten (Handys mit Anzeigegröße 2,6 oder 2,8) fehlte dann ein halbes Pixel,
+  // und das längste Wort brach nach dem vorletzten Kästchen um. Abrunden lässt immer etwas Luft.
+  const cs = getComputedStyle(board);
+  const avail = Math.floor(board.getBoundingClientRect().width - parseFloat(cs.borderLeftWidth) - parseFloat(cs.borderRightWidth));
+  if (!(avail > 0)) return;
   const maxU = Math.max(...puz().words.map(w => wordUnits(w, current)));
   // Normal: mindestens ein halbes Kästchen Rand. Wird es zu eng (sehr lange Wörter, schmale Handys), wird der Rand schmaler.
   let cell = Math.floor((avail - 2) / (maxU + 1)), min = cell / 2;
   if (cell < 17) { min = 6; cell = Math.floor((avail - 2 - 2 * min) / maxU); }
   cell = Math.max(15, Math.min(30, cell));
+  cell = Math.min(cell, Math.floor(avail / maxU));   // das längste Wort passt in jedem Fall in eine Zeile
   // Links und rechts gleich viel Rand, damit das Karopapier mit ganzen Kästchen aufgeht (kein schmaler Streifen am Rand)
   const cols = Math.max(maxU, Math.floor((avail - 2 * min) / cell));
   const pad = Math.max(0, Math.floor((avail - cols * cell) / 2));
@@ -1614,22 +1603,15 @@ function renderTools() {
   $('#hintBtn').title = cutMode ? t.cutTitle : t.hintTitle;
   $('#hintBtn').setAttribute('aria-label', t.hintAria(cutMode, left, max));
   $('#pips').innerHTML = Array.from({ length: max }, (_, i) => `<i class="${i < left ? 'on' : ''}"></i>`).join('');
-  const kb = $('#keyBtn'), cost = $('#keyCost');
+  const kb = $('#keyBtn');
   $('#keyLabel').textContent = t.key;
   if (freeKey(current)) {
     const on = easyKeyOn();
     kb.disabled = false; kb.setAttribute('aria-pressed', String(on));
     kb.title = t.keyEasy(on); kb.setAttribute('aria-label', t.keyEasy(on));
-    cost.hidden = true;
-  } else if (keyForbidden(s)) {
+  } else {
     kb.disabled = true; kb.setAttribute('aria-pressed', 'false');
     kb.title = t.keyForbidden; kb.setAttribute('aria-label', t.keyForbidden);
-    cost.hidden = true;
-  } else {
-    const open = !!s.keyOpen;
-    kb.disabled = !open && !left; kb.setAttribute('aria-pressed', String(open));
-    kb.title = t.keyPaid(open); kb.setAttribute('aria-label', t.keyPaid(open));
-    cost.textContent = '−1'; cost.hidden = open;
   }
 }
 
@@ -1825,8 +1807,6 @@ function typeLetter(L) {
     const nx = nextUnsolved(wi);
     if (nx >= 0 && nx !== wi) { select(nx, null); return typeLetter(L); }
   }
-  // Bezahlter Schlüssel gilt für genau diesen Buchstaben: Das Wort zählt als „mit Hilfe“
-  if (s.keyOpen) { s.keyOpen = false; markHelped(s, wi); renderKeyboard(); renderTools(); }
   // „ae“ → Ä, „ss“ → ß usw., wenn das vorige Kästchen so ein Buchstabe sein soll
   if (lastIn && lastIn.w === wi && cur === lastIn.next && DIGRAPH[target[lastIn.i]] === lastIn.L + L && cells[lastIn.i] === lastIn.L) {
     cells[lastIn.i] = target[lastIn.i];
@@ -1974,35 +1954,22 @@ function giveHint() {
 function onKeyBtn() {
   const s = ms(current);
   if (s.status !== 'playing' || paused) return;
-  if (freeKey(current)) {
-    // Bisher ganz ohne Zahlen gespielt: Einblenden kostet den ⭐, deshalb kurz nachfragen
-    if (!easyKeyOn() && s.keySeen === false) openConfirm('show'); else toggleFreeKey();
-    return;
-  }
-  if (keyForbidden(s) || s.keyOpen) return;
-  if (!hintsLeft(s)) { toast(T().noTips); return; }
-  openConfirm('key');   // kostet einen Tipp: jedes Mal kurz fragen
+  if (!freeKey(current)) return;
+  // Bisher ganz ohne Zahlen gespielt: Einblenden kostet den ⭐, deshalb kurz nachfragen
+  if (!easyKeyOn() && s.keySeen === false) openConfirm('show'); else toggleFreeKey();
 }
 function toggleFreeKey() {
   if (ms(current).status !== 'playing') return;
   store.easyKey = !easyKeyOn(); save(); renderKeyboard(); renderTools(); buzz('tap');
   toast(easyKeyOn() ? T().keyShown : T().keyHidden);
 }
-function payKey() {
-  const s = ms(current);
-  if (s.status !== 'playing' || s.keyOpen || !hintsLeft(s)) return;
-  s.hintCount++; s.keyOpen = true; store.coach.key = true;
-  save(); renderKeyboard(); renderTools();
-  toast(T().keyOpened); announce(T().keyOpened);
-  buzz('tap');
-}
 
 function openConfirm(kind) {
   const t = T(), yes = $('#confirmYes');
   confirmKind = kind;
   const left = hintsLeft(ms(current));
-  $('#confirmText').textContent = kind === 'reveal' ? t.revealQ : kind === 'hint' ? t.hintQ(left) : kind === 'cut' ? t.cutQ(left) : kind === 'show' ? t.showQ : t.keyExplain;
-  yes.textContent = kind === 'reveal' ? t.revealYes : kind === 'hint' ? t.hintYes : kind === 'cut' ? t.cutYes : kind === 'show' ? t.showYes : t.keyYes;
+  $('#confirmText').textContent = kind === 'reveal' ? t.revealQ : kind === 'hint' ? t.hintQ(left) : kind === 'cut' ? t.cutQ(left) : t.showQ;
+  yes.textContent = kind === 'reveal' ? t.revealYes : kind === 'hint' ? t.hintYes : kind === 'cut' ? t.cutYes : t.showYes;
   yes.className = 'btn ' + (kind === 'reveal' ? 'danger' : 'primary');
   $('#confirmNo').textContent = kind === 'reveal' ? t.revealNo : t.cancel;
   $('#confirm').classList.toggle('calm', kind !== 'reveal');
@@ -2028,7 +1995,7 @@ function complete(status) {
     s.given = p.words.map((w, i) => i).filter(i => !isSolvedW(i, s));
     p.words.forEach((w, i) => { s.typed[i] = w.plain; });
   }
-  s.status = status; s.doneOn = realToday(); s.keyOpen = false;
+  s.status = status; s.doneOn = realToday();
   aw = null; paused = false;
   closeConfirm(); $('#coach').hidden = true;
   save();
@@ -2383,7 +2350,7 @@ $('#hintBtn').addEventListener('click', e => { noteTap(e); useHint(); });
 $('#keyBtn').addEventListener('click', e => { noteTap(e); onKeyBtn(); });
 $('#revealBtn').addEventListener('click', () => openConfirm('reveal'));
 $('#confirmNo').addEventListener('click', () => { closeConfirm(); });
-$('#confirmYes').addEventListener('click', e => { if (confirmKind !== 'reveal' && reflexTap(e)) return; const k = confirmKind; closeConfirm(); if (k === 'reveal') complete('revealed'); else if (k === 'key') payKey(); else if (k === 'show') toggleFreeKey(); else if (k === 'hint' || k === 'cut') giveHint(); });
+$('#confirmYes').addEventListener('click', e => { if (confirmKind !== 'reveal' && reflexTap(e)) return; const k = confirmKind; closeConfirm(); if (k === 'reveal') complete('revealed'); else if (k === 'show') toggleFreeKey(); else if (k === 'hint' || k === 'cut') giveHint(); });
 $('#coachOk').addEventListener('click', () => { $('#coach').hidden = true; });
 $('#pauseBtn').addEventListener('click', () => { pauseGame('button'); $('#resumeBtn') && $('#resumeBtn').focus(); });
 $('#statsBtn').addEventListener('click', () => { renderStats(); openDlg($('#statsDlg')); });
