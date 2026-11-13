@@ -26,6 +26,11 @@ async function measure(page) {
     const board = document.getElementById('board');
     if (board && vis(board)) {
       const br = board.getBoundingClientRect(), words = [...board.querySelectorAll('.w')].map(w => w.getBoundingClientRect());
+      // Ein Wort bricht nie um: alle Kästchen und alle Ziffern eines Worts stehen auf einer Höhe
+      board.querySelectorAll('.w').forEach((w, i) => ['.c', '.d'].forEach(sel => {
+        const tops = [...w.querySelectorAll(sel)].map(el => el.getBoundingClientRect().top);
+        if (tops.some(t => Math.abs(t - tops[0]) > 1)) out.push(`Wort ${i + 1} bricht um (${sel})`);
+      }));
       words.forEach((r, i) => {
         if (r.right > br.right + 1 || r.left < br.left - 1) out.push(`Wort ${i + 1} passt nicht in eine Zeile`);
         words.forEach((q, j) => { if (j > i && r.left < q.right - 1 && q.left < r.right - 1 && r.top < q.bottom - 1 && q.top < r.bottom - 1) out.push(`Wörter ${i + 1} und ${j + 1} überlappen`); });
@@ -157,6 +162,40 @@ test('Layout: die längsten Wörter des ganzen Vorrats passen auf 320 px in eine
     await page.click(`#tab-${w.mode}`);
     await page.click('#startBtn');
     (await measure(page)).forEach(p => problems.push(`#${w.n} ${w.lang} ${w.mode} (${w.u} Kästchen): ${p}`));
+    await page.context().close();
+  }
+  assert.deepEqual(problems, []);
+});
+
+test('Layout: kein Wort bricht um, auch bei krummen Breiten (Handys mit Anzeigegröße 2,6 oder 2,8)', async () => {
+  // Gemeldet am 13. November 2026: #22 Hard, das längste Wort stand mit 10 Kästchen in der ersten und 1 in der zweiten Zeile.
+  // Ursache war eine gerundete Breite. Viewports gibt es hier nur ganzzahlig, deshalb bekommt die Seite krumme Breiten per CSS.
+  const problems = [];
+  for (const mode of ['easy', 'hard', 'mirror', 'impossible']) {
+    const page = await openPage(env, { width: 460, height: 780, time: '2026-11-11T12:00:00+01:00', mobile: true });
+    await page.click(`#tab-${mode}`);
+    await page.click('#startBtn');
+    const bad = await page.evaluate(async () => {
+      const app = document.querySelector('.app'), board = document.getElementById('board'), out = [];
+      const frame = () => new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+      app.style.margin = '0';
+      for (let x = 3000; x <= 4400; x += 3) {
+        app.style.width = (x / 10) + 'px';
+        window.dispatchEvent(new Event('resize'));
+        await frame();
+        const br = board.getBoundingClientRect(), cell = parseFloat(getComputedStyle(board).getPropertyValue('--cell'));
+        board.querySelectorAll('.w').forEach((w, i) => {
+          const r = w.getBoundingClientRect();
+          const tops = [...w.querySelectorAll('.c')].map(el => el.getBoundingClientRect().top);
+          const widths = [...w.querySelectorAll('.c')].map(el => el.getBoundingClientRect().width);
+          if (tops.some(t => Math.abs(t - tops[0]) > 1)) out.push(`${x / 10}px: Wort ${i + 1} bricht um`);
+          if (widths.some(v => Math.abs(v - cell) > 0.5)) out.push(`${x / 10}px: Kästchen in Wort ${i + 1} gestaucht`);
+          if (r.right > br.right + 0.5 || r.left < br.left - 0.5) out.push(`${x / 10}px: Wort ${i + 1} ragt hinaus`);
+        });
+      }
+      return out;
+    });
+    bad.slice(0, 5).forEach(b => problems.push(`${mode}: ${b}`));
     await page.context().close();
   }
   assert.deepEqual(problems, []);

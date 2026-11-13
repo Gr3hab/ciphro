@@ -53,7 +53,7 @@ test('Erster Besuch über einen geteilten Link (WhatsApp): sagt, was das ist, bi
   assert.match(intro, /Kostenlos, ohne Anmeldung, ohne Werbung/);
   await page.click('#introBody [data-close]');            // Überspringen steht unten im Kurz-Einstieg
   assert.equal(await page.getAttribute('#tab-hard', 'aria-selected'), 'true');
-  assert.match(await page.textContent('#startCard'), /Auf der Tastatur stehen hier keine Zahlen/);
+  assert.doesNotMatch(await page.textContent('#startCard'), /keine Zahlen/, 'Hard zeigt die Zahlen jetzt wie Easy');
   assert.ok(await page.isVisible('#toEasy'), 'Wer neu ist und bei Hard landet, bekommt Easy angeboten');
   await page.click('#toEasy');
   assert.equal(await page.getAttribute('#tab-easy', 'aria-selected'), 'true');
@@ -80,6 +80,7 @@ test('Erster Besuch über einen geteilten Link (WhatsApp): sagt, was das ist, bi
   // Wer schon gespielt hat, bekommt weder das Easy-Angebot noch den Hinweis noch einmal
   await page.click('#tab-mirror');
   assert.equal(await page.isVisible('#toEasy'), false);
+  assert.doesNotMatch(await page.textContent('#startCard'), /keine Zahlen/, 'Mirror zeigt die Zahlen jetzt auch');
   await page.click('#startBtn');
   assert.equal(await page.isVisible('#coach'), false);
   noErrors(page);
@@ -376,15 +377,15 @@ test('Links: Zeitzonen – derselbe Augenblick ist in Wien schon #5, in New York
 });
 
 /* ------------------------------------------------------------ Hilfe und Farben */
-test('Farben: aufgedeckter Buchstabe bleibt gelb, auch nach Überschreiben; Schlüssel färbt das nächste Wort', async () => {
+test('Farben: aufgedeckter Buchstabe bleibt gelb, auch nach Überschreiben; Zahlen bei Mirror sind gratis und färben nichts', async () => {
   const page = await openPage(env, { clipboard: true });
-  await page.click('#tab-hard');
+  await page.click('#tab-mirror');
   await page.click('#startBtn');
-  const sol = solution(4, 'de', 'hard');
+  const sol = solution(4, 'de', 'mirror');
   // Tipp auf Wort 1 (mit Nachfrage), dann den aufgedeckten Buchstaben falsch überschreiben und wieder richtig
   await page.click('#hintBtn');
   await page.click('#confirmYes');
-  let s = await state(page, K4, 'hard');
+  let s = await state(page, K4, 'mirror');
   assert.deepEqual(s.helped, [0]);
   const hinted = s.hints['0'][0];
   await page.click(`.c[data-w="0"][data-i="${hinted}"]`);
@@ -393,39 +394,35 @@ test('Farben: aufgedeckter Buchstabe bleibt gelb, auch nach Überschreiben; Schl
   await page.keyboard.type(sol[0][hinted]);
   await page.click('.c[data-w="0"][data-i="0"]');
   await typeWord(page, sol[0]);
-  s = await state(page, K4, 'hard');
+  s = await state(page, K4, 'mirror');
   assert.equal(s.typed[0], sol[0]);
   assert.deepEqual(s.helped, [0], 'Hilfe bleibt nach Überschreiben erhalten');
-  // Schlüssel: kurze Erklärung mit Preis, dann gilt er für genau einen Buchstaben
+  // Zahlen bei Mirror: gratis, gespiegelt (A = 26), standardmäßig an. Ausschalten und wieder einschalten kostet keinen Tipp.
+  assert.equal(await page.textContent('#kb .k[data-k="A"] i'), '26');
+  assert.equal(await page.$('#keyCost'), null, 'kein Preis mehr am Schlüssel');
   await page.click('#keyBtn');
-  assert.ok(await page.isVisible('#confirm'));
-  assert.match(await page.textContent('#confirmText'), /kostet 1 Tipp/);
-  await page.click('#confirmYes');
-  s = await state(page, K4, 'hard');
-  assert.equal(s.keyOpen, true);
-  assert.equal(s.hintCount, 2);
-  assert.notEqual(await page.textContent('#kb .k[data-k="A"] i'), '');
-  await page.keyboard.type(sol[1][0]);
-  s = await state(page, K4, 'hard');
-  assert.equal(s.keyOpen, false);
-  assert.deepEqual(s.helped, [0, 1]);
+  assert.equal(await page.isVisible('#confirm'), false, 'keine Nachfrage, es kostet nichts');
   assert.equal(await page.textContent('#kb .k[data-k="A"] i'), '');
-  await typeWord(page, sol[1].slice(1));
-  for (const w of sol.slice(2)) await typeWord(page, w);
-  s = await state(page, K4, 'hard');
+  await page.click('#keyBtn');
+  assert.equal(await page.textContent('#kb .k[data-k="A"] i'), '26');
+  s = await state(page, K4, 'mirror');
+  assert.equal(s.hintCount, 1);
+  await page.click('.c[data-w="1"][data-i="0"]');
+  for (const w of sol.slice(1)) await typeWord(page, w);
+  s = await state(page, K4, 'mirror');
   assert.equal(s.status, 'solved');
-  const squares = '🟨🟨' + '🟩'.repeat(sol.length - 2);
+  assert.deepEqual(s.helped, [0], 'mit Zahlen getippte Wörter bleiben grün');
+  const squares = '🟨' + '🟩'.repeat(sol.length - 1);
   assert.ok((await page.textContent('#result')).includes(squares));
-  assert.match(await page.textContent('#result'), /mit 2 Tipps/);
-  assert.match(await page.textContent('#result'), /2 mit Hilfe/);
-  assert.equal((await store(page)).coach.key, true);
+  assert.match(await page.textContent('#result'), /mit 1 Tipp/);
+  assert.doesNotMatch(await page.textContent('#result'), /⭐ ohne Schlüssel/, 'Zahlen waren zu sehen: kein Stern');
   noErrors(page);
   await page.context().close();
 });
 
-test('Tipp aus Versehen: Das Spiel fragt erst nach, Abbrechen kostet nichts; Schlüssel fragt jedes Mal', async () => {
+test('Tipp aus Versehen: Das Spiel fragt erst nach, Abbrechen kostet nichts', async () => {
   const page = await openPage(env);
-  await page.click('#tab-hard');
+  await page.click('#tab-mirror');
   await page.click('#startBtn');
   // Versehentlich getippt: nur eine Nachfrage, nichts verbraucht, kein Buchstabe aufgedeckt
   await page.click('#hintBtn');
@@ -433,7 +430,7 @@ test('Tipp aus Versehen: Das Spiel fragt erst nach, Abbrechen kostet nichts; Sch
   assert.match(await page.textContent('#confirmText'), /^Tipp nutzen\? Ein Buchstabe im markierten Wort wird aufgedeckt\. Das kostet 1 von 3 Tipps/);
   assert.equal((await page.textContent('#confirmYes')).trim(), 'Aufdecken');
   await page.click('#confirmNo');
-  let s = await state(page, K4, 'hard');
+  let s = await state(page, K4, 'mirror');
   assert.equal(s.hintCount || 0, 0);
   assert.deepEqual(s.helped, []);
   assert.equal(s.typed.join(''), '');
@@ -442,17 +439,17 @@ test('Tipp aus Versehen: Das Spiel fragt erst nach, Abbrechen kostet nichts; Sch
   const at = await page.$eval('#hintBtn', el => { const r = el.getBoundingClientRect(); return [r.x + r.width / 2, r.y + r.height / 2]; });
   await page.mouse.click(...at);
   await page.mouse.click(...at);
-  assert.equal((await state(page, K4, 'hard')).hintCount || 0, 0, 'Doppeltipp verbraucht nichts');
+  assert.equal((await state(page, K4, 'mirror')).hintCount || 0, 0, 'Doppeltipp verbraucht nichts');
   if (await page.isVisible('#confirm')) await page.click('#confirmNo');
   // Am Computer: Escape bricht die Nachfrage ab
   await page.click('#hintBtn');
   await page.keyboard.press('Escape');
   assert.equal(await page.isVisible('#confirm'), false);
-  assert.equal((await state(page, K4, 'hard')).hintCount || 0, 0);
+  assert.equal((await state(page, K4, 'mirror')).hintCount || 0, 0);
   // Bestätigt: genau ein Tipp, ein Buchstabe
   await page.click('#hintBtn');
   await page.click('#confirmYes');
-  s = await state(page, K4, 'hard');
+  s = await state(page, K4, 'mirror');
   assert.equal(s.hintCount, 1);
   assert.equal(s.typed[0].replace(/_/g, '').length, 1);
   // Letzter Tipp wird so genannt
@@ -460,13 +457,7 @@ test('Tipp aus Versehen: Das Spiel fragt erst nach, Abbrechen kostet nichts; Sch
   await page.click('#hintBtn');
   assert.match(await page.textContent('#confirmText'), /deinen letzten Tipp/);
   await page.click('#confirmNo');
-  // Schlüssel fragt auch beim zweiten Mal (kostet ebenfalls einen Tipp)
-  const store0 = await store(page);
-  assert.equal(store0.coach.key, undefined);
-  await page.click('#keyBtn');
-  assert.match(await page.textContent('#confirmText'), /kostet 1 Tipp/);
-  await page.click('#confirmNo');
-  assert.equal((await state(page, K4, 'hard')).hintCount, 2);
+  assert.equal((await state(page, K4, 'mirror')).hintCount, 2);
   noErrors(page);
   await page.context().close();
 });
@@ -484,6 +475,175 @@ test('Farben: Easy-Zahlen sind gratis und ändern nichts an Grün', async () => 
   assert.deepEqual(s.helped, []);
   assert.ok((await page.textContent('#result')).includes('🟩'.repeat(s.typed.length)));
   assert.match(await page.textContent('#result'), /ohne Hilfe/);
+  await page.context().close();
+});
+
+test('Hard: Zahlen auf der Tastatur gratis und standardmäßig an; eine Einstellung für Easy und Hard, die bleibt', async () => {
+  const page = await openPage(env, { clipboard: true });
+  await page.click('#tab-hard');
+  await page.click('#startBtn');
+  assert.equal(await page.textContent('#kb .k[data-k="H"] i'), '8', 'Zahlen bei Hard standardmäßig an');
+  assert.equal(await page.$('#keyCost'), null, 'kostet bei Hard keinen Tipp mehr');
+  assert.equal(await page.getAttribute('#keyBtn', 'aria-pressed'), 'true');
+  let s = await state(page, K4, 'hard');
+  assert.equal(s.keySeen, true);
+  // Ausschalten: ohne Nachfrage, kostet nichts, gilt auch für Easy und nach dem Neuladen
+  await page.click('#keyBtn');
+  assert.equal(await page.isVisible('#confirm'), false);
+  assert.match(await page.textContent('#toast'), /Zahlen ausgeblendet/);
+  assert.equal(await page.textContent('#kb .k[data-k="H"] i'), '');
+  assert.equal((await store(page)).easyKey, false);
+  const sol = solution(4, 'de', 'hard');
+  for (const w of sol) await typeWord(page, w);
+  s = await state(page, K4, 'hard');
+  assert.equal(s.status, 'solved');
+  assert.equal(s.hintCount, 0);
+  assert.deepEqual(s.helped, [], 'Zahlen sind keine Hilfe: alles grün');
+  // Zahlen waren anfangs zu sehen: kein Stern, und das Ergebnis sagt, warum
+  const res = await page.textContent('#result');
+  assert.ok(res.includes('🟩'.repeat(sol.length)));
+  assert.doesNotMatch(res, /⭐ ohne Schlüssel/);
+  assert.match(res, /Kein ⭐: Die Zahlen waren in diesem Rätsel zeitweise eingeblendet\./);
+  await page.click('#result [data-act="share"]');
+  assert.doesNotMatch(await page.evaluate(() => navigator.clipboard.readText()), /⭐/);
+  // Easy übernimmt die Einstellung
+  await page.click('#tab-easy');
+  await page.click('#startBtn');
+  assert.equal(await page.textContent('#kb .k[data-k="H"] i'), '', 'bei Easy jetzt auch aus');
+  assert.equal((await state(page, K4, 'easy')).keySeen, false);
+  await page.reload();
+  await page.waitForFunction(() => document.querySelector('#issue') && document.querySelector('#issue').textContent);
+  assert.equal((await store(page)).easyKey, false, 'bleibt nach dem Neuladen aus');
+  noErrors(page);
+  await page.context().close();
+});
+
+test('Stern: Easy und Hard ganz ohne Zahlen gelöst zeigen ⭐ im Ergebnis und beim Teilen; Einblenden fragt vorher', async () => {
+  const page = await openPage(env, { clipboard: true, store: { ...SEEN, easyKey: false } });
+  const share = async () => { await page.click('#result [data-act="share"]'); return page.evaluate(() => navigator.clipboard.readText()); };
+  // Hard ohne Zahlen: Stern
+  await page.click('#tab-hard');
+  await page.click('#startBtn');
+  assert.equal(await page.textContent('#kb .k[data-k="H"] i'), '');
+  assert.equal(await page.getAttribute('#keyBtn', 'aria-pressed'), 'false');
+  for (const w of solution(4, 'de', 'hard')) await typeWord(page, w);
+  let s = await state(page, K4, 'hard');
+  assert.deepEqual([s.status, s.keySeen], ['solved', false]);
+  assert.match(await page.textContent('#result'), /ohne Hilfe\s*⭐ ohne Schlüssel/);
+  assert.doesNotMatch(await page.textContent('#result'), /Kein ⭐/);
+  let lines = (await share()).split('\n');
+  assert.match(lines[0], /^CIPHRO #4 · Hard ⏱ \d+:\d\d,\d\d ⭐$/);
+  assert.match(lines[1], /^(?:🟩)+$/u, 'Kästchen bleiben allein in ihrer Zeile');
+  // Easy: Einblenden würde den Stern kosten, deshalb Nachfrage. Abbrechen ändert nichts.
+  await page.click('#tab-easy');
+  await page.click('#startBtn');
+  const easy = solution(4, 'de', 'easy');
+  await typeWord(page, easy[0]);
+  await page.click('#keyBtn');
+  assert.ok(await page.isVisible('#confirm'));
+  assert.equal((await page.textContent('#confirmText')).trim(), 'Zahlen einblenden? Dann gibt es für dieses Rätsel keinen ⭐ beim Teilen.');
+  assert.equal((await page.textContent('#confirmYes')).trim(), 'Einblenden');
+  await page.click('#confirmNo');
+  assert.equal(await page.textContent('#kb .k[data-k="H"] i'), '');
+  assert.equal((await state(page, K4, 'easy')).keySeen, false);
+  assert.equal((await store(page)).easyKey, false);
+  // Reflex-Doppeltipp auf dieselbe Stelle blendet nichts ein
+  const at = await page.$eval('#keyBtn', el => { const r = el.getBoundingClientRect(); return [r.x + r.width / 2, r.y + r.height / 2]; });
+  await page.mouse.click(...at);
+  await page.mouse.click(...at);
+  assert.equal((await state(page, K4, 'easy')).keySeen, false, 'Doppeltipp kostet den Stern nicht');
+  if (await page.isVisible('#confirm')) await page.click('#confirmNo');
+  // Bestätigt: Zahlen da, Stern für dieses Rätsel weg, kein Tipp verbraucht
+  await page.click('#keyBtn');
+  await page.click('#confirmYes');
+  assert.equal(await page.textContent('#kb .k[data-k="H"] i'), '8');
+  assert.match(await page.textContent('#toast'), /wieder da/);
+  s = await state(page, K4, 'easy');
+  assert.deepEqual([s.keySeen, s.hintCount], [true, 0]);
+  // Danach schaltet der Knopf wieder ohne Nachfrage
+  await page.click('#keyBtn');
+  assert.equal(await page.isVisible('#confirm'), false);
+  await page.click('.c[data-w="1"][data-i="0"]');
+  for (const w of easy.slice(1)) await typeWord(page, w);
+  assert.doesNotMatch(await page.textContent('#result'), /⭐ ohne Schlüssel/);
+  lines = (await share()).split('\n');
+  assert.equal(lines[0], 'CIPHRO #4');
+  assert.match(lines[1], /^Easy ⏱ \d+:\d\d,\d\d$/, 'Easy mit Zahlen: kein Stern');
+  assert.match(lines[2], /^(?:🟩)+$/u);
+  assert.match(lines[3], /^Hard ⏱ \d+:\d\d,\d\d ⭐$/, 'Hard ohne Zahlen: Stern hinter der Zeit');
+  assert.match(lines[4], /^(?:🟩)+$/u);
+  // Englisch
+  const en = await openPage(env, { clipboard: true, url: '?lang=en', store: { ...SEEN, lang: 'en', easyKey: false } });
+  await en.click('#startBtn');
+  for (const w of solution(4, 'en', 'easy')) await typeWord(en, w);
+  assert.match(await en.textContent('#result'), /⭐ no key/);
+  await en.click('#result [data-act="share"]');
+  assert.match((await en.evaluate(() => navigator.clipboard.readText())).split('\n')[0], /Easy ⏱ \d+:\d\d\.\d\d ⭐$/);
+  noErrors(page); noErrors(en);
+  await en.context().close();
+  await page.context().close();
+});
+
+test('Stern: Einstellung „Zahlen auf der Tastatur“, ältere Spielstände ohne Stern, Mirror mit Stern, Impossible nie', async () => {
+  // Schließen und warten, bis das Spiel darauf reagiert hat (sein „close“-Listener ist älter und läuft vor diesem)
+  const closeSettings = async pg => {
+    await pg.evaluate(() => { window.__closed = new Promise(r => document.getElementById('settingsDlg').addEventListener('close', () => r(), { once: true })); });
+    await pg.click('#settingsBody [data-close]');
+    await pg.evaluate(() => window.__closed);
+  };
+  // Vor der Änderung gelöst (kein keySeen): kein Stern, auch wenn die Zahlen jetzt aus sind
+  const solvedOld = (mode, extra = {}) => ({ sig: puzzle(4, 'de', mode).sig, typed: solution(4, 'de', mode), hints: {}, hintCount: 0, cuts: [], status: 'solved', elapsed: 61000, given: [], helped: [], doneOn: K4, startedOn: K4, ...extra });
+  const page = await openPage(env, { clipboard: true, store: { ...SEEN, easyKey: false, days: { [K4]: { hard: solvedOld('hard'), mirror: solvedOld('mirror', { keySeen: false }), impossible: solvedOld('impossible', { keySeen: false }) } } } });
+  await page.click('#tab-hard');
+  assert.doesNotMatch(await page.textContent('#result'), /⭐/, 'alter Hard-Stand: kein Stern, keine Erklärung');
+  await page.click('#tab-impossible');
+  assert.doesNotMatch(await page.textContent('#result'), /⭐/, 'Impossible bekommt nie einen Stern');
+  await page.click('#tab-mirror');
+  assert.match(await page.textContent('#result'), /⭐ ohne Schlüssel/, 'Mirror ohne Zahlen gelöst: Stern');
+  await page.click('#result [data-act="share"]');
+  const shared = (await page.evaluate(() => navigator.clipboard.readText())).split('\n');
+  assert.deepEqual(shared.filter(l => /⏱/.test(l)).map(l => l.replace(/\d+:\d\d,\d\d/, 'Z')), ['Hard ⏱ Z', 'Mirror ⏱ Z ⭐', 'Impossible ⏱ Z'], 'Stern nur hinter Mirror');
+  // Einstellungen: Schalter zeigt den Stand und stellt ihn um
+  await page.click('#tab-easy');
+  await page.click('#settingsBtn');
+  assert.match(await page.textContent('#settingsBody'), /Zahlen auf der Tastatur\s*Bei Easy, Hard und Mirror\. Wer ein Rätsel ganz ohne sie knackt, bekommt beim Teilen einen ⭐\./);
+  assert.equal(await page.isChecked('#keysToggle'), false);
+  await page.check('#keysToggle');
+  assert.equal((await store(page)).easyKey, true);
+  await closeSettings(page);
+  await page.click('#startBtn');
+  assert.equal(await page.textContent('#kb .k[data-k="H"] i'), '8');
+  assert.equal((await state(page, K4, 'easy')).keySeen, true);
+  // Mitten im Rätsel in den Einstellungen ausschalten: Tastatur ohne Zahlen, Stern gibt es erst beim nächsten Rätsel
+  await page.click('#settingsBtn');
+  await page.uncheck('#keysToggle');
+  await closeSettings(page);
+  assert.equal(await page.textContent('#kb .k[data-k="H"] i'), '');
+  assert.equal(await page.getAttribute('#keyBtn', 'aria-pressed'), 'false');
+  for (const w of solution(4, 'de', 'easy')) await typeWord(page, w);
+  assert.doesNotMatch(await page.textContent('#result'), /⭐ ohne Schlüssel/);
+  assert.match(await page.textContent('#result'), /Kein ⭐/);
+  // Umgekehrt: ohne Zahlen gestartet, in den Einstellungen eingeschaltet → erst beim Schließen gelten sie als gesehen
+  const p2 = await openPage(env, { store: { ...SEEN, easyKey: false } });
+  await p2.click('#startBtn');
+  await p2.click('#settingsBtn');
+  await p2.check('#keysToggle');
+  assert.equal((await state(p2, K4, 'easy')).keySeen, false, 'solange die Einstellungen offen sind, ist nichts zu sehen');
+  await p2.uncheck('#keysToggle');
+  await closeSettings(p2);
+  assert.equal((await state(p2, K4, 'easy')).keySeen, false, 'versehentlich an und wieder aus kostet den Stern nicht');
+  await p2.click('#settingsBtn');
+  await p2.check('#keysToggle');
+  await closeSettings(p2);
+  assert.equal(await p2.textContent('#kb .k[data-k="H"] i'), '8');
+  assert.equal((await state(p2, K4, 'easy')).keySeen, true);
+  // Impossible: weiterhin kein Schlüssel
+  await p2.click('#tab-impossible');
+  await p2.click('#startBtn');
+  assert.equal(await p2.isDisabled('#keyBtn'), true);
+  assert.equal((await state(p2, K4, 'impossible')).keySeen, undefined);
+  noErrors(page); noErrors(p2);
+  await p2.context().close();
   await page.context().close();
 });
 
@@ -1468,7 +1628,7 @@ test('Zähler: „Nein“, Einstellungen, Global Privacy Control und andere Adre
   assert.deepEqual(b.got, []);
   await b.page.click('#settingsBtn');
   assert.equal(await b.page.isDisabled('#countToggle'), true);
-  assert.match(await b.page.textContent('#settingsBody'), /Global Privacy Control/);
+  assert.match(await b.page.textContent('#settingsBody'), /Global Privacy Control oder „Do Not Track“/);
   await b.page.context().close();
   // Do Not Track ebenso: auch ein altes Ja im Browser wird von der Browsereinstellung überstimmt.
   const dnt = await onCiphro({ store: { ...SEEN, count: true }, init: () => Object.defineProperty(Navigator.prototype, 'doNotTrack', { get: () => '1' }) });
