@@ -1,22 +1,19 @@
 # Anonymer Zähler für CIPHRO – Freigabe- und Betriebsanleitung
 
-## Update vom 22.11.2026 einspielen (einmalig, ca. 10 Minuten)
+## Stand 22.11.2026: eingespielt
 
-Der Code im Repository kann mehr als der Worker, der gerade bei Cloudflare läuft. Bis zu diesem Deploy lehnt der alte Worker die neuen Meldungen (tage, serie, dauer) einfach ab, und Seitenaufrufe werden noch nicht gezählt. Das Spiel funktioniert in beiden Fällen.
+Am 22.11.2026 über die Cloudflare-API eingespielt und live geprüft:
 
-Neu: Seitenaufrufe **aller** Besucher (Route vor `ciphro.eu/*`, ohne Einwilligung, Bots herausgefiltert, mit grober Herkunft), Spieltage/Serie/Lösungszeit mit Einwilligung, http → https vor der Anmeldung, neue Statistikseite. Die neuen Tabellen `besuche` und `merkmale` legt der Worker selbst an; **kein** `d1 execute` nötig.
+- Worker `ciphro-zaehler` mit dem Code aus `worker.js` (Prüfsumme identisch mit `main`), Bindings DB, EINGANG_LIMIT, ADMIN_LIMIT und Secret unverändert; Logs, Invocation Logs, Traces und Logpush aus; `workers.dev` aus.
+- Route `ciphro.eu/*` → `ciphro-zaehler` mit **Fail open** (`request_limit_fail_open: true`).
+- Tabellen `besuche` und `merkmale` legt der Worker selbst an (sind angelegt).
+- Statistik-Schlüssel erneuert (der alte stand in einem Chat).
+- Zone ciphro.eu: **Always Use HTTPS** an.
+- Live geprüft: Website unverändert (Dateien byte-gleich, keine Cookies, Umleitungen), echte Browser-Aufrufe werden gezählt, auch über die Offline-Hilfe (Service Worker); eigene Testaufrufe wieder abgezogen.
 
-1. Repository holen bzw. aktualisieren (`git pull`), dann `cd _dev/zaehler`.
-2. `npx wrangler whoami` – muss das Cloudflare-Konto zeigen, in dem ciphro.eu liegt. Sonst `npx wrangler login`.
-3. `npx wrangler deploy --dry-run` – darf keine Fehler zeigen.
-4. `npx wrangler deploy`
-5. **Sofort danach „Fail open“ einstellen:** Cloudflare → Workers & Pages → `ciphro-zaehler` → Settings → Domains & Routes → bei der Route `ciphro.eu/*` den Fehlermodus auf **Fail open** stellen. Wrangler setzt ihn bei jedem Deploy auf „Fail closed“ zurück. Mit „Fail closed“ wäre ciphro.eu für den Rest des Tages nicht erreichbar (Fehler 1027), falls das Gratis-Kontingent von 100.000 Worker-Aufrufen pro Tag je aufgebraucht wird. Mit „Fail open“ läuft die Seite dann einfach ohne Zählung weiter.
-6. Wie unten unter „Nach jedem Deploy“: Logs, Invocation Logs und Traces müssen aus sein.
-7. Prüfen: ciphro.eu im Browser öffnen, dann `https://zaehler.ciphro.eu/statistik` – oben unter „Seitenaufrufe, letzte 7 Tage“ muss mindestens 1 stehen. `http://zaehler.ciphro.eu/statistik` muss auf https umleiten.
+**Spätere Deploys:** Mit `npx wrangler deploy` (Schritte unten) setzt Wrangler die Route auf „Fail closed“ zurück. Danach in Cloudflare → Workers & Pages → `ciphro-zaehler` → Settings → Domains & Routes die Route `ciphro.eu/*` wieder auf **Fail open** stellen. Ein Upload nur des Codes über die Cloudflare-API (`PUT …/workers/scripts/ciphro-zaehler` mit `keep_bindings: ["secret_text"]`) lässt die Route unverändert.
 
-**Statistik-Schlüssel erneuern** (der alte stand in einem Chat): Im Passwortmanager ein neues Passwort erzeugen (mindestens 24 Zeichen, nur Buchstaben und Ziffern). Dann entweder `npx wrangler secret put STATISTIK_SCHLUESSEL` und das Passwort bei der Abfrage einfügen, oder Cloudflare → Workers & Pages → `ciphro-zaehler` → Settings → Variables and Secrets → `STATISTIK_SCHLUESSEL` ersetzen. Anmelden auf der Statistikseite: Benutzername beliebig, Passwort = dieser Schlüssel. Nur über den Passwortmanager weitergeben.
-
-**Zusätzlich empfohlen:** Cloudflare → ciphro.eu → SSL/TLS → Edge Certificates → **Always Use HTTPS** einschalten. Dann leitet Cloudflare jede http-Adresse von ciphro.eu sofort auf https um, auch ohne Deploy.
+**Statistik-Schlüssel ändern** (zuletzt am 22.11.2026 erneuert): Im Passwortmanager ein neues Passwort erzeugen (mindestens 24 Zeichen, nur Buchstaben und Ziffern). Dann entweder `npx wrangler secret put STATISTIK_SCHLUESSEL` und das Passwort bei der Abfrage einfügen, oder Cloudflare → Workers & Pages → `ciphro-zaehler` → Settings → Variables and Secrets → `STATISTIK_SCHLUESSEL` ersetzen. Anmelden auf der Statistikseite: Benutzername beliebig, Passwort = dieser Schlüssel. Nur über den Passwortmanager weitergeben.
 
 
 **Status (07.11.2026):** Cloudflare-Worker `ciphro-zaehler`, EU-D1-Datenbank und `zaehler.ciphro.eu` sind im Cloudflare-Konto der Betreiber (das Konto, in dem auch ciphro.eu liegt) eingerichtet. Der produktive Spielcode erhält den Zähler mit PR #10. Normale Besucher müssen dafür nichts installieren; für Wartung siehe unten.
