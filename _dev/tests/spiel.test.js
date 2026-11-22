@@ -1589,7 +1589,7 @@ async function onCiphro(opt = {}) {
 }
 const settle = page => page.waitForTimeout(300);
 
-test('Zähler: ohne Zustimmung keine einzige Anfrage, nach „Ja“ nur Ereignis, Sprache, Stufe und Archiv', async () => {
+test('Zähler: ohne Zustimmung keine einzige Anfrage, nach „Ja“ nur Ereignis, Sprache, Stufe, Archiv und grobe Gruppen', async () => {
   const { page, got } = await onCiphro();
   await page.click('#startBtn');
   for (const w of solution(19, 'de', 'easy')) await typeWord(page, w);
@@ -1601,21 +1601,83 @@ test('Zähler: ohne Zustimmung keine einzige Anfrage, nach „Ja“ nur Ereignis
   assert.equal(await page.getAttribute('[data-act="countYes"]', 'class'), await page.getAttribute('[data-act="countNo"]', 'class'));
   await page.click('[data-act="countYes"]');
   assert.equal((await store(page)).count, true);
+  assert.equal((await store(page)).countV, 2);
   assert.equal(await page.isVisible('#result .consent'), false, 'nach der Antwort nicht mehr gefragt');
   await settle(page);
-  assert.deepEqual(got.map(g => [g.e, g.l, g.m, g.a]), [
-    ['aufruf', 'de', '', 0], ['spieler', 'de', '', 0], ['start', 'de', 'easy', 0], ['geloest', 'de', 'easy', 0]
-  ], 'das erste fertige Rätsel wird erst nach ausdrücklichem Ja nachgemeldet');
+  assert.deepEqual(got.map(g => [g.e, g.l, g.m, g.a, g.w]), [
+    ['aufruf', 'de', '', 0, undefined], ['spieler', 'de', '', 0, undefined], ['tage', 'de', '', 0, '1'], ['serie', 'de', '', 0, '1'],
+    ['start', 'de', 'easy', 0, undefined], ['geloest', 'de', 'easy', 0, undefined], ['dauer', 'de', 'easy', 0, '<1']
+  ], 'das erste fertige Rätsel wird erst nach ausdrücklichem Ja nachgemeldet, Tage, Serie und Dauer nur als Gruppe');
   await page.click('#result [data-act="share"]');
   await page.click('#result [data-act="next"]');
   await page.click('#startBtn');
   await page.reload();
   await page.waitForFunction(() => document.querySelector('#issue') && document.querySelector('#issue').textContent);
   await settle(page);
-  assert.deepEqual(got.map(g => [g.e, g.l, g.m, g.a]).slice(4), [['geteilt', 'de', '', 0], ['start', 'de', 'hard', 0], ['aufruf', 'de', '', 0]],
-    'zweite Stufe am selben Tag zählt nicht noch einmal als Spieler');
-  got.forEach(g => { assert.deepEqual(Object.keys(g).sort(), ['a', 'e', 'l', 'm', 'origin']); assert.equal(g.origin, 'https://ciphro.eu'); });
+  assert.deepEqual(got.map(g => [g.e, g.l, g.m, g.a]).slice(7), [['geteilt', 'de', '', 0], ['start', 'de', 'hard', 0], ['aufruf', 'de', '', 0]],
+    'zweite Stufe am selben Tag zählt nicht noch einmal als Spieler (und nicht noch einmal Tage und Serie)');
+  got.forEach(g => {
+    assert.deepEqual(Object.keys(g).sort(), ['tage', 'serie', 'dauer'].includes(g.e) ? ['a', 'e', 'l', 'm', 'origin', 'w'] : ['a', 'e', 'l', 'm', 'origin']);
+    assert.equal(g.origin, 'https://ciphro.eu');
+  });
   await page.context().close();
+});
+
+test('Zähler: Wiederkommen – Spieltage und Serie beim ersten Start des Tages, Lösungszeit als Gruppe; Archiv ohne Gruppen', async () => {
+  // Gestern und vorgestern gelöst: heute dritter Spieltag, Serie 2
+  const solved = (n, day) => ({ sig: puzzle(n, 'de', 'easy').sig, typed: solution(n, 'de', 'easy'), hints: {}, hintCount: 0, cuts: [], status: 'solved', elapsed: 200000, given: [], helped: [], startedOn: day, doneOn: day });
+  const { page, got } = await onCiphro({ store: { ...SEEN, count: true, countV: 2, days: { '2026-11-06': { easy: solved(17, '2026-11-06') }, '2026-11-07': { easy: solved(18, '2026-11-07') } } } });
+  await page.click('#startBtn');
+  await page.clock.fastForward(130000);
+  for (const w of solution(19, 'de', 'easy')) await typeWord(page, w);
+  await settle(page);
+  assert.deepEqual(got.map(g => [g.e, g.m, g.w]), [
+    ['aufruf', '', undefined], ['spieler', '', undefined], ['tage', '', '2-3'], ['serie', '', '2-3'], ['start', 'easy', undefined], ['geloest', 'easy', undefined], ['dauer', 'easy', '1-3']
+  ]);
+  assert.equal(await page.isVisible('#result .consent'), false, 'Version 2 wird nicht noch einmal gefragt');
+  // Archivrätsel: Ereignisse wie bisher, aber keine Gruppen
+  got.length = 0;
+  await page.goto('https://ciphro.eu/?n=5');
+  await page.waitForFunction(() => document.querySelector('#issue') && /#5/.test(document.querySelector('#issue').textContent));
+  await page.click('#startBtn');
+  for (const w of solution(5, 'de', 'easy')) await typeWord(page, w);
+  await settle(page);
+  assert.deepEqual(got.map(g => [g.e, g.a]), [['aufruf', 1], ['spieler', 1], ['start', 1], ['geloest', 1]]);
+  await page.context().close();
+});
+
+test('Zähler: Wer früher Ja gesagt hat, wird einmal neu gefragt; bis dahin nur die alten Ereignisse', async () => {
+  const a = await onCiphro({ store: { ...SEEN, count: true } });
+  await a.page.click('#startBtn');
+  for (const w of solution(19, 'de', 'easy')) await typeWord(a.page, w);
+  await settle(a.page);
+  assert.deepEqual(a.got.map(g => g.e), ['aufruf', 'spieler', 'start', 'geloest'], 'altes Ja gilt weiter, aber ohne Gruppen');
+  assert.ok(await a.page.isVisible('#result .consent'), 'einmal neu gefragt');
+  assert.match(await a.page.textContent('#result .consent'), /wie lange und an wie vielen Tagen/);
+  await a.page.click('[data-act="countYes"]');
+  await settle(a.page);
+  assert.deepEqual(a.got.map(g => [g.e, g.w]).slice(4), [['tage', '1'], ['serie', '1'], ['dauer', '<1']], 'nur die Gruppen nachgemeldet, nichts doppelt');
+  assert.equal((await store(a.page)).countV, 2);
+  assert.equal(await a.page.isVisible('#result .consent'), false);
+  await a.page.context().close();
+  // „Nein“ zur neuen Fassung: dann gar nichts mehr
+  const b = await onCiphro({ store: { ...SEEN, count: true } });
+  await b.page.click('#startBtn');
+  for (const w of solution(19, 'de', 'easy')) await typeWord(b.page, w);
+  await b.page.click('[data-act="countNo"]');
+  const st = await store(b.page);
+  assert.equal(st.count, false);
+  assert.equal(st.countV, undefined);
+  b.got.length = 0;
+  await b.page.click('#result [data-act="share"]');
+  await settle(b.page);
+  assert.deepEqual(b.got, []);
+  // Schalter in den Einstellungen setzt die neue Fassung
+  await b.page.click('#settingsBtn');
+  assert.match(await b.page.textContent('#settingsBody'), /wie viele spielen und wiederkommen/);
+  await b.page.click('#countToggle');
+  assert.deepEqual([(await store(b.page)).count, (await store(b.page)).countV], [true, 2]);
+  await b.page.context().close();
 });
 
 test('Zähler: „Nein“, Einstellungen, Global Privacy Control und andere Adressen', async () => {
