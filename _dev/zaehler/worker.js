@@ -125,7 +125,9 @@ function besuch(req, url) {
   const s = SEITEN[url.pathname];
   if (!s) return null;
   const h = req.headers;
-  if (h.get('sec-fetch-mode') !== 'navigate' || h.get('sec-fetch-dest') !== 'document') return null;
+  // Navigation. Reicht die Offline-Hilfe (Service Worker) sie weiter, meldet Chrome „empty“ statt „document“ –
+  // das sind die Wiederkehrer, also beides zählen. Mode „navigate“ kann eine Seite per Skript nicht erzeugen.
+  if (h.get('sec-fetch-mode') !== 'navigate' || !['document', 'empty'].includes(h.get('sec-fetch-dest'))) return null;
   if (/prefetch|prerender/i.test((h.get('sec-purpose') || '') + (h.get('purpose') || ''))) return null;
   const ua = h.get('user-agent') || '';
   if (!/^Mozilla\/5\.0 /.test(ua) || KEIN_MENSCH.test(ua)) return null;
