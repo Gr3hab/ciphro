@@ -3,7 +3,13 @@
 name = "ciphro-zaehler"
 main = "worker.js"
 compatibility_date = "2026-11-06"
-routes = [{ pattern = "zaehler.ciphro.eu", custom_domain = true }]
+routes = [
+  { pattern = "zaehler.ciphro.eu", custom_domain = true },
+  # Seitenaufrufe aller Besucher zählen (seit 22.11.2026). Der Worker reicht jede Anfrage unverändert an GitHub Pages
+  # weiter und zählt nur Spielseiten. WICHTIG: Nach JEDEM Deploy in Cloudflare bei dieser Route „Fail open“ einstellen
+  # (Wrangler setzt sie sonst auf „Fail closed“; bei aufgebrauchtem Gratis-Kontingent wäre ciphro.eu dann nicht erreichbar).
+  { pattern = "ciphro.eu/*", zone_name = "ciphro.eu" }
+]
 workers_dev = false
 
 # Keine Protokolle einzelner Anfragen (die Datenschutzerklärung sagt: keine einzelnen Aufrufe gespeichert)

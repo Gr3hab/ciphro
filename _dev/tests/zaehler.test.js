@@ -11,19 +11,34 @@ const SECRET = 'eins-zwei-drei-vier-fuenf-sechs-2026';
 const limiter = (allowed = true) => ({ limit: async () => ({ success: allowed }) });
 const environment = (extras = {}) => ({ DB: fakeDB(), STATISTIK_SCHLUESSEL: SECRET, EINGANG_LIMIT: limiter(), ADMIN_LIMIT: limiter(), ...extras });
 
-// Nachbildung von D1: merkt sich nur Summen, so wie die Tabelle zaehler
+// Nachbildung von D1: merkt sich nur Summen, so wie die Tabellen zaehler, besuche und merkmale
+const SPALTEN = {
+  zaehler: ['datum', 'ereignis', 'sprache', 'stufe', 'archiv'],
+  besuche: ['datum', 'seite', 'herkunft'],
+  merkmale: ['datum', 'art', 'sprache', 'stufe', 'wert']
+};
 function fakeDB() {
-  const rows = new Map();
-  return {
-    rows,
+  const tables = { zaehler: new Map(), besuche: new Map(), merkmale: new Map() };
+  const created = [];
+  const db = {
+    rows: tables.zaehler, tables, created,
     prepare(sql) {
-      const all = async () => ({ results: [...rows].map(([k, n]) => { const [datum, ereignis, sprache, stufe, archiv] = k.split('|'); return { datum, ereignis, sprache, stufe, archiv: +archiv, anzahl: n }; }) });
-      return {
-        bind: (...v) => ({ run: async () => { assert.match(sql, /^INSERT INTO zaehler/); const k = v.join('|'); rows.set(k, (rows.get(k) || 0) + 1); }, all }),
-        all
+      const tabelle = (/(?:INTO|FROM)\s+(\w+)/.exec(sql) || [])[1];
+      const all = async () => {
+        assert.match(sql, /^SELECT /);
+        return { results: [...tables[tabelle]].map(([k, n]) => { const v = k.split('|'); const r = { anzahl: n }; SPALTEN[tabelle].forEach((c, i) => { r[c] = c === 'archiv' ? +v[i] : v[i]; }); return r; }) };
       };
-    }
+      const run = async (...v) => {
+        if (/^CREATE TABLE IF NOT EXISTS (\w+)/.test(sql)) { created.push(/^CREATE TABLE IF NOT EXISTS (\w+)/.exec(sql)[1]); return; }
+        assert.match(sql, /^INSERT INTO (zaehler|besuche|merkmale) /);
+        assert.equal(v.length, SPALTEN[tabelle].length, 'nur die vorgesehenen Spalten');
+        const k = v.join('|'); tables[tabelle].set(k, (tables[tabelle].get(k) || 0) + 1);
+      };
+      return { bind: (...v) => ({ run: () => run(...v), all }), all, run: () => run(), sql };
+    },
+    async batch(statements) { for (const st of statements) await st.run(); return []; }
   };
+  return db;
 }
 const post = (body, origin = 'https://ciphro.eu') => new Request('https://zaehler.ciphro.eu/z', { method: 'POST', headers: origin ? { origin, 'content-type': 'text/plain' } : {}, body: typeof body === 'string' ? body : JSON.stringify(body) });
 
@@ -118,6 +133,175 @@ test('Zähler: Tabelle und Hochzählen funktionieren in SQLite (wie D1)', t => {
   st.run('2026-11-08', 'start', 'de', 'hard', 0);
   const rows = db.prepare('SELECT stufe, anzahl FROM zaehler ORDER BY stufe').all();
   assert.deepEqual(rows.map(r => [r.stufe, r.anzahl]), [['easy', 2], ['hard', 1]]);
+});
+
+// Route vor ciphro.eu: GitHub Pages nachgebildet, ctx sammelt die Hintergrundarbeit
+const CHROME = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36';
+const nav = (pfad, referer, extra = {}) => new Request('https://ciphro.eu' + pfad, { headers: { 'user-agent': CHROME, 'sec-fetch-mode': 'navigate', 'sec-fetch-dest': 'document', ...(referer ? { referer } : {}), ...extra } });
+function origin(status = 200) {
+  const calls = [];
+  globalThis.fetch = async req => { calls.push(req.url); return new Response(status === 304 ? null : 'seite ' + new URL(req.url).pathname, { status, headers: { 'content-type': 'text/html', 'x-herkunft': 'github' } }); };
+  return calls;
+}
+const kontext = () => { const jobs = []; return { jobs, waitUntil: p => jobs.push(p), passThroughOnException() {}, fertig: () => Promise.all(jobs) }; };
+async function aufrufen(w, env, req, status) {
+  const calls = origin(status), ctx = kontext();
+  const res = await w.fetch(req, env, ctx);
+  await ctx.fertig();
+  return { res, calls };
+}
+
+test('Seitenaufrufe: echte Browser auf Spielseiten zählen mit grober Herkunft, alles geht unverändert an GitHub Pages', async () => {
+  const w = (await load()).default, env = environment();
+  const faelle = [
+    [nav('/', 'https://www.reddit.com/r/puzzles/comments/abc'), 'start|reddit'],
+    [nav('/en/?n=27', 'https://www.google.com/'), 'en|google'],
+    [nav('/de/'), 'de|direkt'],
+    [nav('/fr/', 'https://ciphro.eu/impressum.html'), 'fr|intern'],
+    [nav('/it/', 'https://l.instagram.com/'), 'it|instagram'],
+    [nav('/?n=24', 'https://gr3hab.github.io/numfact/'), 'start|altadresse'],
+    [nav('/', 'https://chatgpt.com/'), 'start|ki'],
+    [nav('/', 'https://gemini.google.com/app'), 'start|ki'],
+    [nav('/', 'https://www.google.co.uk/'), 'start|google'],
+    [nav('/', 'https://out.reddit.com/t3_x'), 'start|reddit'],
+    [nav('/', 'https://www.tiktok.com/@ciphro.eu'), 'start|tiktok'],
+    [nav('/', 'https://amzn.eu/d/0ij969YA'), 'start|amazon'],
+    [nav('/', 'https://example.org/liste'), 'start|andere'],
+    [nav('/', 'kein-url'), 'start|andere'],
+    [nav('/de/index.html', 'https://t.co/xyz'), 'de|x']
+  ];
+  for (const [req, erwartet] of faelle) {
+    const { res, calls } = await aufrufen(w, env, req);
+    assert.equal(res.status, 200);
+    assert.equal(res.headers.get('x-herkunft'), 'github', 'Antwort kommt unverändert von GitHub Pages');
+    assert.equal(await res.text(), 'seite ' + new URL(req.url).pathname);
+    assert.deepEqual(calls, [req.url], `${erwartet}: genau eine Weiterleitung an GitHub Pages`);
+  }
+  const gezaehlt = [...env.DB.tables.besuche].map(([k, n]) => [k.split('|').slice(1).join('|'), n]);
+  const soll = {};
+  faelle.forEach(([, e]) => { soll[e] = (soll[e] || 0) + 1; });
+  assert.deepEqual(Object.fromEntries(gezaehlt), soll);
+  [...env.DB.tables.besuche.keys()].forEach(k => assert.match(k.split('|')[0], /^\d{4}-\d\d-\d\d$/));
+  assert.equal(env.DB.tables.zaehler.size, 0, 'Seitenaufrufe landen nicht in den Spiel-Ereignissen');
+});
+
+test('Seitenaufrufe: Bots, Vorabladen, andere Dateien und Fehlerseiten zählen nicht; die Seite läuft auch, wenn der Zähler streikt', async () => {
+  const w = (await load()).default, env = environment();
+  const nicht = [
+    nav('/', null, { 'user-agent': 'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)' }),
+    nav('/', null, { 'user-agent': 'curl/8.6.0' }),
+    nav('/', null, { 'user-agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/142.0.0.0 Safari/537.36' }),
+    nav('/', null, { 'user-agent': 'WhatsApp/2.23.20.0 A' }),
+    nav('/', null, { 'user-agent': 'Mozilla/5.0 (Windows NT 10.0) facebookexternalhit/1.1' }),
+    nav('/', null, { 'sec-purpose': 'prefetch;prerender' }),
+    nav('/', null, { 'sec-fetch-mode': 'no-cors', 'sec-fetch-dest': 'script' }),
+    new Request('https://ciphro.eu/', { headers: { 'user-agent': CHROME } }),
+    nav('/kern.js'), nav('/fakten.js'), nav('/cmd/.env'), nav('/datenschutz.html'), nav('/sw.js'),
+    new Request('http://ciphro.eu/', { headers: { 'user-agent': CHROME, 'sec-fetch-mode': 'navigate', 'sec-fetch-dest': 'document' } }),
+    new Request('https://ciphro.eu/', { method: 'POST', body: 'x', headers: { 'user-agent': CHROME, 'sec-fetch-mode': 'navigate', 'sec-fetch-dest': 'document' } })
+  ];
+  for (const req of nicht) {
+    const { res, calls } = await aufrufen(w, env, req);
+    assert.equal(res.status, 200);
+    assert.equal(calls.length, 1, 'trotzdem unverändert ausgeliefert');
+  }
+  await aufrufen(w, env, nav('/'), 404);
+  assert.equal(env.DB.tables.besuche.size, 0, 'nichts davon gezählt');
+  // 304 (Browser prüft seine Kopie) zählt als Aufruf
+  await aufrufen(w, env, nav('/de/'), 304);
+  assert.equal(env.DB.tables.besuche.size, 1);
+  // Zähler kaputt, Datenbank weg, Rate-Limit erreicht: Seite kommt trotzdem, gezählt wird nichts
+  for (const kaputt of [environment({ DB: undefined }), environment({ EINGANG_LIMIT: undefined }), environment({ EINGANG_LIMIT: limiter(false) }),
+    environment({ DB: { prepare() { throw new Error('D1 weg'); }, batch() { throw new Error('D1 weg'); } } })]) {
+    const { res } = await aufrufen(w, kaputt, nav('/'));
+    assert.equal(res.status, 200);
+    if (kaputt.DB && kaputt.DB.tables) assert.equal(kaputt.DB.tables.besuche.size, 0);
+  }
+  // Andere Hosts als ciphro.eu bleiben beim Zähler (www wird von GitHub umgeleitet, nicht vom Worker)
+  const calls = origin();
+  assert.equal((await w.fetch(new Request('https://zaehler.ciphro.eu/irgendwas'), environment(), kontext())).status, 404);
+  assert.deepEqual(calls, []);
+});
+
+test('Merkmale mit Einwilligung: Spieltage, Serie und Lösungszeit nur als feste Gruppen', async () => {
+  const w = (await load()).default, env = environment();
+  assert.equal((await w.fetch(post({ e: 'tage', l: 'de', w: '2-3' }), env)).status, 204);
+  assert.equal((await w.fetch(post({ e: 'tage', l: 'de', w: '2-3', m: '', a: 0 }), env)).status, 204);
+  assert.equal((await w.fetch(post({ e: 'serie', l: 'en', w: '8+' }), env)).status, 204);
+  assert.equal((await w.fetch(post({ e: 'dauer', l: 'fr', m: 'hard', w: '1-3' }), env)).status, 204);
+  assert.equal((await w.fetch(post({ e: 'dauer', l: 'it', m: 'easy', w: '<1' }), env)).status, 204);
+  for (const falsch of [
+    { e: 'tage', l: 'de', w: '5' }, { e: 'tage', l: 'de' }, { e: 'tage', l: 'de', w: '1', m: 'easy' }, { e: 'tage', l: 'de', w: '1', a: 1 },
+    { e: 'serie', l: 'de', w: 'viele' }, { e: 'dauer', l: 'de', w: '1-3' }, { e: 'dauer', l: 'de', m: 'easy', w: '61' },
+    { e: 'aufruf', l: 'de', w: '1' }, { e: 'start', l: 'de', m: 'easy', w: '<1' }, { e: 'tage', l: 'es', w: '1' },
+    { e: 'constructor', l: 'de', w: '1' }, { e: 'tage', l: 'de', w: '1', id: 'x' }
+  ]) assert.equal((await w.fetch(post(falsch), env)).status, 400, JSON.stringify(falsch));
+  assert.deepEqual([...env.DB.tables.merkmale].map(([k, n]) => [k.split('|').slice(1).join('|'), n]).sort(), [
+    ['dauer|fr|hard|1-3', 1], ['dauer|it|easy|<1', 1], ['serie|en||8+', 1], ['tage|de||2-3', 2]
+  ]);
+  assert.equal(env.DB.tables.zaehler.size, 0);
+});
+
+test('Statistik: Seitenaufrufe, Herkunft, Wiederkommen und Dauer; http leitet vor der Anmeldung auf https um', async () => {
+  const w = (await load()).default, env = environment();
+  for (const [req, n] of [[nav('/', 'https://www.reddit.com/'), 3], [nav('/de/'), 2], [nav('/en/', 'https://ciphro.eu/de/'), 1]])
+    for (let i = 0; i < n; i++) await aufrufen(w, env, req);
+  for (const d of [{ e: 'spieler', l: 'de' }, { e: 'tage', l: 'de', w: '1' }, { e: 'tage', l: 'de', w: '4-7' }, { e: 'tage', l: 'en', w: '15+' },
+    { e: 'serie', l: 'de', w: '0' }, { e: 'serie', l: 'de', w: '2-3' }, { e: 'serie', l: 'en', w: '8+' }, { e: 'dauer', l: 'de', m: 'easy', w: '1-3' }])
+    await w.fetch(post(d), env);
+  const auth = { authorization: 'Basic ' + Buffer.from('egal:' + SECRET).toString('base64') };
+  const html = await (await w.fetch(new Request('https://zaehler.ciphro.eu/statistik', { headers: auth }), env)).text();
+  const zeile = name => { const m = new RegExp(`<tr><td>${name}</td>(.*?)</tr>`).exec(html); return m ? [...m[1].matchAll(/<td>(.*?)<\/td>/g)].map(x => x[1]) : null; };
+  assert.match(html, /<b>6<\/b>Seitenaufrufe, letzte 7 Tage/);
+  assert.match(html, /<b>67 %<\/b>davon schon an mehreren Tagen gespielt/);
+  assert.match(html, /<b>67 %<\/b>mit Serie von 2 Tagen oder mehr/);
+  assert.deepEqual(zeile('Reddit'), ['3', '3']);
+  assert.deepEqual(zeile('Direkt \\(Lesezeichen, App, WhatsApp, eingetippt\\)'), ['2', '2']);
+  assert.deepEqual(zeile('Innerhalb von ciphro.eu'), ['1', '1']);
+  assert.deepEqual(zeile('easy'), ['0', '1', '0', '0']);
+  const tag = /<tr><td>(\d{4}-\d\d-\d\d)<\/td><td>6<\/td><td>5<\/td><td>3<\/td><td>2<\/td><td>1<\/td><td>0<\/td><td>0<\/td><\/tr>/.exec(html);
+  assert.ok(tag, 'Tageszeile Seitenaufrufe: 6 gesamt, 5 von außen, 3 Start, 2 DE, 1 EN');
+  assert.match(html, /<td>3<\/td><td>1<\/td><td>0<\/td><td>1<\/td><td>0<\/td><td>1<\/td><td>67 %<\/td><td>1<\/td><td>0<\/td><td>1<\/td><td>0<\/td><td>1<\/td>/, 'Wiederkommen-Zeile');
+  assert.doesNotMatch(html, /<script/i);
+  const csv = async t => (await w.fetch(new Request('https://zaehler.ciphro.eu/statistik?format=csv&tabelle=' + t, { headers: auth }), env)).text();
+  assert.match(await csv('besuche'), /^datum,seite,herkunft,anzahl\n\d{4}-\d\d-\d\d,start,reddit,3\n/);
+  assert.match(await csv('merkmale'), /^datum,art,sprache,stufe,wert,anzahl\n/);
+  // http: zuerst auf https, damit das Passwort nie unverschlüsselt geschickt wird
+  for (const pfad of ['/statistik', '/statistik?format=csv', '/z']) {
+    const r = await w.fetch(new Request('http://zaehler.ciphro.eu' + pfad, { headers: auth }), env);
+    assert.equal(r.status, 301);
+    assert.equal(r.headers.get('location'), 'https://zaehler.ciphro.eu' + pfad);
+  }
+  const ok = await w.fetch(new Request('https://zaehler.ciphro.eu/statistik', { headers: auth }), env);
+  assert.equal(ok.headers.get('strict-transport-security'), 'max-age=31536000');
+});
+
+test('Deployment: Route vor ciphro.eu mit Hinweis auf „Fail open“; Tabellen im Worker und in schema.sql gleich', t => {
+  const cfg = fs.readFileSync(path.join(DIR, 'wrangler.toml'), 'utf8');
+  assert.match(cfg, /\{ pattern = "ciphro\.eu\/\*", zone_name = "ciphro\.eu" \}/);
+  assert.match(cfg, /Fail open/);
+  assert.match(cfg, /\{ pattern = "zaehler\.ciphro\.eu", custom_domain = true \}/);
+  const worker = fs.readFileSync(path.join(DIR, 'worker.js'), 'utf8');
+  const schema = fs.readFileSync(path.join(DIR, 'schema.sql'), 'utf8');
+  const norm = x => x.replace(/\s+/g, ' ').trim();
+  for (const name of ['besuche', 'merkmale']) {
+    const ausWorker = new RegExp('`(CREATE TABLE IF NOT EXISTS ' + name + ' \\([\\s\\S]*?\\))`').exec(worker)[1];
+    const ausSchema = new RegExp('(CREATE TABLE IF NOT EXISTS ' + name + ' \\([\\s\\S]*?\\));').exec(schema)[1];
+    assert.equal(norm(ausWorker), norm(ausSchema), name);
+  }
+  assert.ok(!worker.includes('cf-connecting-ip') && !/x-forwarded-for/i.test(worker), 'keine IP-Adressen');
+  let sqlite;
+  try { sqlite = require('node:sqlite'); } catch (e) { t.skip('node:sqlite fehlt'); return; }
+  const db = new sqlite.DatabaseSync(':memory:');
+  db.exec(schema);
+  const inserts = [...worker.matchAll(/'(INSERT INTO \w+[^']*)' \+\s*'([^']*)'/g)].map(m => m[1] + m[2]);
+  assert.equal(inserts.length, 3);
+  const st = Object.fromEntries(inserts.map(sql => [/INTO (\w+)/.exec(sql)[1], db.prepare(sql)]));
+  st.besuche.run('2026-11-22', 'start', 'reddit'); st.besuche.run('2026-11-22', 'start', 'reddit');
+  st.merkmale.run('2026-11-22', 'tage', 'de', '', '2-3'); st.merkmale.run('2026-11-22', 'dauer', 'de', 'hard', '1-3');
+  assert.deepEqual(db.prepare('SELECT seite, herkunft, anzahl FROM besuche').all().map(r => ({ ...r })), [{ seite: 'start', herkunft: 'reddit', anzahl: 2 }]);
+  assert.equal(db.prepare('SELECT count(*) AS n FROM merkmale').get().n, 2);
+  assert.throws(() => st.merkmale.run('2026-11-22', 'ip', 'de', '', 'x'), /CHECK/);
 });
 
 test('Spiel: meldet nur mit Zustimmung, nur auf ciphro.eu und nie bei Global Privacy Control', () => {

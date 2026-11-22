@@ -1,5 +1,24 @@
 # Anonymer Zähler für CIPHRO – Freigabe- und Betriebsanleitung
 
+## Update vom 22.11.2026 einspielen (einmalig, ca. 10 Minuten)
+
+Der Code im Repository kann mehr als der Worker, der gerade bei Cloudflare läuft. Bis zu diesem Deploy lehnt der alte Worker die neuen Meldungen (tage, serie, dauer) einfach ab, und Seitenaufrufe werden noch nicht gezählt. Das Spiel funktioniert in beiden Fällen.
+
+Neu: Seitenaufrufe **aller** Besucher (Route vor `ciphro.eu/*`, ohne Einwilligung, Bots herausgefiltert, mit grober Herkunft), Spieltage/Serie/Lösungszeit mit Einwilligung, http → https vor der Anmeldung, neue Statistikseite. Die neuen Tabellen `besuche` und `merkmale` legt der Worker selbst an; **kein** `d1 execute` nötig.
+
+1. Repository holen bzw. aktualisieren (`git pull`), dann `cd _dev/zaehler`.
+2. `npx wrangler whoami` – muss das Cloudflare-Konto zeigen, in dem ciphro.eu liegt. Sonst `npx wrangler login`.
+3. `npx wrangler deploy --dry-run` – darf keine Fehler zeigen.
+4. `npx wrangler deploy`
+5. **Sofort danach „Fail open“ einstellen:** Cloudflare → Workers & Pages → `ciphro-zaehler` → Settings → Domains & Routes → bei der Route `ciphro.eu/*` den Fehlermodus auf **Fail open** stellen. Wrangler setzt ihn bei jedem Deploy auf „Fail closed“ zurück. Mit „Fail closed“ wäre ciphro.eu für den Rest des Tages nicht erreichbar (Fehler 1027), falls das Gratis-Kontingent von 100.000 Worker-Aufrufen pro Tag je aufgebraucht wird. Mit „Fail open“ läuft die Seite dann einfach ohne Zählung weiter.
+6. Wie unten unter „Nach jedem Deploy“: Logs, Invocation Logs und Traces müssen aus sein.
+7. Prüfen: ciphro.eu im Browser öffnen, dann `https://zaehler.ciphro.eu/statistik` – oben unter „Seitenaufrufe, letzte 7 Tage“ muss mindestens 1 stehen. `http://zaehler.ciphro.eu/statistik` muss auf https umleiten.
+
+**Statistik-Schlüssel erneuern** (der alte stand in einem Chat): Im Passwortmanager ein neues Passwort erzeugen (mindestens 24 Zeichen, nur Buchstaben und Ziffern). Dann entweder `npx wrangler secret put STATISTIK_SCHLUESSEL` und das Passwort bei der Abfrage einfügen, oder Cloudflare → Workers & Pages → `ciphro-zaehler` → Settings → Variables and Secrets → `STATISTIK_SCHLUESSEL` ersetzen. Anmelden auf der Statistikseite: Benutzername beliebig, Passwort = dieser Schlüssel. Nur über den Passwortmanager weitergeben.
+
+**Zusätzlich empfohlen:** Cloudflare → ciphro.eu → SSL/TLS → Edge Certificates → **Always Use HTTPS** einschalten. Dann leitet Cloudflare jede http-Adresse von ciphro.eu sofort auf https um, auch ohne Deploy.
+
+
 **Status (07.11.2026):** Cloudflare-Worker `ciphro-zaehler`, EU-D1-Datenbank und `zaehler.ciphro.eu` sind im Cloudflare-Konto der Betreiber (das Konto, in dem auch ciphro.eu liegt) eingerichtet. Der produktive Spielcode erhält den Zähler mit PR #10. Normale Besucher müssen dafür nichts installieren; für Wartung siehe unten.
 
 Beantwortet die Frage „Haben wir überhaupt Nutzer?“, ohne Tracking: Das Spiel meldet nur, **dass** etwas passiert ist (Seite aufgerufen, erstes Rätsel des Tages begonnen, Stufe gestartet, Stufe gelöst, Ergebnis geteilt), mit Sprache, Stufe und Archiv ja/nein. Der Zähler speichert davon nur Tagessummen. Keine IP-Adresse, keine Kennung, kein Cookie.
@@ -9,6 +28,8 @@ Beantwortet die Frage „Haben wir überhaupt Nutzer?“, ohne Tracking: Das Spi
 | `worker.js` | Der Zähler (Cloudflare Worker). Nimmt Meldungen von ciphro.eu an und zeigt die Statistik. |
 | `schema.sql` | Die eine Tabelle der Datenbank. |
 | `wrangler.toml` | Reproduzierbare Konfiguration für spätere Wartungsdeployments. |
+
+Seit 22.11.2026 zusätzlich: Seitenaufrufe aller Besucher (ohne Einwilligung, auf dem Server, siehe oben) und mit Einwilligung Version 2 grobe Gruppen für Spieltage, Serie und Lösungszeit.
 
 Im Spiel steht der Gegenpart in `index.html` (Suche nach `countEvent`). **Standardmäßig aus:** Nach dem ersten gelösten oder aufgelösten Rätsel fragt das Spiel einmal „Dürfen wir anonym mitzählen?“ mit zwei gleichwertigen Knöpfen. Erst nach „Ja“ (oder dem Schalter in den Einstellungen) geht überhaupt eine Anfrage an den Zähler. Die Auswahl „Ja“ meldet auch den **bereits beendeten aktuellen Besuch samt Rätsel** nach; vor dem Ja wurde nichts übertragen. Bei „Nein“ gehen keine Anfragen ab. Die Entscheidung kann in den Einstellungen geändert werden. Gefragt und gezählt wird nur auf `ciphro.eu` (nie lokal, in Tests oder Vorschauen) und nie bei Global Privacy Control / Do Not Track.
 
@@ -40,7 +61,7 @@ Hinweis: Die Einstellung `workers_dev = false` und die Domainbindung verhindern 
 - `https://zaehler.ciphro.eu/` zeigt 404 „Nicht gefunden“ (kein Fehler).
 - ciphro.eu öffnen, ein Rätsel lösen und **vor** der Einwilligung in der Netzwerkansicht kontrollieren: **keine einzige Anfrage** an `zaehler.ciphro.eu`. Dann mit „Ja“ zustimmen. Die aktuelle Seite, der aktuelle Spielstart und die Lösung werden nun gemeldet. Nach einem weiteren Seitenaufruf kommen neue Ereignisse dazu.
 - Danach `https://zaehler.ciphro.eu/statistik` öffnen. Benutzername beliebig, Passwort = der geheime Schlüssel. In der Statistik stehen die gemeldeten Aufrufe, Spieler, Starts und Lösungen; sie ist nicht öffentlich.
-- `https://zaehler.ciphro.eu/statistik?format=csv` lädt die Zahlen als Tabelle für Excel.
+- `https://zaehler.ciphro.eu/statistik?format=csv` lädt die Spiel-Zahlen als Tabelle für Excel, `&tabelle=besuche` die Seitenaufrufe, `&tabelle=merkmale` Spieltage, Serie und Lösungszeit.
 - Von einem zweiten Browser „Nein“ klicken und bestätigen, dass **keine** Zähleranfrage erfolgt. GPC/DNT testen, dann ein Ja in den Einstellungen widerrufen. Test der Rate-Limits: viele Anfragen in kurzem Abstand erhalten HTTP 429; in der Datenbank werden nur Summen gespeichert.
 - Unter `npx wrangler deploy --dry-run` und `npm test` (im Ordner `_dev`) vor jedem späteren Deploy die Konfiguration und die Tests prüfen.
 
@@ -56,6 +77,15 @@ Der Schlüssel steht nie in der Adresse, also auch nicht im Browserverlauf. Nich
 | Archiv | Begonnene ältere Rätsel. |
 | Start / Gelöst je Stufe | Wie oft Easy, Hard, Mirror, Impossible gestartet und gelöst wurden. |
 | Geteilt | Wie oft „Ergebnis teilen“ getippt wurde. |
+
+Weitere Teile der Statistikseite (seit 22.11.2026):
+
+| Teil | Bedeutung |
+|---|---|
+| Seitenaufrufe aller Besucher | Echte Browser öffnen `/` oder eine Sprachseite. Ohne Einwilligung gezählt, Bots herausgefiltert. Neuladen binnen ~10 Minuten zählt meist nicht. Keine eindeutigen Personen. |
+| Woher die Besucher kommen | Grobe Herkunft aus dem Referer (Reddit, Google, Instagram, TikTok, KI-Assistenten, Amazon, alte Adresse, direkt …). WhatsApp-Links und Apps erscheinen als „Direkt“. |
+| Wiederkommen | Mit Einwilligung: an wie vielen Tagen schon gespielt (1, 2–3, 4–7, 8–14, 15+) und Serie. „Wiedergekommen“ = mehr als 1 Tag. |
+| Wie lange eine Stufe dauert | Mit Einwilligung: Minuten bis zur Lösung (unter 1, 1–3, 3–10, über 10), gelöste Tagesrätsel der letzten 30 Tage. |
 
 Die Zahlen sind Richtwerte: Gezählt wird nur mit Zustimmung und nach dem Ja. Die Frage erscheint erst nach dem ersten fertigen Rätsel; Gäste, die vorher abspringen, tauchen nicht auf. Wer einen zweiten Browser benutzt, kann doppelt zählen. **Fälschungen sind bei einem öffentlichen Endpoint ohne Nutzerkennung nicht vollständig verhinderbar.** Der Worker prüft Origin, Fetch-Metadaten, Payload-Typ, erlaubte Kombinationen und harte Größe (160 Bytes), begrenzt über Cloudflare das Volumen grob auf 1.200 Meldungen/Minute und 20 Statistikversuche/Minute **je Cloudflare-Standort**. Es gibt bewusst keine IP-, Session- oder Geräte-Kennung. Diese Limits sind nicht absolut; auch zulässige Meldungen können bei großem Ansturm abgewiesen werden. Bei Missbrauch Statistik aussetzen statt personenbezogene Verfolgung nachrüsten.
 
