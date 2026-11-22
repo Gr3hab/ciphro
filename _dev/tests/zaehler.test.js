@@ -168,7 +168,9 @@ test('Seitenaufrufe: echte Browser auf Spielseiten zählen mit grober Herkunft, 
     [nav('/', 'https://amzn.eu/d/0ij969YA'), 'start|amazon'],
     [nav('/', 'https://example.org/liste'), 'start|andere'],
     [nav('/', 'kein-url'), 'start|andere'],
-    [nav('/de/index.html', 'https://t.co/xyz'), 'de|x']
+    [nav('/de/index.html', 'https://t.co/xyz'), 'de|x'],
+    // Wiederkehrer: Die Offline-Hilfe (Service Worker) reicht die Navigation weiter, Chrome meldet dann Sec-Fetch-Dest „empty“
+    [nav('/fr/', null, { 'sec-fetch-dest': 'empty' }), 'fr|direkt']
   ];
   for (const [req, erwartet] of faelle) {
     const { res, calls } = await aufrufen(w, env, req);
@@ -195,6 +197,8 @@ test('Seitenaufrufe: Bots, Vorabladen, andere Dateien und Fehlerseiten zählen n
     nav('/', null, { 'user-agent': 'Mozilla/5.0 (Windows NT 10.0) facebookexternalhit/1.1' }),
     nav('/', null, { 'sec-purpose': 'prefetch;prerender' }),
     nav('/', null, { 'sec-fetch-mode': 'no-cors', 'sec-fetch-dest': 'script' }),
+    nav('/', null, { 'sec-fetch-mode': 'cors', 'sec-fetch-dest': 'empty' }),
+    nav('/', null, { 'sec-fetch-mode': 'navigate', 'sec-fetch-dest': 'iframe' }),
     new Request('https://ciphro.eu/', { headers: { 'user-agent': CHROME } }),
     nav('/kern.js'), nav('/fakten.js'), nav('/cmd/.env'), nav('/datenschutz.html'), nav('/sw.js'),
     new Request('http://ciphro.eu/', { headers: { 'user-agent': CHROME, 'sec-fetch-mode': 'navigate', 'sec-fetch-dest': 'document' } }),
